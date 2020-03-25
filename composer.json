@@ -1,0 +1,8 @@
+{
+    "name": "discoverygarden/dgi_migrate",
+    "type": "drupal-module",
+    "license": "GPL-3.0-only",
+    "require": {
+      "iqb/substream": "dev-master"
+    }
+}

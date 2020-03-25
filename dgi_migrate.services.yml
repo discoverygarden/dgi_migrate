@@ -1,0 +1,7 @@
+---
+services:
+  dgi_migrate.substream.stream_wrapper:
+    class: Drupal\dgi_migrate\Utility\Substream
+    tags:
+      - name: stream_wrapper
+        scheme: dgi-migrate.substream

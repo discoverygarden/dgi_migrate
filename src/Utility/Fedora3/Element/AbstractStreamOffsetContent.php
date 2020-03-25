@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
 use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
+use Drupal\dgi_migrate\Utility\Substream;
 
 abstract class AbstractStreamOffsetContent extends AbstractParser {
   protected $start;
@@ -41,6 +42,6 @@ abstract class AbstractStreamOffsetContent extends AbstractParser {
   }
 
   public function getUri() {
-    return "php://filter/read=dgi_migrate_substream.{$this->start()}.{$this->end()}/resource={$this->target}";
+    return Substream::format($this->target, $this->start(), $this->length());
   }
 }

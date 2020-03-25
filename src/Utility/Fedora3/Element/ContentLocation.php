@@ -11,4 +11,14 @@ class ContentLocation extends AbstractParser {
 
   const TAG = 'foxml:contentLocation';
 
+  public function getUri() {
+    if ($this->TYPE === 'URL') {
+      return $this->REF;
+    }
+    else {
+      // XXX: An internal URI would require additional dereferencing to be
+      // useful.
+      throw new Exception('Refusing to provide internal URI.');
+    }
+  }
 }

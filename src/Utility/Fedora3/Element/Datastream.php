@@ -47,4 +47,8 @@ class Datastream extends AbstractParser implements \ArrayAccess {
   public function offsetUnset($offset) {
     throw new Exception('Not implemented.');
   }
+
+  public function getUri() {
+    return $this->latest()->content()->getUri();
+  }
 }

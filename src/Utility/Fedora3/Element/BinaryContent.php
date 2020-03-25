@@ -10,4 +10,8 @@ class BinaryContent extends AbstractStreamOffsetContent {
 
   const TAG = 'foxml:binaryContent';
 
+  //public function getUri() {
+  //  $uri = parent::getUri();
+  //  return "php://filter/read=convert.base64-decode/resource={$uri}";
+  //}
 }
