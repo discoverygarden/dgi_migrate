@@ -3,6 +3,7 @@
     "type": "drupal-module",
     "license": "GPL-3.0-only",
     "require": {
-      "iqb/substream": "dev-master"
+      "iqb/substream": "dev-master",
+      "drupal/migrate_directory": "^1"
     }
 }

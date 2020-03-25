@@ -5,3 +5,5 @@ services:
     tags:
       - name: stream_wrapper
         scheme: dgi-migrate.substream
+  dgi_migrate.foxml_parser:
+    class: Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser

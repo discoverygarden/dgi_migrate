@@ -1,0 +1,37 @@
+---
+id: foxml_files
+label: FOXML to file entities
+migration_group: foxml_to_nodes
+source:
+  plugin: directory
+  track_changes: true
+  path: file:///opt/export
+destination:
+  plugin: entity:file
+process:
+  uri: path
+  _parsed:
+    plugin: dgi_migrate.parse_foxml
+    source: path
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: lastModifiedDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: default_value
+      default_value: 0
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
