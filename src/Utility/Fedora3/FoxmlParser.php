@@ -2,7 +2,7 @@
 
 namespace Drupal\dgi_migrate\Utility\Fedora3;
 
-use Drupal\dgi_migrate\Utility\Element\DigitalObject;
+use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
 
 class FoxmlParser extends AbstractParser {
   const READ_SIZE = 4096;
@@ -10,6 +10,7 @@ class FoxmlParser extends AbstractParser {
   protected $target;
   protected $file = NULL;
   protected $chunk = NULL;
+  protected $foxmlParser;
 
   const MAP = [
     DigitalObject::TAG => DigitalObject::class,
@@ -17,7 +18,10 @@ class FoxmlParser extends AbstractParser {
 
   public function __construct() {
     $this->parser = xml_parser_create_ns();
+    $this->foxmlParser = $this;
 
+    xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
+    xml_parser_set_option($this->parser, XML_OPTION_SKIP_WHITE, TRUE);
     xml_set_object($this->parser, $this);
     xml_set_element_handler($this->parser, 'tagOpen', 'tagClose');
     xml_set_character_data_handler($this->parser, 'characters');
@@ -35,7 +39,9 @@ class FoxmlParser extends AbstractParser {
       while (!feof($this->file)) {
         $this->chunk = fread($this->file, static::READ_SIZE);
         $result = xml_parse($this->parser, $this->chunk, feof($this->file));
-        if ($result) {
+        // Error code "0" means incomplete parse, so we just need to feed it
+        // some more.
+        if ($result && xml_get_error_code($this->parser) !== 0) {
           throw new FoxmlParserException($this->parser);
         }
       }

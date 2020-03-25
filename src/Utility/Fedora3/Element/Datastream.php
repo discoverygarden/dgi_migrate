@@ -28,7 +28,7 @@ class Datastream extends AbstractParser implements \ArrayAccess {
   }
 
   public function offsetExists($offset) {
-    return isset($this[$offset]);
+    return isset($this->versions[$offset]);
   }
 
   public function offsetGet($offset) {

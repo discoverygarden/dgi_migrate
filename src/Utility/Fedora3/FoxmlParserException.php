@@ -16,11 +16,11 @@ class FoxmlParserException extends \Exception {
   }
 
   protected function generateMessage() {
-    $code = xml_get_error_code();
-    $string = xml_error_string($code);
+    $code = xml_get_error_code($this->parser);
 
-    return $this->t('XML Parsing error; @message at line @line, column @col (byte offset @offset)', [
+    return $this->t('XML Parsing error; @message (@code) at line @line, column @col (byte offset @offset)', [
       '@message' => xml_error_string($code),
+      '@code' => $code,
       '@line' => xml_get_current_line_number($this->parser),
       '@col' => xml_get_current_column_number($this->parser),
       '@offset' => xml_get_current_byte_index($this->parser),

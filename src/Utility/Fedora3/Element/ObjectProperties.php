@@ -20,7 +20,7 @@ class ObjectProperties extends AbstractParser implements \ArrayAccess {
   }
 
   public function offsetExists($offset) {
-    return isset($this[$offset]);
+    return isset($this->properties[$offset]);
   }
 
   public function offsetGet($offset) {

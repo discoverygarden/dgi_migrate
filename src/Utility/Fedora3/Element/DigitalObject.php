@@ -11,7 +11,7 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
     Datastream::TAG => Datastream::class,
   ];
 
-  protected $properties = NULL
+  protected $properties = NULL;
   protected $datastreams = [];
 
   protected function pop() {

@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\dgi_migrate\Utility\Fedora3
+namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 abstract class AbstractParser implements ParserInterface {
   const MAP = [];
 
+  protected $map = NULL;
   protected $foxmlParser;
   protected $depths = [];
   protected $stack = [];
@@ -38,14 +39,33 @@ abstract class AbstractParser implements ParserInterface {
     // No-op by default.
   }
 
+  protected function map() {
+    if ($this->map === NULL) {
+      $this->map = array_combine(
+        array_map(function ($key) {
+          list($prefix, $name) = explode(':', $key);
+          if ($prefix === 'foxml') {
+            $key = "info:fedora/fedora-system:def/foxml#:{$name}";
+          }
+          return $key;
+        }, array_keys(static::MAP)),
+        static::MAP
+      );
+    }
+    return $this->map;
+  }
+
   /**
    * {@inheritdoc}
    */
   public function tagOpen($parser, $tag, $attributes) {
-    if (isset(static::MAP[$tag]) {
+    if (isset($this->map()[$tag])) {
+      var_dump($tag);
+      var_dump($attributes);
       $this->depths[$tag]++;
       if ($this->depths[$tag] === 1) {
-        $this->push(static::MAP[$tag]($this->foxmlParser, $attributes));
+        $class = $this->map()[$tag];
+        $this->push(new $class($this->foxmlParser, $attributes));
       }
       else {
         $this->current()->tagOpen($parser, $tag, $attributes);
@@ -60,7 +80,7 @@ abstract class AbstractParser implements ParserInterface {
    * {@inheritdoc}
    */
   public function tagClose($parser, $tag) {
-    if (isset(static::MAP[$tag]) {
+    if (isset($this->map()[$tag])) {
       $this->depths[$tag]--;
       if ($this->depths[$tag] === 0) {
         $this->pop();
@@ -78,6 +98,11 @@ abstract class AbstractParser implements ParserInterface {
    * {@inheritdoc}
    */
   public function characters($parser, $chars) {
-    $this->current()->characters($parser, $chars);
+    if ($this->current()) {
+      $this->current()->characters($parser, $chars);
+    }
+    else {
+      // XXX: Characters are suppress.
+    }
   }
 }

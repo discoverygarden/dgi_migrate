@@ -9,7 +9,7 @@ class ObjectProperty extends AbstractParser {
   use LeafTrait;
   use EmptyTrait;
 
-  const TAG = 'foxml:objectProperty';
+  const TAG = 'foxml:property';
 
   public function id() {
     $parts = explode('#', $this->attributes['NAME']);

@@ -14,7 +14,7 @@ class Migration extends SourcePluginBase {
    * {@inheritdoc}
    */
   protected function initializeIterator() {
-    return \ArrayIterator
+    return \ArrayIterator([]);
   }
 
 }
