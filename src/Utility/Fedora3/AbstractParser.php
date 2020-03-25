@@ -60,9 +60,12 @@ abstract class AbstractParser implements ParserInterface {
    */
   public function tagOpen($parser, $tag, $attributes) {
     if (isset($this->map()[$tag])) {
-      var_dump($tag);
-      var_dump($attributes);
-      $this->depths[$tag]++;
+      if (!isset($this->depths[$tag])) {
+        $this->depths[$tag] = 1;
+      }
+      else {
+        $this->depths[$tag]++;
+      }
       if ($this->depths[$tag] === 1) {
         $class = $this->map()[$tag];
         $this->push(new $class($this->foxmlParser, $attributes));
@@ -84,6 +87,7 @@ abstract class AbstractParser implements ParserInterface {
       $this->depths[$tag]--;
       if ($this->depths[$tag] === 0) {
         $this->pop();
+        unset($this->depths[$tag]);
       }
       else {
         $this->current()->tagClose($parser, $tag);
