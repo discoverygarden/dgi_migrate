@@ -17,7 +17,7 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
   protected function pop() {
     $old = parent::pop();
 
-    if ($old instanceof ObjectPropertes) {
+    if ($old instanceof ObjectProperties) {
       if ($this->properties === NULL) {
         $this->properties = $old;
       }
@@ -32,8 +32,13 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
     return $old;
   }
 
+  public function __isset($prop) {
+    return isset($this->properties[$prop]) || parent::__isset($prop);
+  }
   public function __get($prop) {
-    return $this->properties[$prop];
+    return isset($this->properties[$prop]) ?
+      $this->properties[$prop]->value() :
+      parent::__get($prop);
   }
 
   public function datastreams() {
