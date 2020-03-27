@@ -103,5 +103,8 @@ class Substream extends ReadOnlyStream {
   public function dir_rewinddir() { $this->throwNotImplemented(); }
   public function stream_cast($cast_as) { $this->throwNotImplemented(); }
   public function stream_set_option($options, $arg1, $arg2) { $this->throwNotImplemented(); }
-  public function url_stat($path, $flags) { $this->throwNotImplemented(); }
+  public function url_stat($path, $flags) {
+    // XXX: Nothing to report.
+    return [];
+  }
 }

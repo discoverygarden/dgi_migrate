@@ -1,0 +1,45 @@
+---
+id: foxml_media
+label: FOXML to media entities
+migration_group: foxml_to_nodes
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: foxml_files
+destination:
+  plugin: entity:media
+  default_bundle: file
+process:
+  uri: path
+  _parsed:
+    plugin: dgi_migrate.parse_foxml
+    source: path
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: lastModifiedDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: default_value
+      default_value: 0
+  filemime:
+    - plugin: default_value
+      default_value: application/xml
+migration_dependencies:
+  required:
+    - foxml_nodes
+    - foxml_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate

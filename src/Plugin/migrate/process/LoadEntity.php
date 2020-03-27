@@ -5,34 +5,38 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\migrate\MigrateException;
 use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\migrate\EntityFieldDefinitionTrait;
+use Drupal\Core\Entity\EntityStorageInterface;
 
 /**
  * Parse FOXML.
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.parse_foxml"
+ *   id = "dgi_migrate.load_entity"
  * )
  */
-class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInterface {
+class LoadEntity extends ProcessPluginBase implements ContainerFactoryPluginInterface {
 
-  protected $parser;
+  use EntityFieldDefinitionTrait;
 
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, FoxmlParser $parser) {
+  protected $storage;
+
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityStorageInterface $storage) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->parser = $parser;
+    $this->storage = $storage;
   }
 
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    $entity_type_id = static::getEntityTypeId($configuration['entity_type']);
+
     return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('dgi_migrate.foxml_parser')
+      $container->get('entity_type.manager')->getStorage($entity_type_id)
     );
   }
 
@@ -40,10 +44,7 @@ class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    if (!is_string($value) || !file_exists($value)) {
-      throw new MigrateException('The passed value is not a file path.');
-    }
-    return $this->parser->parse($value);
+    return $this->storage->load($value);
   }
 
 }

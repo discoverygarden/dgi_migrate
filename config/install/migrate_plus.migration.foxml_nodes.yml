@@ -1,0 +1,90 @@
+---
+id: foxml_nodes
+label: Nodes from FOXML
+migration_group: foxml_to_nodes
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: foxml_files
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  translations: true
+process:
+  _parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
+  _models:
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: models
+  _log_models:
+    - plugin: concat
+      source: '@_models'
+      delimiter: ', '
+    - plugin: log
+  title:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: label
+    - plugin: default_value
+      default_value: Untitled
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  changed:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: lastModifiedDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: default_value
+      default_value: 0
+  field_edtf_date_created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+  field_pid:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: PID
+  field_model:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:sp_basic_image': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/islandora:sp_large_image_cmodel': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/ir:citationCModel': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_pdf': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_videoCModel': 'http://purl.org/coar/resource_type/c_12ce'
+        'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
+        'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+    - plugin: skip_on_empty
+      method: row
+migration_dependencies:
+  required:
+    - foxml_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate

@@ -65,4 +65,26 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
   public function offsetUnset($offset) {
     throw new Exception('Not implemented.');
   }
+
+  public function models() {
+    $dom = new \DOMDocument();
+    $dom->load($this['RELS-EXT']->getUri());
+    $xpath = new \DOMXPath($dom);
+    $ns = [
+      'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      'fre' => 'info:fedora/fedora-system:def/relations-external#',
+      'fm' => 'info:fedora/fedora-system:def/model#',
+    ];
+
+    foreach ($ns as $prefix => $uri) {
+      $xpath->registerNamespace($prefix, $uri);
+    }
+
+    $models = [];
+    foreach ($xpath->query('/rdf:RDF/rdf:Description/fm:hasModel/@rdf:resource') as $node) {
+      $models[] = $node->nodeValue;
+    }
+
+    return $models;
+  }
 }
