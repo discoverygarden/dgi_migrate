@@ -11,27 +11,29 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\migrate\MigrateException;
 
 /**
- * Accesses a property from an object.
+ * Call an accessor from an object.
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.subindex"
+ *   id = "dgi_migrate.process.xpath"
  * )
  */
-class Subindex extends ProcessPluginBase {
+class XPath extends ProcessPluginBase {
 
   /**
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    if (!is_array($value) && !($value instanceof \ArrayAccess)) {
-      throw new MigrateException('Input should be array-like.');
+    if (!($value instanceof DOMDocument)) {
+      throw new MigrateException('Input should be a DOMDocument instance.');
     }
-    $index = $this->configuration['index'];
-    if (!isset($value[$index])) {
-      throw new MigrateException('Array index missing, extraction failed.');
+    $xpath = new DOMXPath($value);
+    if (isset($this->configuration['ns_map'])) {
+      foreach ($this->configuration['ns_map'] as $prefix => $uri) {
+        $xpath->registerNamespace($prefix, $uri);
+      }
     }
 
-    return $value[$index];
+    return $xpath->query($this->configuration['xpath']);
   }
 
 }

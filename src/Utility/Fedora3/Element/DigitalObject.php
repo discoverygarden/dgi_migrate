@@ -66,25 +66,39 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
     throw new Exception('Not implemented.');
   }
 
+  protected $dom;
+  protected $xpath;
+
+  protected function xpath() {
+    if (!isset($this->xpath)) {
+      $this->dom = new \DOMDocument();
+      $this->dom->load($this['RELS-EXT']->getUri());
+      $this->xpath = new \DOMXPath($this->dom);
+      $ns = [
+        'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+        'fre' => 'info:fedora/fedora-system:def/relations-external#',
+        'fm' => 'info:fedora/fedora-system:def/model#',
+      ];
+      foreach ($ns as $prefix => $uri) {
+        $this->xpath->registerNamespace($prefix, $uri);
+      }
+    }
+
+    return $this->xpath;
+  }
+  protected function relsExtResourceQuery($query) {
+    $results = [];
+
+    foreach ($this->xpath()->query($query) as $node) {
+      $results[] = $node->nodeValue;
+    }
+
+    return $results;
+  }
   public function models() {
-    $dom = new \DOMDocument();
-    $dom->load($this['RELS-EXT']->getUri());
-    $xpath = new \DOMXPath($dom);
-    $ns = [
-      'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-      'fre' => 'info:fedora/fedora-system:def/relations-external#',
-      'fm' => 'info:fedora/fedora-system:def/model#',
-    ];
-
-    foreach ($ns as $prefix => $uri) {
-      $xpath->registerNamespace($prefix, $uri);
-    }
-
-    $models = [];
-    foreach ($xpath->query('/rdf:RDF/rdf:Description/fm:hasModel/@rdf:resource') as $node) {
-      $models[] = $node->nodeValue;
-    }
-
-    return $models;
+    return $this->relsExtResourceQuery('/rdf:RDF/rdf:Description/fm:hasModel/@rdf:resource');
+  }
+  public function parents() {
+    return $this->relsExtResourceQuery('/rdf:RDF/rdf:Description/*[self::fre:isMemberOfCollection or self::fre:isMemberOf]/@rdf:resource');
   }
 }

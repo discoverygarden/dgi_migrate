@@ -22,11 +22,6 @@ process:
     - plugin: dgi_migrate.method
       source: '@_parsed'
       method: models
-  _log_models:
-    - plugin: concat
-      source: '@_models'
-      delimiter: ', '
-    - plugin: log
   title:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
@@ -59,6 +54,13 @@ process:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
       property: PID
+  nid:
+    - plugin: entity_lookup
+      entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      source: '@field_pid'
   field_model:
     - plugin: static_map
       source: '@_models'
@@ -81,6 +83,22 @@ process:
       ignore_case: true
     - plugin: skip_on_empty
       method: row
+  field_member_of:
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: parents
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: log
+    - plugin: entity_generate
+      entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      default_values:
+        title: 'Migration stub'
+        status: 0
 migration_dependencies:
   required:
     - foxml_files
