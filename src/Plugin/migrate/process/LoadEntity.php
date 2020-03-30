@@ -44,7 +44,9 @@ class LoadEntity extends ProcessPluginBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    return $this->storage->load($value);
+    return is_array($value) ?
+      $this->storage->loadMultiple($value) :
+      $this->storage->load($value);
   }
 
 }

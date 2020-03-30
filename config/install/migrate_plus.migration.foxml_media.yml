@@ -10,17 +10,55 @@ destination:
   plugin: entity:media
   default_bundle: file
 process:
-  uri: path
+  field_media_file:
+    plugin: dgi_migrate.load_entity
+    source: fid
+    entity_type: entity:file
   _parsed:
-    plugin: dgi_migrate.parse_foxml
-    source: path
+    - plugin: dgi_migrate.method
+      method: getFileUri
+      source: '@field_media_file'
+    - plugin: dgi_migrate.parse_foxml
+  field_media_of:
+    - plugin: migration_lookup
+      migration: foxml_nodes
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+    - plugin: extract
+      index: [ 0 ]
+    - plugin: skip_on_empty
+      method: row
+    - plugin: dgi_migrate.load_entity
+      entity_type: entity:node
+  field_file_size:
+    - plugin: dgi_migrate.method
+      method: getSize
+      source: '@field_media_file'
+  field_media_use:
+    - plugin: default_value
+      # XXX: Not a perfect match, but seems to be closest, without rolling our
+      # own.
+      default_value: http://pcdm.org/use#IntermediateFile
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_media_use
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  field_mime_type:
+    - plugin: default_value
+      default_value: application/xml
   created:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
       property: createdDate
     - plugin: callback
       callable: strtotime
-  created:
+  changed:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
       property: lastModifiedDate
@@ -32,9 +70,6 @@ process:
   uid:
     - plugin: default_value
       default_value: 0
-  filemime:
-    - plugin: default_value
-      default_value: application/xml
 migration_dependencies:
   required:
     - foxml_nodes
