@@ -19,7 +19,7 @@ class Substream extends ReadOnlyStream {
     return feof($this->proxy);
   }
 
-  public function stream_open($path, $mode, $options, &$opened_path) {
+  protected function parsePath($path) {
     $matches = [];
     $sep = '/';
     $pattern = implode('', [
@@ -32,7 +32,10 @@ class Substream extends ReadOnlyStream {
       "(.+)\${$sep}",
     ]);
     preg_match($pattern, $path, $matches);
-    list(, $start, $length, $target) = $matches;
+    return array_slice($matches, 1);
+  }
+  public function stream_open($path, $mode, $options, &$opened_path) {
+    list($start, $length, $target) = $this->parsePath($path);
     $this->target = fopen($target, $mode);
     if (!$this->target) {
       // Failed to open the source stream.
@@ -93,7 +96,9 @@ class Substream extends ReadOnlyStream {
     return 'Substreams; a reference to a part of another file.';
   }
 
-  protected function throwNotImplemented() { throw new Exception('Not implemented'); }
+  protected function throwNotImplemented() {
+    throw new Exception('Not implemented');
+  }
   public function getExternalUrl() { $this->throwNotImplemented(); }
   public function realpath() { $this->throwNotImplemented(); }
   public function dirname($uri = NULL) { $this->throwNotImplemented(); }
@@ -104,7 +109,11 @@ class Substream extends ReadOnlyStream {
   public function stream_cast($cast_as) { $this->throwNotImplemented(); }
   public function stream_set_option($options, $arg1, $arg2) { $this->throwNotImplemented(); }
   public function url_stat($path, $flags) {
-    // XXX: Nothing to report.
-    return [];
+    list($start, $length, $target) = $this->parsePath($path);
+    $stat = [
+      7 => (int) $length,
+      'size' => (int) $length,
+    ] + stat($target);
+    return $stat;
   }
 }

@@ -42,4 +42,8 @@ class DatastreamVersion extends AbstractParser {
 
     return $old;
   }
+
+  public function getUri() {
+    return $this->content->getUri();
+  }
 }

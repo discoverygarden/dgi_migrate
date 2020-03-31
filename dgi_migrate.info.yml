@@ -9,3 +9,4 @@ dependencies:
   - media
   - islandora
   - migrate_directory
+  - migrate_plus
