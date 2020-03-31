@@ -61,7 +61,7 @@ process:
       bundle: islandora_object
       value_key: field_pid
       source: '@field_pid'
-  field_model:
+  _i8_model_uri:
     - plugin: static_map
       source: '@_models'
       bypass: false
@@ -73,7 +73,9 @@ process:
         'info:fedora/islandora:sp_videoCModel': 'http://purl.org/coar/resource_type/c_12ce'
         'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
         'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
+  field_model:
     - plugin: entity_lookup
+      source: '@_i8_model_uri'
       bundle_key: vid
       bundle: islandora_models
       value_key: field_external_uri
@@ -99,6 +101,23 @@ process:
       default_values:
         title: 'Migration stub'
         status: 0
+  field_display_hints:
+    - plugin: dgi_migrate.process.static_map
+      source: '@_i8_model_uri'
+      map:
+        - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
+        - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+    - plugin: flatten
+    - plugin: skip_on_empty
+      method: process
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_display
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
 migration_dependencies:
   required:
     - foxml_files
