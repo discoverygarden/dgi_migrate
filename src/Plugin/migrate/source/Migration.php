@@ -51,7 +51,7 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
 
   public function __toString() {
     return strtr('target migration: @migration', [
-      '@migration' => (string) $this->targetMigration,
+      '@migration' => $this->targetMigration->id(),
     ]);
   }
 }

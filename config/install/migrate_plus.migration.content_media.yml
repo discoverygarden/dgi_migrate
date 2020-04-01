@@ -9,6 +9,14 @@ source:
 destination:
   plugin: entity:media
   default_bundle: file
+  # XXX: It appears that we cannot perform validation because:
+  # - the way we need to be able to map into multiple file fields, expecting
+  #   only that for the given bundle to succeed; however, validation checks that
+  #   everything appears valid... and specifying fields which are not in the
+  #   bundle breaks this.
+  # - we presently map audio/mpeg to .mpga, which is not in the list of allowed
+  #   extensions for audio.
+  #validate: true
 process:
   field_media_of/target_id:
     - plugin: migration_lookup
@@ -43,11 +51,16 @@ process:
     plugin: dgi_migrate.method
     source: '@_parsed'
     method: models
+  name:
+    plugin: dgi_migrate.subproperty
+    property: label
+    source: '@_parsed'
   # XXX: Somewhat counter-intuitive, but it will just ignore those file field
   # entries with which the target bundle does not deal.
   field_media_audio_file: '@_file'
   field_media_file: '@_file'
-  field_media_image: '@_file'
+  field_media_image/target_id: '@_file_id'
+  field_media_image/alt: '@name'
   field_media_video_file: '@_file'
   bundle:
     - plugin: static_map

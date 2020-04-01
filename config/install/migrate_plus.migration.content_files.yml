@@ -10,6 +10,7 @@ source:
     file_dest: 'repo-bin:/'
 destination:
   plugin: entity:file
+  validate: true
 process:
   _noded:
     - plugin: migration_lookup
@@ -55,7 +56,6 @@ process:
       property: CREATED
     - plugin: callback
       callable: strtotime
-  changed: '@created'
   _source_uri:
     - plugin: dgi_migrate.method
       source: '@_latest'
@@ -70,16 +70,8 @@ process:
       property: MIMETYPE
       source: '@_latest'
   _ext:
-    # XXX: Approximate an extension... Drupal doesn't appear to offer a
-    # mechanim to do this (determine an extension based on a MIME-type).
-    - plugin: log
-      source: '@filemime'
-    - plugin: explode
-      #source: '@filemime'
-      delimiter: '/'
-    - plugin: log
-    - plugin: extract
-      index: [ 1 ]
+    plugin: dgi_migrate.process.extension_from_mimetype
+    source: '@filemime'
   _safe_pid:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
@@ -104,7 +96,6 @@ process:
       source:
         - '@_source_uri'
         - '@_dest_uri'
-    - plugin: log
   filesize:
     - plugin: callback
       source: '@uri'
@@ -114,6 +105,7 @@ process:
       default_value: 1
   uid:
     - plugin: default_value
+      source: shared/default_uid
       default_value: 0
 migration_dependencies:
   required:

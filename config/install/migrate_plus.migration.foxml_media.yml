@@ -9,6 +9,9 @@ source:
 destination:
   plugin: entity:media
   default_bundle: file
+  # XXX: Validation goes boom due to the field_media_file field not accepting
+  # .xml files.
+  #validate: true
 process:
   field_media_file:
     plugin: dgi_migrate.load_entity
@@ -32,6 +35,10 @@ process:
       method: row
     - plugin: dgi_migrate.load_entity
       entity_type: entity:node
+  name:
+    plugin: dgi_migrate.subproperty
+    source: '@_parsed'
+    property: label
   field_file_size:
     - plugin: dgi_migrate.method
       method: getSize
@@ -69,6 +76,7 @@ process:
       default_value: 1
   uid:
     - plugin: default_value
+      source: shared/default_uid
       default_value: 0
 migration_dependencies:
   required:

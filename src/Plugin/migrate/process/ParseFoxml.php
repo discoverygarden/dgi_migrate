@@ -41,7 +41,6 @@ class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInte
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!is_string($value) || !file_exists($value)) {
-      var_dump($value);
       throw new MigrateException('The passed value is not a file path.');
     }
     return $this->parser->parse($value);

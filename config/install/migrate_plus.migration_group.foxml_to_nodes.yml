@@ -2,6 +2,10 @@ id: foxml_to_nodes
 label: FOXML to Islandora Repository Object nodes
 description: Mapping from Fedora 3 FOXML from I7 on to I8.
 source_type: Directory of XML files
+shared_configuration:
+  source:
+    shared:
+      default_uid: 1
 dependencies:
   enforced:
     module:

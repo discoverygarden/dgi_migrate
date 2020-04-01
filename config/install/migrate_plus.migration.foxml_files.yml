@@ -5,11 +5,26 @@ migration_group: foxml_to_nodes
 source:
   plugin: directory
   track_changes: true
+  # XXX: WARNING: The given directory should be made read-only, as rolling back
+  # a migration will TRY TO DELETE THE CONTAINED FILES!
   path: file:///opt/export
 destination:
   plugin: entity:file
+  validate: true
 process:
   uri: path
+  _validate:
+    # XXX: Initial safety business... try to avoid operating on files which are
+    # writable, to avoid potentially deleting them on a rollback.
+    - plugin: callback
+      callable: is_writable
+      source: '@uri'
+    - plugin: dgi_migrate.process.log
+      template: 'Should not be writable... is it? :value'
+      level: 4
+    - plugin: skip_on_value
+      value: true
+      method: row
   _parsed:
     plugin: dgi_migrate.parse_foxml
     source: path
@@ -19,7 +34,7 @@ process:
       property: createdDate
     - plugin: callback
       callable: strtotime
-  created:
+  changed:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
       property: lastModifiedDate
@@ -30,6 +45,7 @@ process:
       default_value: 1
   uid:
     - plugin: default_value
+      source: shared/default_uid
       default_value: 0
   filemime:
     - plugin: default_value

@@ -10,6 +10,7 @@ destination:
   plugin: entity:node
   default_bundle: islandora_object
   translations: true
+  validate: true
 process:
   _parsed:
     - plugin: dgi_migrate.load_entity
@@ -34,17 +35,12 @@ process:
       property: createdDate
     - plugin: callback
       callable: strtotime
-  changed:
-    - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
-      property: lastModifiedDate
-    - plugin: callback
-      callable: strtotime
   status:
     - plugin: default_value
       default_value: 1
   uid:
     - plugin: default_value
+      source: shared/default_uid
       default_value: 0
   field_edtf_date_created:
     - plugin: dgi_migrate.subproperty
@@ -92,7 +88,6 @@ process:
     - plugin: multiple_values
     - plugin: substr
       start: 12
-    - plugin: log
     - plugin: entity_generate
       entity_type: node
       bundle_key: type
@@ -104,6 +99,7 @@ process:
   field_display_hints:
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
+      bypass: true
       map:
         - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
         - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
