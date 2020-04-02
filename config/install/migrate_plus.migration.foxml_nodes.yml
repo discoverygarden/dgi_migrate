@@ -114,6 +114,30 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
+  _dc_xpath:
+    - plugin: dgi_migrate.subindex
+      source: '@_parsed'
+      index: 'DC'
+    - plugin: dgi_migrate.method
+      method: getUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        oai_dc: 'http://www.openarchives.org/OAI/2.0/oai_dc/'
+        dc: 'http://purl.org/dc/elements/1.1/'
+  field_description:
+    - plugin: dgi_migrate.method
+      source: '@_dc_xpath'
+      method: query
+      args:
+        - '/oai_dc:dc/dc:description'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
 migration_dependencies:
   required:
     - foxml_files

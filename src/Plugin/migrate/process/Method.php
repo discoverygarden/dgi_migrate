@@ -11,7 +11,19 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\migrate\MigrateException;
 
 /**
- * Call an accessor from an object.
+ * Call a method on an object.
+ *
+ * Example:
+ * @code
+ * process:
+ *   - plugin: dgi_migrate.load_entity
+ *     source: '@some_object'
+ *     method: someMethod
+ *     args:
+ *       - alpha
+ *       - bravo
+ * @endcode
+ *
  *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.method"
@@ -28,7 +40,16 @@ class Method extends ProcessPluginBase {
     }
     $method = $this->configuration['method'];
 
-    return call_user_func([$value, $method]);
+    if (isset($this->configuration['args'])) {
+      if (!is_array($this->configuration['args'])) {
+        throw new MigrateException('The arguments for the method should be in an array.');
+      }
+      return call_user_func_array([$value, $method], $this->configuration['args']);
+    }
+    else {
+      return call_user_func([$value, $method]);
+    }
+
   }
 
 }
