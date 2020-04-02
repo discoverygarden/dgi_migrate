@@ -69,6 +69,7 @@ process:
         'info:fedora/islandora:sp_videoCModel': 'http://purl.org/coar/resource_type/c_12ce'
         'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
         'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
+        'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'

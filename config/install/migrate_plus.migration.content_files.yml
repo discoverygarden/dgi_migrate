@@ -41,6 +41,7 @@ process:
         'info:fedora/islandora:sp_pdf': 'OBJ'
         'info:fedora/islandora:sp_videoCModel': 'OBJ'
         'info:fedora/islandora:sp-audioCModel': 'OBJ'
+        'info:fedora/islandora:binaryObjectCModel': 'OBJ'
     - plugin: extract
       index: [0]
   _latest:
