@@ -16,6 +16,13 @@ class DatastreamVersion extends AbstractParser {
   protected $digests = [];
   protected $content = NULL;
 
+  public function __sleep() {
+    return array_merge(parent::__sleep(), [
+      'digests',
+      'content',
+    ]);
+  }
+
   public function id() {
     return $this->ID;
   }

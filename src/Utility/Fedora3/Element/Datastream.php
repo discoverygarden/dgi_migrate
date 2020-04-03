@@ -11,6 +11,12 @@ class Datastream extends AbstractParser implements \ArrayAccess {
   ];
   protected $versions = [];
 
+  public function __sleep() {
+    return array_merge(parent::__sleep(), [
+      'versions',
+    ]);
+  }
+
   protected function pop() {
     $old = parent::pop();
 

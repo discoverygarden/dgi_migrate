@@ -19,6 +19,14 @@ abstract class AbstractStreamOffsetContent extends AbstractParser {
     $this->start = $this->foxmlParser->getOffset() + 1;
   }
 
+  public function __sleep() {
+    return array_merge(parent::__sleep(), [
+      'start',
+      'end',
+      'target',
+    ]);
+  }
+
   public function start() {
     return $this->start;
   }

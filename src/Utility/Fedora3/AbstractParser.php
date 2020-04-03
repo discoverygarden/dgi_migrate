@@ -34,6 +34,9 @@ abstract class AbstractParser implements ParserInterface {
   public function __isset($offset) {
     return isset($this->attributes[$offset]);
   }
+  public function __sleep() {
+    return ['attributes'];
+  }
 
   public function close() {
     // No-op by default.

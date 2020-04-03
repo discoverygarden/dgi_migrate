@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
+use Drupal\Core\Cache\CacheBackendInterface;
 
 class FoxmlParser extends AbstractParser {
   const READ_SIZE = 16384;
@@ -10,15 +11,16 @@ class FoxmlParser extends AbstractParser {
   protected $target;
   protected $file = NULL;
   protected $chunk = NULL;
-  protected $foxmlParser;
   protected $output = NULL;
+  protected $cache;
 
   const MAP = [
     DigitalObject::TAG => DigitalObject::class,
   ];
 
-  public function __construct() {
+  public function __construct(CacheBackendInterface $cache) {
     $this->foxmlParser = $this;
+    $this->cache = $cache;
   }
 
   protected function initParser() {
@@ -36,6 +38,11 @@ class FoxmlParser extends AbstractParser {
   }
 
   public function parse($target) {
+    $item = $this->cache->get($target);
+    if ($item) {
+      return $item->data;
+    }
+
     $this->target = $target;
 
     $this->file = fopen($target, 'rb');
@@ -50,6 +57,12 @@ class FoxmlParser extends AbstractParser {
           throw new FoxmlParserException($this->parser);
         }
       }
+      $this->cache->set(
+        $target,
+        $this->output,
+        // XXX: Keep things a week.
+        time() + (3600 * 24 * 7)
+      );
       return $this->output;
     }
     finally {

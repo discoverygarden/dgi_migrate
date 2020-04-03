@@ -7,3 +7,12 @@ services:
         scheme: dgi-migrate.substream
   dgi_migrate.foxml_parser:
     class: Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser
+    arguments:
+      - '@cache.dgi_migrate_parsed_foxml'
+  cache.dgi_migrate_parsed_foxml:
+    class: Drupal\Core\Cache\CacheBackendInterface
+    tags:
+      - name: cache.bin
+    factory: cache_factory:get
+    arguments:
+      - dgi_migrate_parsed_foxml

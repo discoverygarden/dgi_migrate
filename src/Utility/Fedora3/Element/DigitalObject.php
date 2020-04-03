@@ -40,6 +40,12 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
       $this->properties[$prop]->value() :
       parent::__get($prop);
   }
+  public function __sleep() {
+    return array_merge(parent::__sleep(), [
+      'properties',
+      'datastreams',
+    ]);
+  }
 
   public function datastreams() {
     return $this->datastreams;

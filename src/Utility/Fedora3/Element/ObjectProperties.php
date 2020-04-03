@@ -18,6 +18,11 @@ class ObjectProperties extends AbstractParser implements \ArrayAccess {
 
     return $old;
   }
+  public function __sleep() {
+    return array_merge(parent::__sleep(), [
+      'properties',
+    ]);
+  }
 
   public function offsetExists($offset) {
     return isset($this->properties[$offset]);
