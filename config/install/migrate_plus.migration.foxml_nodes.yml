@@ -36,8 +36,14 @@ process:
     - plugin: callback
       callable: strtotime
   status:
-    - plugin: default_value
-      default_value: 1
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: state
+    - plugin: static_map
+      map:
+        'Active': 1
+        'Inactive': 0
+        'Deleted': 0
   uid:
     - plugin: default_value
       source: shared/default_uid
