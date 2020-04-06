@@ -33,8 +33,10 @@ class FoxmlParser extends AbstractParser {
   }
 
   protected function destroyParser() {
-    xml_parser_free($this->parser);
-    $this->parser = NULL;
+    if ($this->parser) {
+      xml_parser_free($this->parser);
+      $this->parser = NULL;
+    }
   }
 
   public function parse($target) {
@@ -46,7 +48,11 @@ class FoxmlParser extends AbstractParser {
     $this->target = $target;
 
     $this->file = fopen($target, 'rb');
+
     try {
+      if (!$this->file) {
+        throw new Exception('Failed to open file...');
+      }
       $this->initParser();
       while (!feof($this->file)) {
         $this->chunk = fread($this->file, static::READ_SIZE);
@@ -66,7 +72,9 @@ class FoxmlParser extends AbstractParser {
       return $this->output;
     }
     finally {
-      fclose($this->file);
+      if ($this->file) {
+        fclose($this->file);
+      }
       $this->file = NULL;
       $this->chunk = NULL;
       $this->target = NULL;
