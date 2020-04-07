@@ -5,9 +5,13 @@ migration_group: foxml_to_nodes
 source:
   plugin: directory
   track_changes: true
-  # XXX: WARNING: The given directory should be made read-only, as rolling back
-  # a migration will TRY TO DELETE THE CONTAINED FILES!
-  path: file:///opt/export
+  # XXX: WARNING: The target files should be made read-only, as rolling back
+  # a migration will TRY TO DELETE THE FILES!
+  # XXX: Target files should be in a directory underneath the path; otherwise,
+  # validation of the URI in the destination may fail (presumably, naive URI
+  # validation inside of Drupal, expecting HTTP-like URLs)... or may just
+  # require a third slash to imply an empty "authority" component?
+  path: foxml-migration-source://
 destination:
   plugin: entity:file
   validate: true
