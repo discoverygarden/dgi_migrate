@@ -19,8 +19,11 @@ class FoxmlParser extends AbstractParser {
   ];
 
   public function __construct(CacheBackendInterface $cache) {
-    $this->foxmlParser = $this;
     $this->cache = $cache;
+  }
+
+  protected function getFoxmlParser() {
+    return $this;
   }
 
   protected function initParser() {
@@ -30,6 +33,18 @@ class FoxmlParser extends AbstractParser {
     xml_set_object($this->parser, $this);
     xml_set_element_handler($this->parser, 'tagOpen', 'tagClose');
     xml_set_character_data_handler($this->parser, 'characters');
+  }
+
+  public function close() {
+    if ($this->file) {
+      fclose($this->file);
+    }
+    $this->file = NULL;
+    $this->chunk = NULL;
+    $this->target = NULL;
+    $this->output = NULL;
+    $this->destroyParser();
+    parent::close();
   }
 
   protected function destroyParser() {
@@ -72,14 +87,7 @@ class FoxmlParser extends AbstractParser {
       return $this->output;
     }
     finally {
-      if ($this->file) {
-        fclose($this->file);
-      }
-      $this->file = NULL;
-      $this->chunk = NULL;
-      $this->target = NULL;
-      $this->output = NULL;
-      $this->destroyParser();
+      $this->close();
     }
   }
   public function getTarget() {

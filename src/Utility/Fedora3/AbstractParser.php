@@ -28,6 +28,14 @@ abstract class AbstractParser implements ParserInterface {
     $this->attributes = $attributes;
   }
 
+  public function __destruct() {
+    $this->close();
+  }
+
+  protected function getFoxmlParser() {
+    return $this->foxmlParser;
+  }
+
   public function __get($offset) {
     return $this->attributes[$offset];
   }
@@ -39,7 +47,8 @@ abstract class AbstractParser implements ParserInterface {
   }
 
   public function close() {
-    // No-op by default.
+    // XXX: Attempt to avoid circular references, just in case.
+    unset($this->foxmlParser);
   }
 
   protected function map() {
@@ -71,7 +80,7 @@ abstract class AbstractParser implements ParserInterface {
       }
       if ($this->depths[$tag] === 1) {
         $class = $this->map()[$tag];
-        $this->push(new $class($this->foxmlParser, $attributes));
+        $this->push(new $class($this->getFoxmlParser(), $attributes));
       }
       else {
         $this->current()->tagOpen($parser, $tag, $attributes);

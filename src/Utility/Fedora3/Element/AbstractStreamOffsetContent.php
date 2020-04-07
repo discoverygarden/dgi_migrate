@@ -14,9 +14,9 @@ abstract class AbstractStreamOffsetContent extends AbstractParser {
   public function __construct($parser, $attributes) {
     parent::__construct($parser, $attributes);
 
-    $this->target = $this->foxmlParser->getTarget();
+    $this->target = $this->getFoxmlParser()->getTarget();
     // XXX: The "+ 1" is necessary to skip over the ">" at the end of the tag...
-    $this->start = $this->foxmlParser->getOffset() + 1;
+    $this->start = $this->getFoxmlParser()->getOffset() + 1;
   }
 
   public function __sleep() {
@@ -37,7 +37,7 @@ abstract class AbstractStreamOffsetContent extends AbstractParser {
     return $this->end - $this->start;
   }
   protected function updateEnd() {
-    $this->end = $this->foxmlParser->getOffset();
+    $this->end = $this->getFoxmlParser()->getOffset();
   }
 
   public function tagOpen($parser, $tag, $attributes) {
