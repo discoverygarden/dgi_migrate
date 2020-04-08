@@ -47,7 +47,16 @@ abstract class AbstractStreamOffsetContent extends AbstractParser {
     $this->updateEnd();
   }
   public function characters($parser, $chars) {
-    $this->updateEnd();
+    $offset = $this->getFoxmlParser()->getOffset();
+    if ($offset === $this->end) {
+      // XXX: If we encounter a chunk of XML which _only_ contains characters,
+      // the reported offset is not changed, but we need to account for the
+      // characters we were just given.
+      $this->end += strlen($chars);
+    }
+    else {
+      $this->end = $offset;
+    }
   }
 
   public function getUri() {

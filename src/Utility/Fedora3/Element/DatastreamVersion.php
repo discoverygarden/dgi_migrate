@@ -23,6 +23,16 @@ class DatastreamVersion extends AbstractParser {
     ]);
   }
 
+  public function close() {
+    parent::close();
+
+    if (!empty($this->digests) && $this->content instanceof BinaryContent) {
+      foreach ($this->digests as $algo => $el) {
+        assert(hash_file(str_replace('-', '', strtolower($algo)), $this->content->getUri(), FALSE) === strtolower($el->value()), 'hash matches for ' . $this->content->getUri());
+      }
+    }
+  }
+
   public function id() {
     return $this->ID;
   }

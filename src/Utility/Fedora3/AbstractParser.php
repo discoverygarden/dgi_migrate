@@ -118,7 +118,7 @@ abstract class AbstractParser implements ParserInterface {
       $this->current()->characters($parser, $chars);
     }
     else {
-      // XXX: Characters are suppress.
+      // XXX: Characters are suppressed.
     }
   }
 }
