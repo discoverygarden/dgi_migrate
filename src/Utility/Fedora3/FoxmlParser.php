@@ -57,6 +57,13 @@ class FoxmlParser extends AbstractParser {
   public function parse($target) {
     $item = $this->cache->get($target);
     if ($item) {
+      // XXX: Renew the cache.
+      $this->cache->set(
+        $target,
+        $item->data,
+        // XXX: Keep things a week.
+        time() + (3600 * 24 * 7)
+      );
       return $item->data;
     }
 
