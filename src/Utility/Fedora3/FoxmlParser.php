@@ -6,7 +6,7 @@ use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
 use Drupal\Core\Cache\CacheBackendInterface;
 
 class FoxmlParser extends AbstractParser {
-  const READ_SIZE = 16384;
+  const READ_SIZE = 2**18;
   protected $parser;
   protected $target;
   protected $file = NULL;
@@ -100,7 +100,36 @@ class FoxmlParser extends AbstractParser {
     // _after_ the started element for libxml2, while expat does not... somewhat
     // anecdotal, but something of which to be wary:
     // @see https://www.php.net/manual/en/function.xml-get-current-byte-index.php#56953
-    return xml_get_current_byte_index($this->parser);
+    // XXX: The type of the returned value may be a signed 32-bit integer,
+    // leading to overflow with files larger than ~2GB... so let's adjust
+    // accordingly.
+    $pos = ftell($this->file);
+    $index = xml_get_current_byte_index($this->parser);
+    if ($index > 2**31) {
+      // Using a parser which does not need adjusting?
+      return $index;
+    }
+    elseif ($index < 0) {
+      // Is negative, definitely wrapped.
+      return static::correctOffset($index, $pos);
+    }
+    elseif ($index >= 0 && $index < 2**31 && $pos >= 2**31) {
+      // Positive, but wrapping.
+      return static::correctOffset($index, $pos);
+    }
+    else {
+      return $index;
+    }
+  }
+
+  protected static function correctOffset($index, $pos) {
+    $slot = intdiv($pos, 2**31);
+
+    $val = $index +
+      ($slot % 2) * (($slot + 1) * 2**31) +
+      (($slot + 1) % 2) * ($slot * 2**31);
+
+    return $val;
   }
 
   protected function pop() {
