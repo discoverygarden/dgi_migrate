@@ -78,7 +78,9 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
           throw new FileException("Failed to open source.");
         }
         $spool_fp = fopen('php://temp', 'r+b');
-        stream_copy_to_stream($source_fp, $spool_fp);
+        while (!feof($source_fp)) {
+          fwrite($spool_fp, fread($source_fp, 2**20));
+        }
         fclose($source_fp);
         fseek($spool_fp, 0);
         $dest_fp = fopen($actual_destination, 'wb');
