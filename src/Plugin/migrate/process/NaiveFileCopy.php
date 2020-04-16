@@ -73,9 +73,20 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         $result = rename($source, $actual_destination);
       }
       else {
-        $result = copy($source, $actual_destination);
+        $source_fp = fopen($source, 'rb');
+        if (!$source_fp) {
+          throw new FileException("Failed to open source.");
+        }
+        $dest_fp = fopen($actual_destination, 'wb');
+        if (!$dest_fp) {
+          fclose($source_fp);
+          throw new FileException("Failed to open destination.");
+        }
+        $result = stream_copy_to_stream($source_fp, $dest_fp);
+        fclose($source_fp);
+        fclose($dest_fp);
       }
-      if (!$result) {
+      if ($result === FALSE) {
         throw new FileException("Failed to move {$source} to {$destination}.");
       }
       else {
