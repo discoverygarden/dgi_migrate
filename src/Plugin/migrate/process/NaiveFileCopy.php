@@ -73,15 +73,33 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         $result = rename($source, $actual_destination);
       }
       else {
-        $source_fp = fopen($source, 'rb');
-        if (!$source_fp) {
-          throw new FileException("Failed to open source.");
-        }
         $spool_fp = fopen('php://temp', 'r+b');
-        while (!feof($source_fp)) {
-          fwrite($spool_fp, fread($source_fp, 2**20));
+
+        if (strpos($source, 'php://filter') === 0) {
+          $target = 'resource=';
+          $pos = strpos($source, '/resource=');
+          $actual_source = substr($source, $pos + strlen($target) + 1);
+          $source_fp = fopen($actual_source, 'rb');
+          $pipes = [];
+          $proc = proc_open('/usr/bin/openssl base64 -d', [
+            0 => ['pipe', 'r'],
+            1 => $spool_fp,
+          ], $pipes);
+          while (!feof($source_fp)) {
+            fwrite($pipes[0], fread($source_fp, 2**20));
+          }
+          fclose($pipes[0]);
+          proc_close($proc);
+          fclose($source_fp);
         }
-        fclose($source_fp);
+        else {
+          $source_fp = fopen($source, 'rb');
+          if (!$source_fp) {
+            throw new FileException("Failed to open source.");
+          }
+
+        }
+
         fseek($spool_fp, 0);
         $dest_fp = fopen($actual_destination, 'wb');
         if (!$dest_fp) {

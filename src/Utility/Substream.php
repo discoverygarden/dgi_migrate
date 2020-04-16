@@ -97,7 +97,7 @@ class Substream extends ReadOnlyStream {
   }
 
   protected function throwNotImplemented() {
-    throw new Exception('Not implemented');
+    throw new \Exception('Not implemented');
   }
   public function getExternalUrl() { $this->throwNotImplemented(); }
   public function realpath() { $this->throwNotImplemented(); }
@@ -106,7 +106,7 @@ class Substream extends ReadOnlyStream {
   public function dir_opendir($path, $options) { $this->throwNotImplemented(); }
   public function dir_readdir() { $this->throwNotImplemented(); }
   public function dir_rewinddir() { $this->throwNotImplemented(); }
-  public function stream_cast($cast_as) { $this->throwNotImplemented(); }
+  public function stream_cast($cast_as) { return FALSE; }
   public function stream_set_option($options, $arg1, $arg2) { $this->throwNotImplemented(); }
   public function url_stat($path, $flags) {
     list($start, $length, $target) = $this->parsePath($path);
