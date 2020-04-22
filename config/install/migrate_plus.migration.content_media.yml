@@ -75,10 +75,12 @@ process:
         'info:fedora/islandora:sp-audioCModel': 'audio'
     - plugin: extract
       index: [ 0 ]
-  field_file_size:
-    - plugin: dgi_migrate.method
-      method: getSize
-      source: '@_file'
+  # XXX: Skip the filesize, just in case we ever encounter anything larger than
+  # 2GB... signed 32-bit field, meaning things would go boom.
+  #field_file_size:
+  #  - plugin: dgi_migrate.method
+  #    method: getSize
+  #    source: '@_file'
   field_media_use:
     - plugin: default_value
       # XXX: Not a perfect match, but seems to be closest, without rolling our
