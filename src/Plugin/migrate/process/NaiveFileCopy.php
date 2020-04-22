@@ -10,6 +10,9 @@ use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\migrate\Plugin\MigrateProcessInterface;
 
 /**
  * Naive file_copy implementation.
@@ -22,6 +25,37 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface {
+
+  /**
+   * DGI Migrate's configuration object.
+   *
+   * @var \Drupal\Core\Config\ConfigBase
+   */
+  protected $migrateConfig;
+
+  /**
+   * Constructor.
+   */
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, StreamWrapperManagerInterface $stream_wrappers, FileSystemInterface $file_system, MigrateProcessInterface $download_plugin, ConfigFactoryInterface $config_factory) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $stream_wrappers, $file_system, $download_plugin);
+
+    $this->migrateConfig = $config_factory->get('dgi_migrate.settings');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('stream_wrapper_manager'),
+      $container->get('file_system'),
+      $container->get('plugin.manager.migrate.process')->createInstance('download', $configuration),
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -53,6 +87,20 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
   }
 
   /**
+   * Helper; build out the command to decode base64, streamwise.
+   *
+   * @return string
+   *   The command.
+   */
+  protected function getBase64Command() : string {
+    return implode(' ', array_map('escapeshellarg', [
+      $this->migrateConfig->get('openssl_executable'),
+      'base64',
+      '-d',
+    ]));
+  }
+
+  /**
    * {@inheritdoc}
    */
   protected function writeFile($source, $destination, $replace = FileSystemInterface::EXISTS_REPLACE) {
@@ -73,42 +121,45 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         $result = rename($source, $actual_destination);
       }
       else {
-        $spool_fp = fopen('php://temp', 'r+b');
+        $spool_name = tempnam($this->migrateConfig->get('temp_dir'), 'b64spool');
+        try {
+          $spool_fp = fopen($spool_name, 'r+b');
 
-        if (strpos($source, 'php://filter') === 0) {
-          $target = 'resource=';
-          $pos = strpos($source, '/resource=');
-          $actual_source = substr($source, $pos + strlen($target) + 1);
-          $source_fp = fopen($actual_source, 'rb');
-          $pipes = [];
-          $proc = proc_open('/usr/bin/openssl base64 -d', [
-            0 => ['pipe', 'r'],
-            1 => $spool_fp,
-          ], $pipes);
-          while (!feof($source_fp)) {
-            fwrite($pipes[0], fread($source_fp, 2**20));
+          if (strpos($source, 'php://filter') === 0) {
+            $target = '/resource=';
+            $pos = strpos($source, $target);
+            $actual_source = substr($source, $pos + strlen($target));
+            $source_fp = fopen($actual_source, 'rb');
+            $pipes = [];
+            $proc = proc_open($this->getBase64Command(), [
+              0 => ['pipe', 'r'],
+              1 => $spool_fp,
+            ], $pipes);
+            stream_copy_to_stream($source_fp, $pipes[0]);
+            #while (!feof($source_fp)) {
+            #  fwrite($pipes[0], fread($source_fp, 2**20));
+            #}
+            fclose($pipes[0]);
+            proc_close($proc);
+            fclose($source_fp);
           }
-          fclose($pipes[0]);
-          proc_close($proc);
-          fclose($source_fp);
-        }
-        else {
-          $source_fp = fopen($source, 'rb');
-          if (!$source_fp) {
-            throw new FileException("Failed to open source.");
+          else {
+            $source_fp = fopen($source, 'rb');
+            if (!$source_fp) {
+              throw new FileException("Failed to open source.");
+            }
+            stream_copy_to_stream($source_fp, $spool_fp);
           }
+          fflush($spool_fp);
 
+          $result = copy($spool_name, $actual_destination);
         }
-
-        fseek($spool_fp, 0);
-        $dest_fp = fopen($actual_destination, 'wb');
-        if (!$dest_fp) {
-          fclose($spool_fp);
-          throw new FileException("Failed to open destination.");
+        finally {
+          if (isset($spool_fp)) {
+            fclose($spool_fp);
+          }
+          unlink($spool_name);
         }
-        $result = stream_copy_to_stream($spool_fp, $dest_fp);
-        fclose($spool_fp);
-        fclose($dest_fp);
       }
       if ($result === FALSE) {
         throw new FileException("Failed to move {$source} to {$destination}.");

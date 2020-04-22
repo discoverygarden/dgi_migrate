@@ -1,0 +1,2 @@
+openssl_executable: openssl
+spool_dir: temporary://
