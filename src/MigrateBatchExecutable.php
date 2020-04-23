@@ -205,6 +205,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $item = $this->queue->claimItem();
     if (!$item) {
       $context['results']['status'] = MigrationInterface::RESULT_COMPLETED;
+      $context['message'] = $this->t('Queue empty...');
       return;
     }
 
@@ -220,6 +221,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
     catch (\Exception $e) {
       $context['results']['status'] = MigrationInterface::RESULT_FAILED;
+      $context['message'] = $e->getTraceAsString();
     }
     finally {}
   }
