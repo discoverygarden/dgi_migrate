@@ -221,7 +221,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
     catch (\Exception $e) {
       $context['results']['status'] = MigrationInterface::RESULT_FAILED;
-      $context['message'] = $e->getTraceAsString();
+      $context['message'] = "{$e->getMessage()}\n{$e->getTraceAsString()}";
     }
     finally {}
   }
