@@ -30,6 +30,8 @@ process:
     - plugin: dgi_migrate.method
       source: '@_parsed'
       method: models
+    - plugin: skip_on_empty
+      method: row
   _source_dsid:
     - plugin: static_map
       source: '@_models'

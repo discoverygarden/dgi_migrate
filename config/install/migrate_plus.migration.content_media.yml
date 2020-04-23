@@ -48,9 +48,11 @@ process:
       method: getFileUri
     - plugin: dgi_migrate.parse_foxml
   _models:
-    plugin: dgi_migrate.method
-    source: '@_parsed'
-    method: models
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: models
+    - plugin: skip_on_empty
+      method: row
   name:
     plugin: dgi_migrate.subproperty
     property: label

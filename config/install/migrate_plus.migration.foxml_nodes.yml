@@ -23,6 +23,8 @@ process:
     - plugin: dgi_migrate.method
       source: '@_parsed'
       method: models
+    - plugin: skip_on_empty
+      method: row
   title:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
