@@ -100,7 +100,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     ]));
   }
 
-  /**
+  /*le*
    * {@inheritdoc}
    */
   protected function writeFile($source, $destination, $replace = FileSystemInterface::EXISTS_REPLACE) {
@@ -136,9 +136,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
               1 => $spool_fp,
             ], $pipes);
             stream_copy_to_stream($source_fp, $pipes[0]);
-            #while (!feof($source_fp)) {
-            #  fwrite($pipes[0], fread($source_fp, 2**20));
-            #}
+
             fclose($pipes[0]);
             proc_close($proc);
             fclose($source_fp);
@@ -162,7 +160,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         }
       }
       if ($result === FALSE) {
-        throw new FileException("Failed to move {$source} to {$destination}.");
+        throw new FileException("Failed to move {$source} to {$destination} (actual attempted destination: '$actual_destination'.");
       }
       else {
         return $actual_destination;
