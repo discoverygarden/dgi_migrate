@@ -3,31 +3,31 @@
 namespace Drupal\dgi_migrate;
 
 use Drupal\migrate_tools\MigrateExecutable;
-use Drupal\Component\Utility\Bytes;
-use Drupal\Core\Utility\Error;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
 use Drupal\migrate\Event\MigratePostRowSaveEvent;
 use Drupal\migrate\Event\MigratePreRowSaveEvent;
-use Drupal\migrate\Event\MigrateRollbackEvent;
-use Drupal\migrate\Event\MigrateRowDeleteEvent;
 use Drupal\migrate\Exception\RequirementsException;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Drupal\migrate\Event\MigrateMapDeleteEvent;
-use Drupal\migrate\Event\MigrateMapSaveEvent;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\MigrateSkipRowException;
-use Drupal\migrate_plus\Event\MigrateEvents as MigratePlusEvents;
-use Drupal\migrate_plus\Event\MigratePrepareRowEvent;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+use Exception;
+use Drupal\migrate\Row;
 
+/**
+ * Migration executable to run as fully queued batch.
+ */
 class MigrateBatchExecutable extends MigrateExecutable {
 
   use DependencySerializationTrait;
 
+  /**
+   * The queue to deal with.
+   *
+   * @var \Drupal\Core\Queue\QueueInterface
+   */
   protected $queue;
 
   /**
@@ -40,7 +40,15 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $this->queue = \Drupal::queue($queue_name, TRUE);
   }
 
-
+  /**
+   * Prepare a batch array for execution for the given migration.
+   *
+   * @return array
+   *   A batch array with operations and the like.
+   *
+   * @throws \Exception
+   *   If the migration could not be enqueued successfully.
+   */
   public function prepareBatch() {
     $result = $this->enqueue();
     if ($result === MigrationInterface::RESULT_COMPLETED) {
@@ -55,10 +63,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
       ];
     }
     else {
-      throw new \Exception('Migration failed.');
+      throw new Exception('Migration failed.');
     }
   }
 
+  /**
+   * Batch finished callback.
+   */
   public function finishBatch($success, $results, $ops, $interval) {
     $this->queue->deleteQueue();
     $this->getEventDispatcher()->dispatch(MigrateEvents::POST_IMPORT, new MigrateImportEvent($this->migration, $this->message));
@@ -66,6 +77,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
   }
 
+  /**
+   * Populate the target queue with the rows of the given migration.
+   *
+   * @return int
+   *   One of the MigrationInterface::RESULT_* constants representing the state
+   *   of queueing.
+   */
   protected function enqueue() {
     // Only begin the import operation if the migration is currently idle.
     if ($this->migration->getStatus() !== MigrationInterface::STATUS_IDLE) {
@@ -119,7 +137,19 @@ class MigrateBatchExecutable extends MigrateExecutable {
     return MigrationInterface::RESULT_COMPLETED;
   }
 
-  protected function processRowFromQueue($row) {
+  /**
+   * The meat of processing a row.
+   *
+   * Perform the processing of a row and save it to the destination, if
+   * applicable.
+   *
+   * @param \Drupal\migrate\Row $row
+   *   The row to be processed.
+   *
+   * @return int
+   *   One of the MigrationInterface::STATUS_* constants.
+   */
+  protected function processRowFromQueue(Row $row) {
     $id_map = $this->getIdMap();
     $this->sourceIdValues = $row->getSourceIdValues();
 
@@ -191,6 +221,12 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
   }
 
+  /**
+   * Batch operation callback.
+   *
+   * @param array|\DrushBatchContext $context
+   *   Batch context.
+   */
   public function processBatch(&$context) {
     $sandbox =& $context['sandbox'];
 

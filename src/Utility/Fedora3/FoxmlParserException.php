@@ -3,18 +3,37 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Exception;
 
-class FoxmlParserException extends \Exception {
+/**
+ * Generate exceptions for the parser.
+ */
+class FoxmlParserException extends Exception {
 
   use StringTranslationTrait;
 
+  /**
+   * Reference to the xml_parse parser.
+   *
+   * @var resource
+   */
   protected $parser;
+
+  /**
+   * Constructor.
+   */
   public function __construct($parser) {
     $this->parser = $parser;
 
     parent::__construct($this->generateMessage());
   }
 
+  /**
+   * Helper; generate the exception message.
+   *
+   * @return string
+   *   The message to emit with the exception.
+   */
   protected function generateMessage() {
     $code = xml_get_error_code($this->parser);
 
@@ -26,4 +45,5 @@ class FoxmlParserException extends \Exception {
       '@offset' => xml_get_current_byte_index($this->parser),
     ]);
   }
+
 }

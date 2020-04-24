@@ -4,6 +4,9 @@ namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
 
+/**
+ * Element handler for foxml:datastreamVersion.
+ */
 class DatastreamVersion extends AbstractParser {
   const TAG = 'foxml:datastreamVersion';
   const MAP = [
@@ -13,9 +16,23 @@ class DatastreamVersion extends AbstractParser {
     ContentDigest::TAG => ContentDigest::class,
   ];
 
+  /**
+   * An associative array mapping hash algorithms to ContentDigest instances.
+   *
+   * @var \Drupal\dgi_migrate\Utility\Fedora3\Element\ContentDigest[]
+   */
   protected $digests = [];
+
+  /**
+   * The content of the given datastream version.
+   *
+   * @var \Drupal\dgi_migrate\Utility\Fedora3\Element\ContentLocation|\Drupal\dgi_migrate\Utility\Fedora3\Element\AbstractStreamOffsetContent
+   */
   protected $content = NULL;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __sleep() {
     return array_merge(parent::__sleep(), [
       'digests',
@@ -23,6 +40,9 @@ class DatastreamVersion extends AbstractParser {
     ]);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function close() {
     parent::close();
 
@@ -33,12 +53,29 @@ class DatastreamVersion extends AbstractParser {
     }
   }
 
+  /**
+   * ID accessor.
+   *
+   * @return string
+   *   The ID of this datastream version.
+   */
   public function id() {
     return $this->ID;
   }
+
+  /**
+   * Content accessor.
+   *
+   * @return \Drupal\dgi_migrate\Utility\Fedora3\Element\ContentLocation|\Drupal\dgi_migrate\Utility\Fedora3\Element\AbstractStreamOffsetContent
+   *   The underlying content element.
+   */
   public function content() {
     return $this->content;
   }
+
+  /**
+   * {@inheritdoc}
+   */
   public function pop() {
     $old = parent::pop();
 
@@ -60,7 +97,14 @@ class DatastreamVersion extends AbstractParser {
     return $old;
   }
 
+  /**
+   * Helper; get the URI from the underlying content.
+   *
+   * @return string
+   *   The URI.
+   */
   public function getUri() {
     return $this->content->getUri();
   }
+
 }

@@ -5,9 +5,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\migrate\MigrateException;
 
 /**

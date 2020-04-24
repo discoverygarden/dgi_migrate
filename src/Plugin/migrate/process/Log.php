@@ -29,7 +29,7 @@ class Log extends ProcessPluginBase {
   /**
    * Log message template, into which we will substitute the value as ":value".
    *
-   * @var string $template
+   * @var string
    */
   protected $template;
 
@@ -39,7 +39,7 @@ class Log extends ProcessPluginBase {
    * Should be one of the \Drupal\migrate\Plugin\MigrationInterface::MESSAGE_*
    * constants.
    *
-   * @var int $level
+   * @var int
    */
   protected $level;
 

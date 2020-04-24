@@ -6,10 +6,16 @@ use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
 
+/**
+ * Migration command.
+ */
 class MigrateCommands extends MigrateToolsCommands {
 
- /**
+  /**
    * Perform one or more migration processes.
+   *
+   * XXX: Somewhat silly, but... unsure off the top of my head to nicely extend
+   * another command.
    *
    * @param string $migration_names
    *   ID of migration(s) to import. Delimit multiple using commas.
@@ -131,7 +137,7 @@ class MigrateCommands extends MigrateToolsCommands {
     $batch = drush_op([$executable, 'prepareBatch']);
     drush_op('batch_set', $batch);
     $result = drush_op('drush_backend_batch_process');
-    drush_op(function() {
+    drush_op(function () {
       // XXX: Need to reset the batch status before setting and processing
       // another...
       $batch =& batch_get();

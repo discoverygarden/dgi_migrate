@@ -4,28 +4,78 @@ namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Exception;
 
+/**
+ * Foxml parser.
+ */
 class FoxmlParser extends AbstractParser {
-  const READ_SIZE = 2**18;
+
+  const READ_SIZE = 2 ** 18;
+
+  /**
+   * The parser instance.
+   *
+   * @var resource
+   */
   protected $parser;
+
+  /**
+   * The path/URI of the target document being parsed.
+   *
+   * @var string
+   */
   protected $target;
+
+  /**
+   * File pointer of the file being parsed.
+   *
+   * @var resource
+   */
   protected $file = NULL;
+
+  /**
+   * A chunk of the input to feed to the parser.
+   *
+   * @var string
+   */
   protected $chunk = NULL;
+
+  /**
+   * The parsed document.
+   *
+   * @var \Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject
+   */
   protected $output = NULL;
+
+  /**
+   * A cache to use for parse results.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
   protected $cache;
 
   const MAP = [
     DigitalObject::TAG => DigitalObject::class,
   ];
 
+  /**
+   * Constructor.
+   */
   public function __construct(CacheBackendInterface $cache) {
     $this->cache = $cache;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   protected function getFoxmlParser() {
     return $this;
   }
 
+  /**
+   * Setup the parser.
+   */
   protected function initParser() {
     $this->parser = xml_parser_create_ns();
     xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
@@ -35,6 +85,9 @@ class FoxmlParser extends AbstractParser {
     xml_set_character_data_handler($this->parser, 'characters');
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function close() {
     if ($this->file) {
       fclose($this->file);
@@ -47,6 +100,9 @@ class FoxmlParser extends AbstractParser {
     parent::close();
   }
 
+  /**
+   * Teardown the parser.
+   */
   protected function destroyParser() {
     if ($this->parser) {
       xml_parser_free($this->parser);
@@ -54,6 +110,15 @@ class FoxmlParser extends AbstractParser {
     }
   }
 
+  /**
+   * Get a parse of the target document.
+   *
+   * @param string $target
+   *   A path/URL of a FOXML document to parse.
+   *
+   * @return \Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject
+   *   The parsed document.
+   */
   public function parse($target) {
     $item = $this->cache->get($target);
     if ($item) {
@@ -97,9 +162,23 @@ class FoxmlParser extends AbstractParser {
       $this->close();
     }
   }
+
+  /**
+   * Accessor for the target file path/URI.
+   *
+   * @return string
+   *   The target file path/URI.
+   */
   public function getTarget() {
     return $this->target;
   }
+
+  /**
+   * Get the current byte offset in from parsing the target document.
+   *
+   * @return int
+   *   The current byte offset.
+   */
   public function getOffset() {
     // XXX: Apparently, there may be differences in what
     // xml_get_current_byte_index() returns, based on what parser is used
@@ -112,7 +191,7 @@ class FoxmlParser extends AbstractParser {
     // accordingly.
     $pos = ftell($this->file);
     $index = xml_get_current_byte_index($this->parser);
-    if ($index > 2**31) {
+    if ($index > 2 ** 31) {
       // Using a parser which does not need adjusting?
       return $index;
     }
@@ -120,7 +199,7 @@ class FoxmlParser extends AbstractParser {
       // Is negative, definitely wrapped.
       return static::correctOffset($index, $pos);
     }
-    elseif ($index >= 0 && $index < 2**31 && $pos >= 2**31) {
+    elseif ($index >= 0 && $index < 2 ** 31 && $pos >= 2 ** 31) {
       // Positive, but wrapping.
       return static::correctOffset($index, $pos);
     }
@@ -129,16 +208,33 @@ class FoxmlParser extends AbstractParser {
     }
   }
 
+  /**
+   * Get the corrected offset.
+   *
+   * @param int $index
+   *   The index reported by xml_get_current_byte_index(), which has overflowed
+   *   a signed 32-bit integer.
+   * @param int $pos
+   *   The position in the file at the end of the chunk being parsed... could
+   *   possibly run into funky behaviour with boundary conditions, but... They
+   *   should be fine.
+   *
+   * @return int
+   *   The corrected offset.
+   */
   protected static function correctOffset($index, $pos) {
-    $slot = intdiv($pos, 2**31);
+    $slot = intdiv($pos, 2 ** 31);
 
     $val = $index +
-      ($slot % 2) * (($slot + 1) * 2**31) +
-      (($slot + 1) % 2) * ($slot * 2**31);
+      ($slot % 2) * (($slot + 1) * 2 ** 31) +
+      (($slot + 1) % 2) * ($slot * 2 ** 31);
 
     return $val;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   protected function pop() {
     $this->output = parent::pop();
     return $this->output;

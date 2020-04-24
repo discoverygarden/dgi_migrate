@@ -22,7 +22,7 @@ use Drupal\migrate\Plugin\migrate\process\StaticMap as Upstream;
 class StaticMap extends Upstream {
 
   /**
-   * 
+   * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     // Remap our array of two-tuples onto the map structure.

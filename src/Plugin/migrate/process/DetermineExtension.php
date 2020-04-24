@@ -6,11 +6,7 @@ use Symfony\Component\Mime\MimeTypes;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\migrate\MigrateException;
-use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Plugin\MigrationInterface;
 
 /**
@@ -22,8 +18,16 @@ use Drupal\migrate\Plugin\MigrationInterface;
  */
 class DetermineExtension extends ProcessPluginBase {
 
+  /**
+   * MIME-type utility.
+   *
+   * @var \Symfony\Component\Mime\MimeTypes
+   */
   protected $mimeTypes;
 
+  /**
+   * Constructor.
+   */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 

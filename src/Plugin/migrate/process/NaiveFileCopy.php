@@ -100,7 +100,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     ]));
   }
 
-  /*le*
+  /**
    * {@inheritdoc}
    */
   protected function writeFile($source, $destination, $replace = FileSystemInterface::EXISTS_REPLACE) {

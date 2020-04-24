@@ -19,14 +19,25 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInterface {
 
+  /**
+   * The parser to use.
+   *
+   * @var \Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser
+   */
   protected $parser;
 
+  /**
+   * Constructor.
+   */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, FoxmlParser $parser) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->parser = $parser;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,

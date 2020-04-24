@@ -5,7 +5,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\migrate\EntityFieldDefinitionTrait;
@@ -22,13 +21,24 @@ class LoadEntity extends ProcessPluginBase implements ContainerFactoryPluginInte
 
   use EntityFieldDefinitionTrait;
 
+  /**
+   * Storage for the given entity type.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
   protected $storage;
 
+  /**
+   * Constructor.
+   */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityStorageInterface $storage) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->storage = $storage;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $entity_type_id = static::getEntityTypeId($configuration['entity_type']);
 

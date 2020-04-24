@@ -14,10 +14,10 @@ interface ParserInterface {
    *   The active parser.
    * @param string $tag
    *   The tag opening.
-   * @param array $attributes
+   * @param string[] $attributes
    *   The attributes present in the opening tag.
    */
-  public function tagOpen($parser, $tag, $attributes);
+  public function tagOpen($parser, $tag, array $attributes);
 
   /**
    * XML parser element end callback.
@@ -38,4 +38,5 @@ interface ParserInterface {
    *   The characters received.
    */
   public function characters($parser, $chars);
+
 }
