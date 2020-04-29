@@ -107,7 +107,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     // Check if there is a destination available for copying. If there isn't,
     // it already exists at the destination and the replace flag tells us to not
     // replace it. In that case, return the original destination.
-    if ($this->fileSystem->getDestinationFilename($destination, $replace) === FALSE) {
+    if (($actual_destination = $this->fileSystem->getDestinationFilename($destination, $replace)) === FALSE) {
       return $destination;
     }
     try {
@@ -115,8 +115,6 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
       // of "php://filter", that it returns as per the wrapped stream does not
       // appear to be correct... the usual $this->fileSystem->move/copy calls
       // would call file_exists() on the source, so let's avoid it.
-      $actual_destination = $this->fileSystem->saveData('', $destination, $replace);
-
       if ($this->configuration['move']) {
         $result = rename($source, $actual_destination);
       }
