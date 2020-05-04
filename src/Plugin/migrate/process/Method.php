@@ -13,7 +13,7 @@ use Drupal\migrate\MigrateException;
  * Example:
  * @code
  * process:
- *   - plugin: dgi_migrate.load_entity
+ *   - plugin: dgi_migrate.method
  *     source: '@some_object'
  *     method: someMethod
  *     args:
