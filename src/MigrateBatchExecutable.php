@@ -90,6 +90,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $this->message->display($this->t('Migration @id is busy with another operation: @status',
         [
           '@id' => $this->migration->id(),
+          // XXX: Copypasta.
+          // @See https://git.drupalcode.org/project/drupal/-/blob/154038f1401583a30e0ea7d9c19db02f37b10943/core/modules/migrate/src/MigrateExecutable.php#L156
+          //phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
           '@status' => $this->t($this->migration->getStatusLabel()),
         ]), 'error');
       return MigrationInterface::RESULT_FAILED;

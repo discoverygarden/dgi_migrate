@@ -29,21 +29,6 @@ class Substream extends ReadOnlyStream {
   protected $proxy = NULL;
 
   /**
-   * {@inheritdoc}
-   */
-  public function stream_close() {
-    fclose($this->proxy);
-    fclose($this->target);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_eof() {
-    return feof($this->proxy);
-  }
-
-  /**
    * Helper; parse the passed path.
    *
    * @param string $path
@@ -69,62 +54,6 @@ class Substream extends ReadOnlyStream {
     ]);
     preg_match($pattern, $path, $matches);
     return array_slice($matches, 1);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_open($path, $mode, $options, &$opened_path) {
-    list($start, $length, $target) = $this->parsePath($path);
-    $this->target = fopen($target, $mode);
-    if (!$this->target) {
-      // Failed to open the source stream.
-      return FALSE;
-    }
-    $target_uri = implode('', [
-      SUBSTREAM_SCHEME,
-      '://',
-      $start,
-      ':',
-      $length,
-      '/',
-      (int) $this->target,
-    ]);
-    $this->proxy = fopen($target_uri, $mode);
-    if (!$this->proxy) {
-      // Failed to open the proxy stream; close the target and return such.
-      fclose($this->target);
-      return FALSE;
-    }
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_read($count) {
-    return fread($this->proxy, $count);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_seek($offset, $whence = \SEEK_SET) {
-    return fseek($this->proxy, $whence);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_tell() {
-    return ftell($this->proxy);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function stream_stat() {
-    return fstat($this->proxy);
   }
 
   /**
@@ -203,6 +132,81 @@ class Substream extends ReadOnlyStream {
 
   /**
    * {@inheritdoc}
+   *
+   * XXX: We're dealing with implementing an interface with names we don't like.
+   * phpcs:disable Drupal.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
+   */
+  public function stream_close() {
+    fclose($this->proxy);
+    fclose($this->target);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_eof() {
+    return feof($this->proxy);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_open($path, $mode, $options, &$opened_path) {
+    list($start, $length, $target) = $this->parsePath($path);
+    $this->target = fopen($target, $mode);
+    if (!$this->target) {
+      // Failed to open the source stream.
+      return FALSE;
+    }
+
+    $target_uri = implode('', [
+      SUBSTREAM_SCHEME,
+      '://',
+      $start,
+      ':',
+      $length,
+      '/',
+      (int) $this->target,
+    ]);
+    $this->proxy = fopen($target_uri, $mode);
+    if (!$this->proxy) {
+      // Failed to open the proxy stream; close the target and return such.
+      fclose($this->target);
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_read($count) {
+    return fread($this->proxy, $count);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_seek($offset, $whence = \SEEK_SET) {
+    return fseek($this->proxy, $whence);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_tell() {
+    return ftell($this->proxy);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function stream_stat() {
+    return fstat($this->proxy);
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function dir_closedir() {
     $this->throwNotImplemented();
@@ -253,6 +257,6 @@ class Substream extends ReadOnlyStream {
       'size' => (int) $length,
     ] + stat($target);
     return $stat;
-  }
+  }// phpcs:enable
 
 }

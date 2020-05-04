@@ -66,7 +66,7 @@ class MigrateCommands extends MigrateToolsCommands {
    * @throws \Exception
    *   If there are not enough parameters to the command.
    */
-  public function import($migration_names = '', array $options = [
+  public function batchImport($migration_names = '', array $options = [
     'all' => FALSE,
     'group' => self::REQ,
     'tag' => self::REQ,
