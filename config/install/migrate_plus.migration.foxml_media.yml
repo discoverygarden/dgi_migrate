@@ -76,7 +76,7 @@ process:
       callable: strtotime
   status:
     - plugin: default_value
-      default_value: 1
+      default_value: 0
   uid:
     - plugin: default_value
       source: shared/default_uid
