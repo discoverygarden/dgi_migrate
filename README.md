@@ -40,7 +40,6 @@ Current maintainers:
 
 ## Development
 
-An example migration and cmd that can help with development is provided.
 If you would like to contribute to this module create an issue, pull request
 and or contact
 [discoverygarden](http://support.discoverygarden.ca).
