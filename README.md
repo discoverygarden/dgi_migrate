@@ -15,8 +15,11 @@ This module requires the following modules/libraries:
 
 ## Usage
 
-An example migration that can be used as a starting point is provided.
-Animproved migration import command `migrate:batch-import` is included.
+An improved migration import command `migrate:batch-import` is included.
+An example FOXML migration that can be used as a starting point is provided.
+It illustrates the usage of migrate plugins that have been created to
+facilitate FOXML and large data processesing.
+* `dgi_migrate.process.xml.xpath` is limited to xpath 1.0.
 
 ## Installation
 
