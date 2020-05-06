@@ -1,0 +1,91 @@
+---
+id: foxml_media
+label: FOXML to media entities
+migration_group: foxml_to_nodes
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: foxml_files
+destination:
+  plugin: entity:media
+  default_bundle: file
+  # XXX: Validation goes boom due to the field_media_file field not accepting
+  # .xml files.
+  #validate: true
+process:
+  field_media_file:
+    plugin: dgi_migrate.load_entity
+    source: fid
+    entity_type: entity:file
+  _parsed:
+    - plugin: dgi_migrate.method
+      method: getFileUri
+      source: '@field_media_file'
+    - plugin: dgi_migrate.parse_foxml
+  field_media_of:
+    - plugin: migration_lookup
+      migration: foxml_nodes
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+    - plugin: extract
+      index: [ 0 ]
+    - plugin: skip_on_empty
+      method: row
+    - plugin: dgi_migrate.load_entity
+      entity_type: entity:node
+  name:
+    plugin: dgi_migrate.subproperty
+    source: '@_parsed'
+    property: label
+  # XXX: Skipping, as we're dealing with files larger than 2GB... and the field
+  # is defined as "integer" (signed 32-bit), resulting in issues when trying to
+  # deal with larger files.
+  #field_file_size:
+  #  - plugin: dgi_migrate.method
+  #    method: getSize
+  #    source: '@field_media_file'
+  field_media_use:
+    - plugin: default_value
+      # XXX: Not a perfect match, but seems to be closest, without rolling our
+      # own.
+      default_value: http://pcdm.org/use#IntermediateFile
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_media_use
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  field_mime_type:
+    - plugin: default_value
+      default_value: application/xml
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  changed:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: lastModifiedDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: default_value
+      default_value: 0
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+migration_dependencies:
+  required:
+    - foxml_nodes
+    - foxml_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate

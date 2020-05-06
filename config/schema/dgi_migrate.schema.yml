@@ -1,0 +1,14 @@
+dgi_migrate.settings:
+  type: config_object
+  label: "DGI Migrate Settings"
+  mapping:
+    openssl_executable:
+      type: string
+      label: |
+         PATH-relative or absolute path to the OpenSSL executable so we
+         use it to Base64 decode large streams.
+    spool_dir:
+      type: string
+      label: |
+        DRUPAL_ROOT-relative or absolute path a directory in which to spool
+        the large base64 decoded streams.

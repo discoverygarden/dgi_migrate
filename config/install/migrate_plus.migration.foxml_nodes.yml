@@ -1,0 +1,156 @@
+---
+id: foxml_nodes
+label: Nodes from FOXML
+migration_group: foxml_to_nodes
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: foxml_files
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  translations: true
+  validate: true
+process:
+  _parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
+  _models:
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: models
+    - plugin: skip_on_empty
+      method: row
+  title:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: label
+    - plugin: default_value
+      default_value: Untitled
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: state
+    - plugin: static_map
+      map:
+        'Active': 1
+        'Inactive': 0
+        'Deleted': 0
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+  field_edtf_date_created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: createdDate
+  field_pid:
+    - plugin: dgi_migrate.subproperty
+      source: '@_parsed'
+      property: PID
+  nid:
+    - plugin: entity_lookup
+      entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      source: '@field_pid'
+  _i8_model_uri:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:sp_basic_image': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/islandora:sp_large_image_cmodel': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/ir:citationCModel': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_pdf': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_videoCModel': 'http://purl.org/coar/resource_type/c_12ce'
+        'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
+        'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
+        'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
+  field_model:
+    - plugin: entity_lookup
+      source: '@_i8_model_uri'
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+    - plugin: skip_on_empty
+      method: row
+  field_member_of:
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: parents
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: entity_generate
+      entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      default_values:
+        title: 'Migration stub'
+        status: 0
+  field_display_hints:
+    - plugin: dgi_migrate.process.static_map
+      source: '@_i8_model_uri'
+      bypass: true
+      map:
+        - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
+        - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+    - plugin: flatten
+    - plugin: skip_on_empty
+      method: process
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_display
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  _dc_xpath:
+    - plugin: dgi_migrate.subindex
+      source: '@_parsed'
+      index: 'DC'
+    - plugin: dgi_migrate.method
+      method: getUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        oai_dc: 'http://www.openarchives.org/OAI/2.0/oai_dc/'
+        dc: 'http://purl.org/dc/elements/1.1/'
+  field_description:
+    - plugin: dgi_migrate.method
+      source: '@_dc_xpath'
+      method: query
+      args:
+        - '/oai_dc:dc/dc:description'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+migration_dependencies:
+  required:
+    - foxml_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate

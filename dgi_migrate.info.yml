@@ -1,0 +1,12 @@
+name: 'DGI Migrate'
+description: "DGI Migration Support."
+type: module
+package: DGI
+core: 8.x
+dependencies:
+  - migrate
+  - node
+  - media
+  - islandora
+  - migrate_directory
+  - migrate_plus
