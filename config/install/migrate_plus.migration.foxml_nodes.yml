@@ -50,10 +50,6 @@ process:
     - plugin: default_value
       source: shared/default_uid
       default_value: 0
-  field_edtf_date_created:
-    - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
-      property: createdDate
   field_pid:
     - plugin: dgi_migrate.subproperty
       source: '@_parsed'
@@ -123,23 +119,29 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
-  _dc_xpath:
+  _mods_xpath:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
     - plugin: dgi_migrate.subindex
-      source: '@_parsed'
-      index: 'DC'
+      index: 'MODS'
     - plugin: dgi_migrate.method
       method: getUri
     - plugin: dgi_migrate.process.xml.domfile
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
-        oai_dc: 'http://www.openarchives.org/OAI/2.0/oai_dc/'
-        dc: 'http://purl.org/dc/elements/1.1/'
-  field_description:
+        mods: 'http://www.loc.gov/mods/v3'
+        xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+        xlink: 'http://www.w3.org/1999/xlink'
+  field_ark:
     - plugin: dgi_migrate.method
-      source: '@_dc_xpath'
+      source: '@_mods_xpath'
       method: query
       args:
-        - '/oai_dc:dc/dc:description'
+        - '/mods:mods[1]/mods:identifier[@type="ark"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -147,6 +149,1157 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
+  field_member_of:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: nid
+      bundle: islandora_object
+      value_key: label
+      entity_type: node
+  _coordinates:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:subject/mods:cartographic/mods:coordinates'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: str_replace
+      search: ' '
+      replace: ''
+    - plugin: explode
+      delimiter: ','
+  'field_coordinates/lat': '@_coordinates/0'
+  'field_coordinates/lng': '@_coordinates/1'
+  field_coordinates_text:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:subject/mods:cartographic/mods:coordinates'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_edtf_date_created:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:originInfo/mods:dateCreated[@keydate="yes"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_edtf_date_issued:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:originInfo/mods:dateIssued[@keydate="yes"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_description:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:abstract'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_digital_origin:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:physicalDescription/mods:digitalOrigin'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_doi:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:identifier[@type="doi"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_electronic_locator:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_enumeration_and_chronology:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_extent:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:physicalDescription/mods:extent'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  _fs_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:subject'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_faceted_subject:
+    - plugin: entity_generate
+      source: '@_fs_base'
+      values:
+        field_authority_sources:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@authority'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_genre_form_subdivision_:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:genre'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: entity_generate
+            bundle_key: vid
+            bundle: genre
+            value_key: name
+            entity_type: taxonomy_term
+        field_geographic_geographic_subd:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:geographic'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: entity_generate
+            bundle_key: vid
+            bundle: genre
+            value_key: name
+            entity_type: taxonomy_term
+        field_temporal_chronological_sub:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:temporal'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: entity_generate
+            bundle_key: vid
+            bundle: temporal
+            value_key: name
+            entity_type: taxonomy_term
+        field_topic_general_subdivision:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:topic'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: entity_generate
+            bundle_key: vid
+            bundle: subject
+            value_key: name
+            entity_type: taxonomy_term
+  field_form:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_genre:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:genre'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_geographic_subject:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:subject/mods:geographic'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: vid
+      bundle: geographic_location
+      value_key: name
+      entity_type: taxonomy_term
+  field_handle:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '/mods:mods[1]/mods:identifier[@type="hdl"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  _hgs_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:subject/mods:hierarchicalGeographic'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_hierarchical_geographic_su:
+    - plugin: entity_generate
+      source: '@_fs_base'
+      values:
+        field_area:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:area'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_city:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:city'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_city_section:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:citySection'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_continent:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:continent'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_country:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:country'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_county:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:county'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extraterrestrial_area:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extraterrestrialArea'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_island:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:island'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_region:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:region'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_state:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:state'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_territory:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:territory'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_isbn:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:identifier[@type="isbn"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_item_identifier:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_lcc_classification:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:classification[@authority="lcc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_local_identifier:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:identifier[@type="local"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_note_location:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  _note_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_note_paragraph:
+    - plugin: entity_generate
+      source: '@_fs_base'
+      values:
+        field_note_type:
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_note:
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+  field_note:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:physicalDescription/mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_oclc_number:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:identifier[@type="oclc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  _oi_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:originInfo'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_origin_information:
+    - plugin: entity_generate
+      source: '@_oi_base'
+      values:
+        field_copyright_date:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:copyrightDate'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date_captured:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateCaptured'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date_created:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateCreated[@keydate="yes"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date_issued:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateIssued[@keydate="yes"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date_modified:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateModified'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date_valid:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateValid'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_edition:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:edition'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_event_type:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@eventType'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_frequency:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:frequency'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_issuance:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:issuance'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_other_date:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:dateOther'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_place:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:place/mods:placeTerm'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_publisher:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:publisher'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  _part_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:part'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_part:
+    - plugin: entity_generate
+      source: '@_part_base'
+      values:
+        field_additional_information:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:text'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_caption:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:defail/mods:caption'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:date'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_end:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent/mods:end'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extent:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extent_units:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent/@unit'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_list:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent/mods:list'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_number:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:detail/mods:number'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_part_order:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@order'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_part_type:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_start:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent/mods:start'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_title:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:detail/mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_total:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:extent/mods:total'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_physical_form:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:physicalDescription/mods:form'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: tid
+      bundle: physical_form
+      value_key: name
+      entity_type: taxonomy_term
+  field_physical_location:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:physicalLocation'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_purl:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:identifier[@type="purl"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  _rec_info_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:recordInfo'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_record_information:
+    - plugin: entity_generate
+      source: '@_rec_info_base'
+      values:
+        field_description_standard:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:descriptionStandard'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_recording_catalog_language:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:languageOfCataloging'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_change_date:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:recordChangeDate'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_content_source:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '.'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_creation_date:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:recordCreationDate'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_identifier:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:recordIdentifier'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_information_note:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:recordInfoNote'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_origin:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:recordOrigin'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_reformatting_quality:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:physicalDescription/mods:reformattingQuality'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  _rel_item_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:relatedItem'
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_related_item:
+    - plugin: entity_generate
+      source: '@_rel_item_base'
+      values:
+        field_relationship_type:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_title_plain:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:titleInfo/mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_url:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:location/mods:url'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_resource_type:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:typeOfResource'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: tid
+      bundle: resource_types
+      value_key: name
+      entity_type: taxonomy_term
+  field_restriction_on_access:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:accessCondition[@type="restriction on access"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_rights_statement:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:accessCondition[@type="use and reproduction"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: tid
+      bundle: rights_statements
+      value_key: name
+      entity_type: taxonomy_term
+  field_shelf_locator:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_subject:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:subject/mods:topic'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: tid
+      bundle: tags
+      value_key: name
+      entity_type: taxonomy_term
+  field_sub_location:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_table_of_contents:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:tableOfContents'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_target_audience:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:targetAudience'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_temporal_subject:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:tableOfContents'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: entity_generate
+      bundle_key: tid
+      bundle: temporal
+      value_key: name
+      entity_type: taxonomy_term
+  _title_base:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:titleInfo'
+      callable: iterator_to_array
+    - plugin: multiple_values
+  field_title:
+    - plugin: entity_generate
+      source: '@_title_base'
+      values:
+        field_title:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - 'mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_title_type:          
+          - plugin: dgi_migrate.method
+            method: query
+            args:
+              - '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_use_and_reproduction:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]/mods:accessCondition[@type="use and reproduction"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property:
 migration_dependencies:
   required:
     - foxml_files
