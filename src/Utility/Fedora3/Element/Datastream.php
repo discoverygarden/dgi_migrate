@@ -3,12 +3,11 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
-use ArrayAccess;
 
 /**
  * Element handler for foxml:datastream.
  */
-class Datastream extends AbstractParser implements ArrayAccess {
+class Datastream extends AbstractParser implements \ArrayAccess {
   const TAG = 'foxml:datastream';
   const MAP = [
     DatastreamVersion::TAG => DatastreamVersion::class,
