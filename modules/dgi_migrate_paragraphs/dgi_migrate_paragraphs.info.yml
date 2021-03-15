@@ -1,0 +1,9 @@
+name: 'DGI Migrate Paragraphs'
+description: "DGI Paragraph Migration Support."
+type: module
+package: DGI
+core_version_requirement: ^8 || ^9
+dependencies:
+  - dgi_migrate:dgi_migrate
+  - paragraphs:paragraphs
+
