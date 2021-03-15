@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @code
  * field_paragraphs:
- *   - plugin: isi_paragraph_generate
+ *   - plugin: dgi_paragraph_generate
  *     type: paragraph_bundle_type
  *     values:
  *       field_one: col_one
