@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\islandora_spreadsheet_ingest\Plugin\migrate\process;
+namespace Drupal\dgi_migrate_paragraphs\Plugin\migrate\process;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 
@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Generate Paragraph entities.
  *
  * @MigrateProcessPlugin(
- *   id = "isi_paragraph_generate"
+ *   id = "dgi_paragraph_generate"
  * )
  *
  * @code
