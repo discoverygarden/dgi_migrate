@@ -11,7 +11,7 @@ source:
   # validation of the URI in the destination may fail (presumably, naive URI
   # validation inside of Drupal, expecting HTTP-like URLs)... or may just
   # require a third slash to imply an empty "authority" component?
-  path: foxml-migration-source://
+  path: private://exports
   cache_counts: true
 destination:
   plugin: entity:file

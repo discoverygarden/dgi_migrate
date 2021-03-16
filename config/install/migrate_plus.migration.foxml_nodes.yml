@@ -300,79 +300,87 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_faceted_subject:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_fs_base'
+      bundle: faceted_subject
+      bundle_key: type
+      entity_type: paragraph 
+      field_authority_sources:
+        - plugin: dgi_migrate.method
+          method: query
+          args:
+            - '@authority'
+        - plugin: callback
+          callable: iterator_to_array
+        - plugin: multiple_values
+        - plugin: dgi_migrate.subproperty
+          property: nodeValue
+      field_genre_form_subdivision_:
+        - plugin: dgi_migrate.method
+          method: query
+          args:
+            - 'mods:genre'
+        - plugin: callback
+          callable: iterator_to_array
+        - plugin: multiple_values
+        - plugin: dgi_migrate.subproperty
+          property: nodeValue
+        - plugin: entity_generate
+          bundle_key: vid
+          bundle: genre
+          value_key: name
+          entity_type: taxonomy_term
+      field_geographic_geographic_subd:
+        - plugin: dgi_migrate.method
+          method: query
+          args:
+            - 'mods:geographic'
+        - plugin: callback
+          callable: iterator_to_array
+        - plugin: multiple_values
+        - plugin: dgi_migrate.subproperty
+          property: nodeValue
+        - plugin: entity_generate
+          bundle_key: vid
+          bundle: genre
+          value_key: name
+          entity_type: taxonomy_term
+      field_temporal_chronological_sub:
+        - plugin: dgi_migrate.method
+          method: query
+          args:
+            - 'mods:temporal'
+        - plugin: callback
+          callable: iterator_to_array
+        - plugin: multiple_values
+        - plugin: dgi_migrate.subproperty
+          property: nodeValue
+        - plugin: entity_generate
+          bundle_key: vid
+          bundle: temporal
+          value_key: name
+          entity_type: taxonomy_term
+      field_topic_general_subdivision:
+        - plugin: dgi_migrate.method
+          method: query
+          args:
+            - 'mods:topic'
+        - plugin: callback
+          callable: iterator_to_array
+        - plugin: multiple_values
+        - plugin: dgi_migrate.subproperty
+          property: nodeValue
+        - plugin: entity_generate
+          bundle_key: vid
+          bundle: subject
+          value_key: name
+          entity_type: taxonomy_term
       values:
-        field_authority_sources:
-          - plugin: dgi_migrate.method
-            method: query
-            args:
-              - '@authority'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-        field_genre_form_subdivision_:
-          - plugin: dgi_migrate.method
-            method: query
-            args:
-              - 'mods:genre'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle_key: vid
-            bundle: genre
-            value_key: name
-            entity_type: taxonomy_term
-        field_geographic_geographic_subd:
-          - plugin: dgi_migrate.method
-            method: query
-            args:
-              - 'mods:geographic'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle_key: vid
-            bundle: genre
-            value_key: name
-            entity_type: taxonomy_term
-        field_temporal_chronological_sub:
-          - plugin: dgi_migrate.method
-            method: query
-            args:
-              - 'mods:temporal'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle_key: vid
-            bundle: temporal
-            value_key: name
-            entity_type: taxonomy_term
-        field_topic_general_subdivision:
-          - plugin: dgi_migrate.method
-            method: query
-            args:
-              - 'mods:topic'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle_key: vid
-            bundle: subject
-            value_key: name
-            entity_type: taxonomy_term
+        field_authority_sources: '@field_authority_sources'
+        field_genre_form_subdivision_: '@field_genre_form_subdivision_'
+        field_geographic_geographic_subd: '@field_geographic_geographic_subd'
+        field_temporal_chronological_sub: '@field_temporal_chronological_sub'
+        field_topic_general_subdivision: '@field_topic_general_subdivision'
   field_form:
     - plugin: dgi_migrate.method
       source: '@_mods_xpath'
@@ -434,9 +442,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_hierarchical_geographic_su:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_fs_base'
-      values:
+      bundle: hierarchical_geographic_subject
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_area:          
           - plugin: dgi_migrate.method
             method: query
@@ -622,9 +633,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_note_paragraph:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_fs_base'
-      values:
+      bundle: note
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_note_type:
           - plugin: dgi_migrate.method
             method: query
@@ -678,9 +692,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_origin_information:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_oi_base'
-      values:
+      bundle: origin_information
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_copyright_date:          
           - plugin: dgi_migrate.method
             method: query
@@ -821,9 +838,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_part:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_part_base'
-      values:
+      bundle: part
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_additional_information:          
           - plugin: dgi_migrate.method
             method: query
@@ -966,7 +986,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: tid
+      bundle_key: vid
       bundle: physical_form
       value_key: name
       entity_type: taxonomy_term
@@ -1002,9 +1022,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_record_information:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_rec_info_base'
-      values:
+      bundle: record_information
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_description_standard:          
           - plugin: dgi_migrate.method
             method: query
@@ -1105,9 +1128,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_related_item:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_rel_item_base'
-      values:
+      bundle: related_item
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_relationship_type:          
           - plugin: dgi_migrate.method
             method: query
@@ -1150,7 +1176,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: tid
+      bundle_key: vid
       bundle: resource_types
       value_key: name
       entity_type: taxonomy_term
@@ -1177,7 +1203,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: tid
+      bundle_key: vid
       bundle: rights_statements
       value_key: name
       entity_type: taxonomy_term
@@ -1204,7 +1230,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: tid
+      bundle_key: vid
       bundle: tags
       value_key: name
       entity_type: taxonomy_term
@@ -1253,7 +1279,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: tid
+      bundle_key: vid
       bundle: temporal
       value_key: name
       entity_type: taxonomy_term
@@ -1266,9 +1292,12 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_title:
-    - plugin: entity_generate
+    - plugin: dgi_migrate.entity_generate_forced
       source: '@_title_base'
-      values:
+      bundle: title
+      bundle_key: type
+      entity_type: paragraph 
+      values_old:
         field_title:          
           - plugin: dgi_migrate.method
             method: query
