@@ -16,3 +16,7 @@ services:
     factory: cache_factory:get
     arguments:
       - dgi_migrate_parsed_foxml
+  dgi_migrate.route_subscriber:
+    class: Drupal\dgi_migrate\Routing\RouteSubscriber
+    tags:
+      - name: event_subscriber
