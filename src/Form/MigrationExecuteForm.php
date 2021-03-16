@@ -6,9 +6,11 @@ use Drupal\Core\Form\FormStateInterface;
 
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\MigrateMessage;
-use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_tools\Form\MigrationExecuteForm as MigrationExecuteFormBase;
 
+/**
+ * Slightly extended migration execution form.
+ */
 class MigrationExecuteForm extends MigrationExecuteFormBase {
 
   /**
@@ -59,7 +61,6 @@ class MigrationExecuteForm extends MigrationExecuteFormBase {
           break;
 
         default:
-
           parent::submitForm($form, $form_state);
 
           break;
@@ -67,6 +68,5 @@ class MigrationExecuteForm extends MigrationExecuteFormBase {
       }
     }
   }
-
 
 }

@@ -7,6 +7,9 @@ use Symfony\Component\Routing\RouteCollection;
 
 use Drupal\dgi_migrate\Form\MigrationExecuteForm;
 
+/**
+ * Route subscriber handler.
+ */
 class RouteSubscriber extends RouteSubscriberBase {
 
   /**
