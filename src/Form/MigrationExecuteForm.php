@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate\Form;
 
 use Drupal\Core\Form\FormStateInterface;
 
+use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\MigrateMessage;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_tools\Form\MigrationExecuteForm as MigrationExecuteFormBase;
