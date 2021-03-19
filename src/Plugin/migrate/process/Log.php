@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 
@@ -49,8 +50,8 @@ class Log extends ProcessPluginBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->template = $this->configuration['template'];
-    $this->level = $this->configuration['level'];
+    $this->template = $this->configuration['template'] ?? 'Logged value: :value';
+    $this->level = $this->configuration['level'] ?? MigrationInterface::MESSAGE_INFORMATIONAL;
   }
 
   /**
@@ -59,7 +60,7 @@ class Log extends ProcessPluginBase {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $migrate_executable->saveMessage(
       strtr($this->template, [
-        ':value' => $value,
+        ':value' => (is_scalar($value) ? $value : var_export($value, TRUE)),
       ]),
       $this->level
     );

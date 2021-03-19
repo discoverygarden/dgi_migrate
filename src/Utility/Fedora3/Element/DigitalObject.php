@@ -3,15 +3,11 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
-use ArrayAccess;
-use Exception;
-use DOMXPath;
-use DOMDocument;
 
 /**
  * Element handler for foxml:digitalObject.
  */
-class DigitalObject extends AbstractParser implements ArrayAccess {
+class DigitalObject extends AbstractParser implements \ArrayAccess {
   const TAG = 'foxml:digitalObject';
   const MAP = [
     ObjectProperties::TAG => ObjectProperties::class,
@@ -43,7 +39,7 @@ class DigitalObject extends AbstractParser implements ArrayAccess {
         $this->properties = $old;
       }
       else {
-        throw new Exception('Too many "objectProperties" elements.');
+        throw new \Exception('Too many "objectProperties" elements.');
       }
     }
     elseif ($old instanceof Datastream) {
@@ -123,7 +119,7 @@ class DigitalObject extends AbstractParser implements ArrayAccess {
       $this->datastreams[$offset] = $value;
     }
     else {
-      throw new Exception("Refusing to replace {$offset}.");
+      throw new \Exception("Refusing to replace {$offset}.");
     }
   }
 
@@ -131,7 +127,7 @@ class DigitalObject extends AbstractParser implements ArrayAccess {
    * {@inheritdoc}
    */
   public function offsetUnset($offset) {
-    throw new Exception('Not implemented.');
+    throw new \Exception('Not implemented.');
   }
 
   /**
@@ -156,9 +152,9 @@ class DigitalObject extends AbstractParser implements ArrayAccess {
    */
   protected function xpath() {
     if (!isset($this->xpath)) {
-      $this->dom = new DOMDocument();
+      $this->dom = new \DOMDocument();
       $this->dom->load($this['RELS-EXT']->getUri());
-      $this->xpath = new DOMXPath($this->dom);
+      $this->xpath = new \DOMXPath($this->dom);
       $ns = [
         'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'fre' => 'info:fedora/fedora-system:def/relations-external#',

@@ -3,7 +3,6 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
-use Exception;
 
 /**
  * Element handler for foxml:contentLocation.
@@ -31,7 +30,7 @@ class ContentLocation extends AbstractParser {
     else {
       // XXX: An internal URI would require additional dereferencing to be
       // useful.
-      throw new Exception('Refusing to provide internal URI.');
+      throw new \Exception('Refusing to provide internal URI.');
     }
   }
 
