@@ -2,14 +2,10 @@
 
 namespace Drupal\dgi_migrate_paragraphs\Plugin\migrate\process;
 
-use Drupal\Component\Plugin\ConfigurableInterface;
-
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
-
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Generate Paragraph entities.
@@ -27,30 +23,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *       field_two: col_two
  *       field_three: "@something_built"
  * @endcode
- *
  */
-class ParagraphGenerate extends ProcessPluginBase implements ConfigurableInterface {
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfiguration() {
-    return $this->configuration;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setConfiguration(array $config) {
-    $this->configuration = $config;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function defaultConfiguration() {
-    return [];
-  }
+class ParagraphGenerate extends ProcessPluginBase {
 
   /**
    * {@inheritdoc}
@@ -61,7 +35,7 @@ class ParagraphGenerate extends ProcessPluginBase implements ConfigurableInterfa
 
     $paragraph = Paragraph::create(
       [
-      'type' => $this->configuration['type'],
+        'type' => $this->configuration['type'],
       ] +
       $this->mapValues($migrate_executable, $row)
     );
@@ -87,7 +61,7 @@ class ParagraphGenerate extends ProcessPluginBase implements ConfigurableInterfa
   protected function mapValues(MigrateExecutableInterface $executable, Row $row) {
     $mapped = [];
 
-    foreach ($this->getConfiguration()['values'] as $key => $property) {
+    foreach ($this->configuration['values'] as $key => $property) {
       $mapped[$key] = $row->get($property);
     }
 
