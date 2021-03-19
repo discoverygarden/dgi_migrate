@@ -4,7 +4,6 @@ namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Exception;
 
 /**
  * Foxml parser.
@@ -138,7 +137,7 @@ class FoxmlParser extends AbstractParser {
 
     try {
       if (!$this->file) {
-        throw new Exception('Failed to open file...');
+        throw new \Exception('Failed to open file...');
       }
       $this->initParser();
       while (!feof($this->file)) {

@@ -3,12 +3,11 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Exception;
 
 /**
  * Generate exceptions for the parser.
  */
-class FoxmlParserException extends Exception {
+class FoxmlParserException extends \Exception {
 
   use StringTranslationTrait;
 

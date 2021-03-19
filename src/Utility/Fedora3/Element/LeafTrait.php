@@ -2,8 +2,6 @@
 
 namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
-use Exception;
-
 /**
  * AbstractParser helper trait used for elements which should not have children.
  */
@@ -23,7 +21,7 @@ trait LeafTrait {
    *   Encountered something invalid.
    */
   public function tagOpen($parser, $tag, array $attributes) {
-    throw new Exception('Leaf node should not contain additional elements.');
+    throw new \Exception('Leaf node should not contain additional elements.');
   }
 
   /**
@@ -38,7 +36,7 @@ trait LeafTrait {
    *   Encountered something invalid.
    */
   public function tagClose($parser, $tag) {
-    throw new Exception('Leaf node should not contain additional elements.');
+    throw new \Exception('Leaf node should not contain additional elements.');
   }
 
 }
