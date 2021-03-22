@@ -3,14 +3,11 @@
 namespace Drupal\dgi_migrate;
 
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
-use Traversable;
-use Exception;
-use IteratorIterator;
 
 /**
  * Facilitate iteration over a migration, for source or destination IDs.
  */
-class MigrationIterator extends IteratorIterator {
+class MigrationIterator extends \IteratorIterator {
 
   /**
    * The migration ID map over which to iterate.
@@ -38,12 +35,12 @@ class MigrationIterator extends IteratorIterator {
    *   - currentSource: To receive source IDs; or,
    *   - currentDestintation: To receive destination IDs.
    */
-  public function __construct(Traversable $iterator, $method) {
+  public function __construct(\Traversable $iterator, $method) {
     if (!($iterator instanceof MigrateIdMapInterface)) {
-      throw new Exception('Invalid object passed.');
+      throw new \Exception('Invalid object passed.');
     }
     elseif (!in_array($method, ['currentSource', 'currentDestination'])) {
-      throw new Exception('Unrecognized method.');
+      throw new \Exception('Unrecognized method.');
     }
     parent::__construct($iterator);
     $this->iterator = $iterator;

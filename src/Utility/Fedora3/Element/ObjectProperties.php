@@ -3,13 +3,11 @@
 namespace Drupal\dgi_migrate\Utility\Fedora3\Element;
 
 use Drupal\dgi_migrate\Utility\Fedora3\AbstractParser;
-use ArrayAccess;
-use Exception;
 
 /**
  * Element handler for foxml:objectProperties.
  */
-class ObjectProperties extends AbstractParser implements ArrayAccess {
+class ObjectProperties extends AbstractParser implements \ArrayAccess {
 
   const TAG = 'foxml:objectProperties';
   const MAP = [
@@ -65,7 +63,7 @@ class ObjectProperties extends AbstractParser implements ArrayAccess {
       $this->properties[$offset] = $value;
     }
     else {
-      throw new Exception("Refusing to replace {$offset}.");
+      throw new \Exception("Refusing to replace {$offset}.");
     }
   }
 
@@ -73,7 +71,7 @@ class ObjectProperties extends AbstractParser implements ArrayAccess {
    * {@inheritdoc}
    */
   public function offsetUnset($offset) {
-    throw new Exception('Not implemented.');
+    throw new \Exception('Not implemented.');
   }
 
 }

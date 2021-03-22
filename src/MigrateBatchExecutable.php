@@ -13,7 +13,6 @@ use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
-use Exception;
 use Drupal\migrate\Row;
 
 /**
@@ -63,7 +62,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       ];
     }
     else {
-      throw new Exception('Migration failed.');
+      throw new \Exception('Migration failed.');
     }
   }
 
