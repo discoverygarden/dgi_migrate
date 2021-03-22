@@ -300,11 +300,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_faceted_subject:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_fs_base'
-      bundle: faceted_subject
-      bundle_key: type
-      entity_type: paragraph 
+      type: faceted_subject
       field_authority_sources:
         - plugin: dgi_migrate.method
           method: query
@@ -442,11 +440,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_hierarchical_geographic_su:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_fs_base'
-      bundle: hierarchical_geographic_subject
-      bundle_key: type
-      entity_type: paragraph 
+      type: hierarchical_geographic_subject
       field_area:          
         - plugin: dgi_migrate.method
           method: query
@@ -644,11 +640,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_note_paragraph:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_fs_base'
-      bundle: note
-      bundle_key: type
-      entity_type: paragraph
+      type: note
       field_note_type:
         - plugin: dgi_migrate.method
           method: query
@@ -705,11 +699,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_origin_information:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_oi_base'
-      bundle: origin_information
-      bundle_key: type
-      entity_type: paragraph
+      type: origin_information
       field_copyright_date:          
         - plugin: dgi_migrate.method
           method: query
@@ -864,11 +856,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_part:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_part_base'
-      bundle: part
-      bundle_key: type
-      entity_type: paragraph
+      type: part
       field_additional_information:          
         - plugin: dgi_migrate.method
           method: query
@@ -1061,11 +1051,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_record_information:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_rec_info_base'
-      bundle: record_information
-      bundle_key: type
-      entity_type: paragraph
+      type: record_information
       field_description_standard:          
         - plugin: dgi_migrate.method
           method: query
@@ -1175,11 +1163,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_related_item:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_rel_item_base'
-      bundle: related_item
-      bundle_key: type
-      entity_type: paragraph
+      type: related_item
       field_relationship_type:          
         - plugin: dgi_migrate.method
           method: query
@@ -1342,11 +1328,9 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
   field_title:
-    - plugin: dgi_migrate.entity_generate_forced
+    - plugin: dgi_paragraph_generate
       source: '@_title_base'
-      bundle: title
-      bundle_key: type
-      entity_type: paragraph
+      type: title
       field_title:          
         - plugin: dgi_migrate.method
           method: query
@@ -1388,3 +1372,4 @@ dependencies:
   enforced:
     module:
       - dgi_migrate
+      - dgi_migrate_paragraphs
