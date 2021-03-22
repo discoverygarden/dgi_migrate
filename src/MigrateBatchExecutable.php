@@ -12,8 +12,10 @@ use Drupal\migrate\Plugin\MigrateIdMapInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\MigrateSkipRowException;
-use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\migrate\Row;
+
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+use Drupal\Component\Utility\Timer;
 
 /**
  * Migration executable to run as fully queued batch.
@@ -21,6 +23,12 @@ use Drupal\migrate\Row;
 class MigrateBatchExecutable extends MigrateExecutable {
 
   use DependencySerializationTrait;
+
+  // The name of our timer.
+  const TIMER = 'dgi_migrate_iteration_timer';
+
+  // The max amount of time we might want to allow per iteration.
+  const MAX_TIME = 3600.0;
 
   /**
    * The queue to deal with.
@@ -240,33 +248,114 @@ class MigrateBatchExecutable extends MigrateExecutable {
       }
     }
 
-    $item = $this->queue->claimItem();
-    if (!$item) {
-      $context['results']['status'] = MigrationInterface::RESULT_COMPLETED;
-      $context['message'] = $this->t('Queue empty...');
-      return;
+    while (TRUE) {
+      $item = $this->queue->claimItem();
+      if (!$item) {
+        $context['results']['status'] = MigrationInterface::RESULT_COMPLETED;
+        $context['message'] = $this->t('Queue empty/depleted...');
+        break;
+      }
+
+      try {
+        $status = $this->processRowFromQueue($item->data);
+        $this->queue->deleteItem($item);
+        $context['finished'] = ++$sandbox['current'] / $sandbox['total'];
+        $context['message'] = $this->t('Migration "@migration": @current/@total', [
+          '@migration' => $this->migration->id(),
+          '@current'   => $sandbox['current'],
+          '@total'     => $sandbox['total'],
+        ]);
+        if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
+          $context['message'] = $this->t('Stopping "@migration" after @current of @total', [
+            '@migration' => $this->migration->id(),
+            '@current' => $sandbox['current'],
+            '@total' => $sandbox['total'],
+          ]);
+          $context['finished'] = 1;
+          break;
+        }
+        elseif ($status === MigrationInterface::RESULT_INCOMPLETE) {
+          // Force iteration, due to memory or time.
+          break;
+        }
+      }
+      catch (\Exception $e) {
+        // XXX: This... exception handling doesn't really make sense?
+        $context['results']['status'] = MigrationInterface::RESULT_FAILED;
+        $context['message'] = strtr("Exception while processing :migration (:source_ids):\n:message\n:trace", [
+          ':migration' => $this->migration->id(),
+          ':source_ids' => implode(',', $this->sourceIdValues),
+          ':message' => $e->getMessage(),
+          ':trace' => $e->getTraceAsString(),
+        ]);
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function checkStatus() {
+    $status = parent::checkStatus();
+
+    if ($status === MigrationInterface::RESULT_COMPLETED) {
+      if (!static::hasTime()) {
+        return MigrationInterface::RESULT_INCOMPLETE;
+      }
+    }
+    return $status;
+  }
+
+  /**
+   * Track if we have started our timer.
+   *
+   * @var bool
+   */
+  protected static $timerStarted = FALSE;
+
+  /**
+   * The threshold after which to iterate, in millis.
+   *
+   * @var float
+   */
+  protected static $timerThreshold = 0.0;
+
+  /**
+   * Determine if we should have time for another item.
+   *
+   * @return bool
+   *   TRUE if we should have time; otherwise, FALSE.
+   */
+  protected static function hasTime() {
+    if (!static::$timerStarted) {
+      Timer::start(static::TIMER);
+      static::$timerStarted = TRUE;
+      // Convert seconds to millis, and allow let's cut the iteration after a
+      // a third of the time.
+      static::$timerThreshold = static::getIterationTimeThreshold() * 1000 / 3;
+
+      // Need to allow at least one, to avoid starving.
+      return TRUE;
     }
 
-    try {
-      $this->processRowFromQueue($item->data);
-      $this->queue->deleteItem($item);
-      $context['finished'] = ++$sandbox['current'] / $sandbox['total'];
-      $context['message'] = $this->t('Migration "@migration": @current/@total', [
-        '@migration' => $this->migration->id(),
-        '@current'   => $sandbox['current'],
-        '@total'     => $sandbox['total'],
-      ]);
+    return Timer::read(static::TIMER) < static::$timerThreshold;
+  }
+
+  /**
+   * Determine an appropriate "max threshold" of time to let an iteration run.
+   *
+   * @return float
+   *   An amount of time, in seconds.
+   */
+  protected static function getIterationTimeThreshold() {
+    $max_exec = intval(ini_get('max_execution_time'));
+    if ($max_exec > 0) {
+      // max_execution_time could be 0 if run from CLI (drush?)
+      return min(static::MAX_TIME, $max_exec);
     }
-    catch (\Exception $e) {
-      $context['results']['status'] = MigrationInterface::RESULT_FAILED;
-      $context['message'] = strtr("Exception while processing :migration (:source_ids):\n:message\n:trace", [
-        ':migration' => $this->migration->id(),
-        ':source_ids' => implode(',', $this->sourceIdValues),
-        ':message' => $e->getMessage(),
-        ':trace' => $e->getTraceAsString(),
-      ]);
+    else {
+      return static::MAX_TIME;
     }
-    finally {}
   }
 
 }
