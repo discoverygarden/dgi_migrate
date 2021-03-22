@@ -252,7 +252,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     while (TRUE) {
       $item = $this->queue->claimItem();
       if (!$item) {
-        $context['message'] = $this->t('Queue prematurely depleted.');
+        $context['message'] = $this->t('Queue exhausted.');
         break;
       }
 
