@@ -244,6 +244,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $sandbox['current'] = 0;
       $sandbox['total'] = $this->queue->numberOfItems();
       if ($sandbox['total'] === 0) {
+        $context['message'] = $this->t('Queue empty.');
         return;
       }
     }
@@ -251,8 +252,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     while (TRUE) {
       $item = $this->queue->claimItem();
       if (!$item) {
-        $context['results']['status'] = MigrationInterface::RESULT_COMPLETED;
-        $context['message'] = $this->t('Queue empty/depleted...');
+        $context['message'] = $this->t('Queue prematurely depleted.');
         break;
       }
 
@@ -280,8 +280,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
         }
       }
       catch (\Exception $e) {
-        // XXX: This... exception handling doesn't really make sense?
-        $context['results']['status'] = MigrationInterface::RESULT_FAILED;
         $context['message'] = strtr("Exception while processing :migration (:source_ids):\n:message\n:trace", [
           ':migration' => $this->migration->id(),
           ':source_ids' => implode(',', $this->sourceIdValues),
