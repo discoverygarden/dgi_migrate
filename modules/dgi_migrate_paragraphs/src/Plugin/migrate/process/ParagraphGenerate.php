@@ -22,6 +22,17 @@ use Drupal\paragraphs\Entity\Paragraph;
  *       field_one: col_one
  *       field_two: col_two
  *       field_three: "@something_built"
+ * field_paragraphs_processed:
+ *   - plugin: dgi_paragraph_generate
+ *     type: paragraph_bundle_type
+ *     process_values: true
+ *     values:
+ *       field_one:
+ *         - plugin: some_process_plugin
+ *           plugin_property: sure_why_not
+ *       field_two:
+ *         - plugin: get
+ *           source: '@some_built_thing'
  * @endcode
  */
 class ParagraphGenerate extends ProcessPluginBase {
@@ -33,11 +44,18 @@ class ParagraphGenerate extends ProcessPluginBase {
     assert(!empty($this->configuration['type']));
     assert(!empty($this->configuration['values']));
 
+    if (!empty($this->configuration['process_values']) && $this->configuration['process_values']) {
+      $extra_values = $this->processValues($value, $migrate_executable, $row);
+    }
+    else {
+      $extra_values = $this->mapValues($migrate_executable, $row);
+    }
+
     $paragraph = Paragraph::create(
       [
         'type' => $this->configuration['type'],
       ] +
-      $this->mapValues($migrate_executable, $row)
+      $extra_values;
     );
     $paragraph->save();
 
@@ -63,6 +81,31 @@ class ParagraphGenerate extends ProcessPluginBase {
 
     foreach ($this->configuration['values'] as $key => $property) {
       $mapped[$key] = $row->get($property);
+    }
+
+    return $mapped;
+  }
+
+  /**
+   * Process requested values.
+   *
+   * @param mixed $value
+   *   The source value for the plugin.
+   * @param \Drupal\migrate\MigrateExecutableInterface $executable
+   *   The migration exectuable.
+   * @param \Drupal\migrate\Row $row
+   *   The row object being processed.
+   *
+   * @return array
+   *   An associative array of processed configuration values.
+   */
+  protected function processValues($value, MigrateExecutableInterface $executable, Row $row) {
+    $mapped = [];
+
+    foreach ($this->configuration['values'] as $key => $property) {
+      $new_row = new Row($property);
+      $executable->processRow($new_row, NULL, $value);
+      $mapped[$key] = $new_row->getDestination();
     }
 
     return $mapped;
