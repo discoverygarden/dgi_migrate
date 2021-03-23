@@ -28,8 +28,8 @@ class ContextQuery extends ProcessPluginBase {
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    assert(!empty($this->configuration['xpath']))
-    assert(!empty($this->configuration['query']))
+    assert(!empty($this->configuration['xpath']));
+    assert(!empty($this->configuration['query']));
     if (!($this->configuration['xpath'] instanceof \DOMXpath)) {
       throw new MigrateException('Requires an "xpath" parameter');
     }
@@ -39,4 +39,5 @@ class ContextQuery extends ProcessPluginBase {
 
     return $this->configuration['xpath']->query($this->configuration['query'], $value);
   }
+
 }

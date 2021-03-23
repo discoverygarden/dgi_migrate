@@ -55,7 +55,7 @@ class ParagraphGenerate extends ProcessPluginBase {
       [
         'type' => $this->configuration['type'],
       ] +
-      $extra_values;
+      $extra_values
     );
     $paragraph->save();
 
