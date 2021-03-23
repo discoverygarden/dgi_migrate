@@ -1,0 +1,8 @@
+name: DGI Migrate FOXML (Standard MODS)
+description: "FOXML migration for MODS into the DGI standard content type"
+type: module
+package: DGI
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:migrate
+  - dgi_migrate_paragraphs
