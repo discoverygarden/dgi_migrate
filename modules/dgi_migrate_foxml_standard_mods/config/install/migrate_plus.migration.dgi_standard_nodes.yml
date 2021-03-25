@@ -1208,30 +1208,11 @@ process:
       method: query
       args:
         - '//mods:mods[1]/mods:titleInfo'
+    - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_paragraph_generate
-      type: title
-      process_values: true
-      values:
-        field_title:          
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: 'mods:title'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-        field_title_type:          
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: '@type'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+    - plugin: dgi_standard_title_paragraph
+      xpath: '@_mods_xpath'
   field_use_and_reproduction:
     - plugin: dgi_migrate.method
       source: '@_mods_xpath'
