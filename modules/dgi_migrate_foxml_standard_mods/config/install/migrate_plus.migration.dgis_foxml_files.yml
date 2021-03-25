@@ -1,7 +1,7 @@
 ---
-id: dgi_standard_foxml_files
+id: dgis_foxml_files
 label: FOXML to file entities
-migration_group: foxml_to_dgi_standard
+migration_group: foxml_to_dgis
 source:
   plugin: directory
   track_changes: true
@@ -58,4 +58,4 @@ process:
 dependencies:
   enforced:
     module:
-      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

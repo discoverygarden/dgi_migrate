@@ -4,6 +4,8 @@ namespace Drupal\dgi_migrate_paragraphs\Plugin\migrate\process;
 
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateSkipProcessException;
+use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
 
@@ -103,9 +105,14 @@ class ParagraphGenerate extends ProcessPluginBase {
     $mapped = [];
 
     foreach ($this->configuration['values'] as $key => $property) {
-      $new_row = new Row($property);
-      $executable->processRow($new_row, NULL, $value);
-      $mapped[$key] = $new_row->getDestination();
+      try {
+        $new_row = new Row($property);
+        $executable->processRow($new_row, NULL, $value);
+        $mapped[$key] = $new_row->getDestination();
+      }
+      catch (MigrateSkipProcessException | MigrateSkipRowException $e) {
+        $mapped[$key] = NULL;
+      }
     }
 
     return $mapped;

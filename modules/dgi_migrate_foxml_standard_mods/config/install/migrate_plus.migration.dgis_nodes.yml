@@ -1,11 +1,11 @@
 ---
-id: dgi_standard_nodes
+id: dgis_nodes
 label: DGI Standard from FOXML
-migration_group: foxml_to_dgi_standard
+migration_group: foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true
-  migration: dgi_standard_foxml_files
+  migration: dgis_foxml_files
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -136,12 +136,22 @@ process:
         mods: 'http://www.loc.gov/mods/v3'
         xsi: 'http://www.w3.org/2001/XMLSchema-instance'
         xlink: 'http://www.w3.org/1999/xlink'
+  _mods_node:
+    - plugin: dgi_migrate.method
+      source: '@_mods_xpath'
+      method: query
+      args:
+        - '//mods:mods[1]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
   field_ark:
     - plugin: dgi_migrate.method
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="ark"]'
+        - 'mods:identifier[@type="ark"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -154,7 +164,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
+        - 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -170,7 +181,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject/mods:cartographic/mods:coordinates'
+        - 'mods:subject/mods:cartographic/mods:coordinates'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -188,7 +200,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject/mods:cartographic/mods:coordinates'
+        - 'mods:subject/mods:cartographic/mods:coordinates'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -199,7 +212,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:originInfo/mods:dateCreated[@keydate="yes"]'
+        - 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -210,7 +224,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:originInfo/mods:dateIssued[@keydate="yes"]'
+        - 'mods:originInfo/mods:dateIssued[@keydate="yes"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -221,7 +236,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:abstract'
+        - 'mods:abstract'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -234,7 +250,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:physicalDescription/mods:digitalOrigin'
+        - 'mods:physicalDescription/mods:digitalOrigin'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -245,7 +262,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="doi"]'
+        - 'mods:identifier[@type="doi"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -258,7 +276,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -271,7 +290,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -284,7 +304,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:physicalDescription/mods:extent'
+        - 'mods:physicalDescription/mods:extent'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -295,7 +316,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject'
+        - 'mods:subject'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -373,7 +395,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -384,7 +407,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:genre'
+        - 'mods:genre'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -395,7 +419,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject/mods:geographic'
+        - 'mods:subject/mods:geographic'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -411,7 +436,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="hdl"]'
+        - 'mods:identifier[@type="hdl"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -424,7 +450,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject/mods:hierarchicalGeographic'
+        - 'mods:subject/mods:hierarchicalGeographic'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -536,7 +563,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="isbn"]'
+        - 'mods:identifier[@type="isbn"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -549,7 +577,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -562,7 +591,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:classification[@authority="lcc"]'
+        - 'mods:classification[@authority="lcc"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -575,7 +605,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="local"]'
+        - 'mods:identifier[@type="local"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -588,7 +619,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -601,7 +633,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:note'
+        - 'mods:note'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -630,7 +663,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:physicalDescription/mods:note'
+        - 'mods:physicalDescription/mods:note'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -643,7 +677,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="oclc"]'
+        - 'mods:identifier[@type="oclc"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -656,7 +691,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:originInfo'
+        - 'mods:originInfo'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -786,7 +822,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:part'
+        - 'mods:part'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -806,7 +843,7 @@ process:
         field_caption:          
           - plugin: dgi_migrate.process.context_query
             xpath: '@_mods_xpath'
-            query: 'mods:defail/mods:caption'
+            query: 'mods:detail/mods:caption'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -916,7 +953,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:physicalDescription/mods:form'
+        - 'mods:physicalDescription/mods:form'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -932,7 +970,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:physicalLocation'
+        - 'mods:location/mods:physicalLocation'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -943,7 +982,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:identifier[@type="purl"]'
+        - 'mods:identifier[@type="purl"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -954,7 +994,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:recordInfo'
+        - 'mods:recordInfo'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1039,7 +1080,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:physicalDescription/mods:reformattingQuality'
+        - 'mods:physicalDescription/mods:reformattingQuality'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1050,7 +1092,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:relatedItem'
+        - 'mods:relatedItem'
+        - '@_mods_node'
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
@@ -1088,7 +1131,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:typeOfResource'
+        - 'mods:typeOfResource'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1104,7 +1148,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:accessCondition[@type="restriction on access"]'
+        - 'mods:accessCondition[@type="restriction on access"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1115,7 +1160,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:accessCondition[@type="use and reproduction"]'
+        - 'mods:accessCondition[@type="use and reproduction"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1131,7 +1177,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1142,7 +1189,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:subject/mods:topic'
+        - 'mods:subject/mods:topic'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1158,7 +1206,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
+        - 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1169,7 +1218,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:tableOfContents'
+        - 'mods:tableOfContents'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1180,7 +1230,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:targetAudience'
+        - 'mods:targetAudience'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1191,7 +1242,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:tableOfContents'
+        - 'mods:tableOfContents'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1207,7 +1259,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:titleInfo'
+        - 'mods:titleInfo'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1218,7 +1271,8 @@ process:
       source: '@_mods_xpath'
       method: query
       args:
-        - '//mods:mods[1]/mods:accessCondition[@type="use and reproduction"]'
+        - 'mods:accessCondition[@type="use and reproduction"]'
+        - '@_mods_node'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1226,9 +1280,8 @@ process:
       property:
 migration_dependencies:
   required:
-    - foxml_files
+    - dgis_foxml_files
 dependencies:
   enforced:
     module:
-      - dgi_migrate
-      - dgi_migrate_paragraphs
+      - dgi_migrate_foxml_standard_mods

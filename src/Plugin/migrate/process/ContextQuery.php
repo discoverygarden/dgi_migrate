@@ -8,7 +8,7 @@ use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
 
 /**
- * Query a DOMXpath using a DOMNode context as the source.
+ * Query a DOMXPath using a DOMNode context as the source.
  *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.process.context_query"
@@ -30,14 +30,15 @@ class ContextQuery extends ProcessPluginBase {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     assert(!empty($this->configuration['xpath']));
     assert(!empty($this->configuration['query']));
-    if (!($this->configuration['xpath'] instanceof \DOMXpath)) {
-      throw new MigrateException('Requires an "xpath" parameter');
+    $xpath = $row->get($this->configuration['xpath']);
+    if (!($xpath instanceof \DOMXPath)) {
+      throw new MigrateException('Requires an "xpath" parameter that is an instance of DOMXPath');
     }
     if (!($value instanceof \DOMNode)) {
       throw new MigrateException('Input should be a DOMNode.');
     }
 
-    return $this->configuration['xpath']->query($this->configuration['query'], $value);
+    return $xpath->query($this->configuration['query'], $value);
   }
 
 }

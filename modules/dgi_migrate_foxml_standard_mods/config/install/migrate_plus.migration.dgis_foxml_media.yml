@@ -1,11 +1,11 @@
 ---
-id: dgi_standard_foxml_media
+id: dgis_foxml_media
 label: FOXML to DGI Standard media entities
-migration_group: foxml_to_dgi_standard
+migration_group: foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true
-  migration: dgi_standard_foxml_files
+  migration: dgis_foxml_files
 destination:
   plugin: entity:media
   default_bundle: file
@@ -83,9 +83,9 @@ process:
       default_value: 0
 migration_dependencies:
   required:
-    - foxml_nodes
-    - foxml_files
+    - dgis_foxml_nodes
+    - dgis_foxml_files
 dependencies:
   enforced:
     module:
-      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods
