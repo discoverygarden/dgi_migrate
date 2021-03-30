@@ -258,23 +258,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
       try {
         $status = $this->processRowFromQueue($item->data);
-        $this->queue->deleteItem($item);
-        $context['finished'] = ++$sandbox['current'] / $sandbox['total'];
-        $context['message'] = $this->t('Migration "@migration": @current/@total', [
-          '@migration' => $this->migration->id(),
-          '@current'   => $sandbox['current'],
-          '@total'     => $sandbox['total'],
-        ]);
-        if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
-          $context['message'] = $this->t('Stopping "@migration" after @current of @total', [
-            '@migration' => $this->migration->id(),
-            '@current' => $sandbox['current'],
-            '@total' => $sandbox['total'],
-          ]);
-          $context['finished'] = 1;
-          break;
-        }
-        elseif ($status === MigrationInterface::RESULT_INCOMPLETE) {
+        if ($status === MigrationInterface::RESULT_INCOMPLETE) {
           // Force iteration, due to memory or time.
           break;
         }
@@ -286,6 +270,25 @@ class MigrateBatchExecutable extends MigrateExecutable {
           ':message' => $e->getMessage(),
           ':trace' => $e->getTraceAsString(),
         ]);
+      }
+      finally {
+        // Remove the item regardless if it was processed successfully.
+        $this->queue->deleteItem($item);
+        $context['finished'] = ++$sandbox['current'] / $sandbox['total'];
+        $context['message'] = $this->t('Migration "@migration": @current/@total', [
+          '@migration' => $this->migration->id(),
+          '@current'   => $sandbox['current'],
+          '@total'     => $sandbox['total'],
+        ]);
+      }
+      if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
+        $context['message'] = $this->t('Stopping "@migration" after @current of @total', [
+          '@migration' => $this->migration->id(),
+          '@current' => $sandbox['current'],
+          '@total' => $sandbox['total'],
+        ]);
+        $context['finished'] = 1;
+        break;
       }
     }
   }
