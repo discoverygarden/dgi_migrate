@@ -20,7 +20,7 @@ destination:
 process:
   field_media_of/target_id:
     - plugin: migration_lookup
-      migration: foxml_nodes
+      migration: dgis_nodes
       source: fid
       no_stub: true
     - plugin: skip_on_empty
@@ -31,7 +31,7 @@ process:
       method: row
   _file_id:
     - plugin: migration_lookup
-      migration: content_files
+      migration: dgis_files
       source: fid
       no_stub: true
     - plugin: skip_on_empty

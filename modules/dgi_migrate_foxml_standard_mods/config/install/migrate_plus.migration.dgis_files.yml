@@ -15,7 +15,7 @@ process:
   _noded:
     - plugin: migration_lookup
       source: fid
-      migration: foxml_nodes
+      migration: dgis_nodes
       no_stub: true
     - plugin: skip_on_empty
       method: row
