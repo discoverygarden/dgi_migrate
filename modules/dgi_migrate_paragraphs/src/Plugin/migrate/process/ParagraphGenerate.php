@@ -47,7 +47,15 @@ class ParagraphGenerate extends ProcessPluginBase {
     assert(!empty($this->configuration['values']));
 
     if (!empty($this->configuration['process_values']) && $this->configuration['process_values']) {
-      $extra_values = $this->processValues($value, $migrate_executable, $row);
+      try {
+        $extra_values = $this->processValues($value, $migrate_executable, $row);
+      }
+      catch (MigrateSkipRowException) {
+        return [
+          'target_id' => NULL,
+          'target_revision_id' => NULL,
+        ];
+      }
     }
     else {
       $extra_values = $this->mapValues($migrate_executable, $row);
@@ -110,7 +118,7 @@ class ParagraphGenerate extends ProcessPluginBase {
         $executable->processRow($new_row, NULL, $value);
         $mapped[$key] = $new_row->getDestination();
       }
-      catch (MigrateSkipProcessException | MigrateSkipRowException $e) {
+      catch (MigrateSkipProcessException $e) {
         $mapped[$key] = NULL;
       }
     }

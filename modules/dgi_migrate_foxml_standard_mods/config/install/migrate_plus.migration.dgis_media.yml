@@ -1,0 +1,122 @@
+---
+id: dgis_media
+label: FOXML to content entities
+migration_group: foxml_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: foxml_files
+destination:
+  plugin: entity:media
+  default_bundle: file
+  # XXX: It appears that we cannot perform validation because:
+  # - the way we need to be able to map into multiple file fields, expecting
+  #   only that for the given bundle to succeed; however, validation checks that
+  #   everything appears valid... and specifying fields which are not in the
+  #   bundle breaks this.
+  # - we presently map audio/mpeg to .mpga, which is not in the list of allowed
+  #   extensions for audio.
+  #validate: true
+process:
+  field_media_of/target_id:
+    - plugin: migration_lookup
+      migration: foxml_nodes
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+    - plugin: extract
+      index: [ 0 ]
+    - plugin: skip_on_empty
+      method: row
+  _file_id:
+    - plugin: migration_lookup
+      migration: content_files
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+  _file:
+    plugin: dgi_migrate.load_entity
+    source: '@_file_id'
+    entity_type: entity:file
+  _parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
+  _models:
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: models
+    - plugin: skip_on_empty
+      method: row
+  name:
+    plugin: dgi_migrate.subproperty
+    property: label
+    source: '@_parsed'
+  # XXX: Somewhat counter-intuitive, but it will just ignore those file field
+  # entries with which the target bundle does not deal.
+  field_media_audio_file: '@_file'
+  field_media_file: '@_file'
+  field_media_image/target_id: '@_file_id'
+  field_media_image/alt: '@name'
+  field_media_video_file: '@_file'
+  bundle:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:sp_basic_image': 'image'
+        'info:fedora/islandora:sp_large_image_cmodel': 'image'
+        'info:fedora/ir:citationCModel': 'file'
+        'info:fedora/islandora:sp_pdf': 'file'
+        'info:fedora/islandora:sp_videoCModel': 'video'
+        'info:fedora/islandora:sp-audioCModel': 'audio'
+    - plugin: extract
+      index: [ 0 ]
+  # XXX: Skip the filesize, just in case we ever encounter anything larger than
+  # 2GB... signed 32-bit field, meaning things would go boom.
+  #field_file_size:
+  #  - plugin: dgi_migrate.method
+  #    method: getSize
+  #    source: '@_file'
+  field_media_use:
+    - plugin: default_value
+      # XXX: Not a perfect match, but seems to be closest, without rolling our
+      # own.
+      default_value: http://pcdm.org/use#OriginalFile
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_media_use
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  field_mime_type:
+    - plugin: dgi_migrate.method
+      method: getMimeType
+      source: '@_file'
+  created:
+    - plugin: callback
+      callable: time
+  changed: '@created'
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: dgi_migrate.method
+      method: getOwnerId
+      source: '@_file'
+migration_dependencies:
+  required:
+    - dgis_nodes
+    - dgis_foxml_files
+    - dgis_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_foxml_standard_mods
