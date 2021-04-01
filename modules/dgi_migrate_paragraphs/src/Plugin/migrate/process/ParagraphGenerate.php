@@ -51,10 +51,7 @@ class ParagraphGenerate extends ProcessPluginBase {
         $extra_values = $this->processValues($value, $migrate_executable, $row);
       }
       catch (MigrateSkipRowException) {
-        return [
-          'target_id' => NULL,
-          'target_revision_id' => NULL,
-        ];
+        return NULL;
       }
     }
     else {
