@@ -1165,6 +1165,7 @@ process:
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:relatedItem'
+    - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
@@ -1179,33 +1180,33 @@ process:
               xsi: 'http://www.w3.org/2001/XMLSchema-instance'
               xlink: 'http://www.w3.org/1999/xlink'
         field_relationship_type:
-            - plugin: dgi_migrate.method
-              source: '@_sub_xpath'
-              method: query
-              args:
-                - '@type'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - '@type'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_title_plain:
-            - plugin: dgi_migrate.method
-              source: '@_sub_xpath'
-              method: query
-              args:
-                - 'mods:titleInfo/mods:title'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:titleInfo/mods:title'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_url:
-            - plugin: dgi_migrate.method
-              source: '@_sub_xpath'
-              method: query
-              args:
-                - 'mods:location/mods:url'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:location/mods:url'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values

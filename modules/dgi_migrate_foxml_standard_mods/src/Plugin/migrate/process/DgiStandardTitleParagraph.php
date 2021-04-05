@@ -42,7 +42,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *
    * @var array
    */
-  protected array $titleParts;
+  protected array $titleParts = [];
 
   /**
    * {@inheritdoc}
@@ -75,7 +75,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *   title type is keyed as '@type'.
    */
   protected function getTitleParts() {
-    if (is_null($this->titleParts)) {
+    if (empty($this->titleParts)) {
       $this->titleParts = [
         '@type' => NULL,
         'nonSort' => NULL,
