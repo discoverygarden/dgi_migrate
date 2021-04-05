@@ -30,6 +30,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
 
   /**
    * The titleInfo node we're working with.
+   *
    * @var \DOMNode
    */
   protected \DOMNode $node;
@@ -38,6 +39,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    * Parsed bits of the title.
    *
    * Don't access this directly; rather, use $this->getTitleParts().
+   *
    * @var array
    */
   protected array $titleParts;
@@ -52,8 +54,8 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     $paragraph = Paragraph::create(
       [
         'type' => 'title',
-        'field_title' => $this->getTitle();
-        'field_title_type' => $this->getTitleType();
+        'field_title' => $this->getTitle(),
+        'field_title_type' => $this->getTitleType(),
       ]
     );
     $paragraph->save();

@@ -50,7 +50,7 @@ class ParagraphGenerate extends ProcessPluginBase {
       try {
         $extra_values = $this->processValues($value, $migrate_executable, $row);
       }
-      catch (MigrateSkipRowException) {
+      catch (MigrateSkipRowException $e) {
         return NULL;
       }
     }
@@ -112,7 +112,7 @@ class ParagraphGenerate extends ProcessPluginBase {
     foreach ($this->configuration['values'] as $key => $property) {
       try {
         $new_row = new Row($property);
-        $executable->processRow($new_row, NULL, $value);
+        $executable->processRow($new_row, $mapped, $value);
         $mapped[$key] = $new_row->getDestination();
       }
       catch (MigrateSkipProcessException $e) {

@@ -12,7 +12,7 @@ destination:
   translations: true
   validate: true
 process:
-  _parsed:
+  _node_foxml_parsed:
     - plugin: dgi_migrate.load_entity
       source: fid
       entity_type: entity:file
@@ -21,25 +21,25 @@ process:
     - plugin: dgi_migrate.parse_foxml
   _models:
     - plugin: dgi_migrate.method
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       method: models
     - plugin: skip_on_empty
       method: row
   title:
     - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       property: label
     - plugin: default_value
       default_value: Untitled
   created:
     - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       property: createdDate
     - plugin: callback
       callable: strtotime
   status:
     - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       property: state
     - plugin: static_map
       map:
@@ -52,7 +52,7 @@ process:
       default_value: 0
   field_pid:
     - plugin: dgi_migrate.subproperty
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       property: PID
   nid:
     - plugin: entity_lookup
@@ -88,7 +88,7 @@ process:
       method: row
   field_member_of:
     - plugin: dgi_migrate.method
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       method: parents
     - plugin: multiple_values
     - plugin: substr
@@ -120,14 +120,9 @@ process:
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
   _mods_xpath:
-    - plugin: dgi_migrate.load_entity
-      source: fid
-      entity_type: entity:file
-    - plugin: dgi_migrate.method
-      method: getFileUri
-    - plugin: dgi_migrate.parse_foxml
     - plugin: dgi_migrate.subindex
       index: 'MODS'
+      source: '@_node_foxml_parsed'
     - plugin: dgi_migrate.method
       method: getUri
     - plugin: dgi_migrate.process.xml.domfile
@@ -299,19 +294,26 @@ process:
       type: faceted_subject
       process_values: true
       values:
+        _sub_xpath:
+          - plugin: dgi_migrate.process.xml.element_to_document
+          - plugin: dgi_migrate.process.xml.xpath
         field_authority_sources:
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: '@authority'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - '@authority'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_genre_form_subdivision_:
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: 'mods:genre'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:genre'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -323,9 +325,11 @@ process:
             value_key: name
             entity_type: taxonomy_term
         field_geographic_geographic_subd:
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: 'mods:geographic'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:geographic'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -337,9 +341,11 @@ process:
             value_key: name
             entity_type: taxonomy_term
         field_temporal_chronological_sub:
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: 'mods:temporal'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:temporal'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -351,9 +357,11 @@ process:
             value_key: name
             entity_type: taxonomy_term
         field_topic_general_subdivision:
-          - plugin: dgi_migrate.process.context_query
-            xpath: '@_mods_xpath'
-            query: 'mods:topic'
+          - plugin: dgi_migrate.method
+            source: '@_sub_xpath'
+            method: query
+            args:
+              - 'mods:topic'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1194,4 +1202,5 @@ migration_dependencies:
 dependencies:
   enforced:
     module:
+      - dgi_migrate
       - dgi_migrate_foxml_standard_mods

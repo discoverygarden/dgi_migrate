@@ -27,9 +27,9 @@ process:
     - plugin: dgi_migrate.process.log
       template: 'Should not be writable... is it? :value'
       level: 4
-    - plugin: skip_on_value
-      value: true
-      method: row
+      #- plugin: skip_on_value
+      #value: true
+      #method: row
   _parsed:
     plugin: dgi_migrate.parse_foxml
     source: path
