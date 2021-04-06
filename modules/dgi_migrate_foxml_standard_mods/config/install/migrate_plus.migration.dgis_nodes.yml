@@ -326,6 +326,7 @@ process:
           - plugin: entity_generate
             bundle: genre
             entity_type: taxonomy_term
+            value_key: name
         field_geographic_geographic_subd:
           - plugin: dgi_migrate.method
             source: '@_sub_xpath'
@@ -340,6 +341,7 @@ process:
           - plugin: entity_generate
             bundle: genre
             entity_type: taxonomy_term
+            value_key: name
         field_temporal_chronological_sub:
           - plugin: dgi_migrate.method
             source: '@_sub_xpath'
@@ -354,6 +356,7 @@ process:
           - plugin: entity_generate
             bundle: temporal
             entity_type: taxonomy_term
+            value_key: name
         field_topic_general_subdivision:
           - plugin: dgi_migrate.method
             source: '@_sub_xpath'
@@ -368,6 +371,7 @@ process:
           - plugin: entity_generate
             bundle: subject
             entity_type: taxonomy_term
+            value_key: name
   field_form:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -401,6 +405,7 @@ process:
     - plugin: entity_generate
       bundle: geographic_location
       entity_type: taxonomy_term
+      value_key: name
   field_handle:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -1011,6 +1016,7 @@ process:
     - plugin: entity_generate
       bundle: physical_form
       entity_type: taxonomy_term
+      value_key: name
   field_physical_location:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -1213,6 +1219,7 @@ process:
     - plugin: entity_generate
       bundle: resource_types
       entity_type: taxonomy_term
+      value_key: name
   field_restriction_on_access:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -1236,6 +1243,7 @@ process:
     - plugin: entity_generate
       bundle: rights_statements
       entity_type: taxonomy_term
+      value_key: name
   field_shelf_locator:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -1259,6 +1267,7 @@ process:
     - plugin: entity_generate
       bundle: tags
       entity_type: taxonomy_term
+      value_key: name
   field_sub_location:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -1302,6 +1311,7 @@ process:
     - plugin: entity_generate
       bundle: temporal
       entity_type: taxonomy_term
+      value_key: name
   field_title:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
