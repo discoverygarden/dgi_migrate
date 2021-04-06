@@ -324,9 +324,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle_key: vid
             bundle: genre
-            value_key: name
             entity_type: taxonomy_term
         field_geographic_geographic_subd:
           - plugin: dgi_migrate.method
@@ -340,9 +338,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle_key: vid
             bundle: genre
-            value_key: name
             entity_type: taxonomy_term
         field_temporal_chronological_sub:
           - plugin: dgi_migrate.method
@@ -356,9 +352,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle_key: vid
             bundle: temporal
-            value_key: name
             entity_type: taxonomy_term
         field_topic_general_subdivision:
           - plugin: dgi_migrate.method
@@ -372,9 +366,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle_key: vid
             bundle: subject
-            value_key: name
             entity_type: taxonomy_term
   field_form:
     - plugin: dgi_migrate.process.context_query
@@ -407,9 +399,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: geographic_location
-      value_key: name
       entity_type: taxonomy_term
   field_handle:
     - plugin: dgi_migrate.process.context_query
@@ -1019,9 +1009,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: physical_form
-      value_key: name
       entity_type: taxonomy_term
   field_physical_location:
     - plugin: dgi_migrate.process.context_query
@@ -1223,9 +1211,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: resource_types
-      value_key: name
       entity_type: taxonomy_term
   field_restriction_on_access:
     - plugin: dgi_migrate.process.context_query
@@ -1248,9 +1234,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: rights_statements
-      value_key: name
       entity_type: taxonomy_term
   field_shelf_locator:
     - plugin: dgi_migrate.process.context_query
@@ -1273,9 +1257,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: tags
-      value_key: name
       entity_type: taxonomy_term
   field_sub_location:
     - plugin: dgi_migrate.process.context_query
@@ -1318,9 +1300,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle_key: vid
       bundle: temporal
-      value_key: name
       entity_type: taxonomy_term
   field_title:
     - plugin: dgi_migrate.process.context_query
