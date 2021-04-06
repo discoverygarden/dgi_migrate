@@ -325,6 +325,7 @@ process:
             property: nodeValue
           - plugin: entity_generate
             bundle: genre
+            bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
         field_geographic_geographic_subd:
@@ -340,6 +341,7 @@ process:
             property: nodeValue
           - plugin: entity_generate
             bundle: genre
+            bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
         field_temporal_chronological_sub:
@@ -355,6 +357,7 @@ process:
             property: nodeValue
           - plugin: entity_generate
             bundle: temporal
+            bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
         field_topic_general_subdivision:
@@ -370,6 +373,7 @@ process:
             property: nodeValue
           - plugin: entity_generate
             bundle: subject
+            bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
   field_form:
@@ -392,6 +396,11 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+    - plugin: entity_generate
+      bundle: genre
+      bundle_key: vid
+      entity_type: taxonomy_term
+      value_key: name
   field_geographic_subject:
     - plugin: dgi_migrate.process.context_query
       source: '@_mods_node'
@@ -403,7 +412,8 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle: geographic_location
+      bundle: geo_location
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_handle:
@@ -1015,6 +1025,7 @@ process:
       property: nodeValue
     - plugin: entity_generate
       bundle: physical_form
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_physical_location:
@@ -1218,6 +1229,7 @@ process:
       property: nodeValue
     - plugin: entity_generate
       bundle: resource_types
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_restriction_on_access:
@@ -1242,6 +1254,7 @@ process:
       property: nodeValue
     - plugin: entity_generate
       bundle: rights_statements
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_shelf_locator:
@@ -1266,6 +1279,7 @@ process:
       property: nodeValue
     - plugin: entity_generate
       bundle: tags
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_sub_location:
@@ -1310,6 +1324,7 @@ process:
       property: nodeValue
     - plugin: entity_generate
       bundle: temporal
+      bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
   field_title:
