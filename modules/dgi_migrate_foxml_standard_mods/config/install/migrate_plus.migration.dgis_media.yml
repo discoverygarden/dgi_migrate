@@ -77,8 +77,8 @@ process:
         'info:fedora/islandora:sp-audioCModel': 'audio'
     - plugin: extract
       index: [ 0 ]
-  # XXX: Skip the filesize, just in case we ever encounter anything larger than
-  # 2GB... signed 32-bit field, meaning things would go boom.
+  # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
+  # our fork of islandora: https://github.com/Islandora/islandora/pull/829
   #field_file_size:
   #  - plugin: dgi_migrate.method
   #    method: getSize
