@@ -42,7 +42,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *
    * @var array
    */
-  protected array $titleParts = [];
+  protected array $titleParts;
 
   /**
    * {@inheritdoc}
