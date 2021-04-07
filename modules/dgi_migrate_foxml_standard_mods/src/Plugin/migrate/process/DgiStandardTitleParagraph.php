@@ -33,7 +33,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *
    * @var \DOMNode
    */
-  protected \DOMNode $node;
+  protected $node;
 
   /**
    * Parsed bits of the title.
@@ -42,7 +42,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *
    * @var array
    */
-  protected array $titleParts;
+  protected $titleParts;
 
   /**
    * {@inheritdoc}
