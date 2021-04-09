@@ -1,6 +1,6 @@
 ---
-id: dgis_foxml_media
-label: FOXML to DGI Standard media entities
+id: store_source_foxml
+label: Store source FOXML as an Intermediate File
 migration_group: foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
@@ -24,7 +24,7 @@ process:
     - plugin: dgi_migrate.parse_foxml
   field_media_of:
     - plugin: migration_lookup
-      migration: foxml_nodes
+      migration: dgis_nodes
       source: fid
       no_stub: true
     - plugin: skip_on_empty
@@ -83,7 +83,7 @@ process:
       default_value: 0
 migration_dependencies:
   required:
-    - dgis_foxml_nodes
+    - dgis_nodes
     - dgis_foxml_files
 dependencies:
   enforced:

@@ -1,6 +1,6 @@
 ---
-id: dgis_media
-label: FOXML to content entities
+id: dgis_orig_media
+label: Create Original File Media entities from imported datastreams
 migration_group: foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
@@ -31,7 +31,7 @@ process:
       method: row
   _file_id:
     - plugin: migration_lookup
-      migration: dgis_files
+      migration: dgis_orig_file
       source: fid
       no_stub: true
     - plugin: skip_on_empty
@@ -115,7 +115,7 @@ migration_dependencies:
   required:
     - dgis_nodes
     - dgis_foxml_files
-    - dgis_files
+    - dgis_orig_file
 dependencies:
   enforced:
     module:

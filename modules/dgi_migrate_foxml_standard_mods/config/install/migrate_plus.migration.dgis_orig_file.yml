@@ -1,6 +1,6 @@
 ---
-id: dgis_files
-label: Content from FOXML into file entities
+id: dgis_orig_file
+label: Create File entities from primary datastreams in FOXML
 migration_group: foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
