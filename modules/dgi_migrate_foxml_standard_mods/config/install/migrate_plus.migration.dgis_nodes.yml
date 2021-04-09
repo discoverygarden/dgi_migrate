@@ -1263,7 +1263,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: entity_generate
-      bundle: tags
+      bundle: subject
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
