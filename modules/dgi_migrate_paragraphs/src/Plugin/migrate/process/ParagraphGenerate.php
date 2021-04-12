@@ -28,14 +28,34 @@ use Drupal\paragraphs\Entity\Paragraph;
  *   - plugin: dgi_paragraph_generate
  *     type: paragraph_bundle_type
  *     process_values: true
+ *     parent_row_key: parent_row
+ *     parent_value_key: parent_value
  *     values:
  *       field_one:
  *         - plugin: some_process_plugin
+ *           source: parent_value
  *           plugin_property: sure_why_not
  *       field_two:
  *         - plugin: get
- *           source: '@some_built_thing'
+ *           source: 'parent_row/dest/some_built_thing'
  * @endcode
+ *
+ * Configuration contents:
+ * - type: The paragraph bundle with which to generate a paragraph.
+ * - values: A mapping of values to use to create the paragraph. Exact contents
+ *   vary based upon the "process_values" flag.
+ * - process_values: A boolean flag indicating whether values should be mapped
+ *   directly from the current row (false, the default), or if we should kick
+ *   of something of a subprocess flow, with nested process plugin
+ *   configurations.
+ * - parent_row_key: A string representing a key under which to expose the
+ *   the contents of the row to subprocessing with process_values. Defaults to
+ *   "parent_row". The contents of the row are split into two keys "source" and
+ *   "dest", containing respectively the source and (current) destination values
+ *   of the parent row.
+ * - parent_value_key: A string representing a key under which to expose the
+ *   value received by the "dgi_paragraph_generate" plugin itself, to make it
+ *   available to subprocessing. Defaults to "parent_value".
  */
 class ParagraphGenerate extends ProcessPluginBase {
 
@@ -46,7 +66,7 @@ class ParagraphGenerate extends ProcessPluginBase {
     assert(!empty($this->configuration['type']));
     assert(!empty($this->configuration['values']));
 
-    if (!empty($this->configuration['process_values']) && $this->configuration['process_values']) {
+    if ($this->configuration['process_values'] ?? FALSE) {
       try {
         $extra_values = $this->processValues($value, $migrate_executable, $row);
       }
@@ -107,20 +127,20 @@ class ParagraphGenerate extends ProcessPluginBase {
    *   An associative array of processed configuration values.
    */
   protected function processValues($value, MigrateExecutableInterface $executable, Row $row) {
-    $mapped = [];
+    $parent_row_key = $this->configuration['parent_row_key'] ?? 'parent_row';
+    $parent_value_key = $this->configuration['parent_value_key'] ?? 'parent_value';
 
-    foreach ($this->configuration['values'] as $key => $property) {
-      try {
-        $new_row = new Row($property);
-        $executable->processRow($new_row, $mapped, $value);
-        $mapped[$key] = $new_row->getDestination();
-      }
-      catch (MigrateSkipProcessException $e) {
-        $mapped[$key] = NULL;
-      }
-    }
+    $new_row = new Row([
+      $parent_row_key => [
+        'source' => $row->getSource(),
+        'dest' => $row->getDestination(),
+      ],
+      $parent_value_key => $value,
+    ]);
 
-    return $mapped;
+    $executable->processRow($new_row, $this->configuration['values']);
+
+    return $new_row->getDestination();
   }
 
 }
