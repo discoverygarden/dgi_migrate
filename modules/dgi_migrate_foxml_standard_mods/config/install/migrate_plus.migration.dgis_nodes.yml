@@ -126,7 +126,7 @@ process:
       callable: iterator_to_array
     - plugin: array_shift
   field_ark:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="ark"]'
@@ -138,7 +138,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_member_of:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
@@ -153,7 +153,7 @@ process:
       value_key: label
       entity_type: node
   _coordinates:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject/mods:cartographic/mods:coordinates'
@@ -170,7 +170,7 @@ process:
   'field_coordinates/lat': '@_coordinates/0'
   'field_coordinates/lng': '@_coordinates/1'
   field_coordinates_text:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject/mods:cartographic/mods:coordinates'
@@ -180,7 +180,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_edtf_date_created:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
@@ -190,7 +190,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_edtf_date_issued:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:originInfo/mods:dateIssued[@keydate="yes"]'
@@ -200,7 +200,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_description:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:abstract'
@@ -212,7 +212,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_digital_origin:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:physicalDescription/mods:digitalOrigin'
@@ -222,7 +222,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_doi:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="doi"]'
@@ -234,7 +234,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_electronic_locator:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
@@ -246,7 +246,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_enumeration_and_chronology:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
@@ -258,7 +258,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_extent:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:physicalDescription/mods:extent'
@@ -268,7 +268,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_faceted_subject:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject'
@@ -280,7 +280,7 @@ process:
       process_values: true
       values:
         field_authority_sources:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@authority'
@@ -290,7 +290,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_genre_form_subdivision_:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:genre'
@@ -305,7 +305,7 @@ process:
             entity_type: taxonomy_term
             value_key: name
         field_geographic_geographic_subd:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:geographic'
@@ -320,7 +320,7 @@ process:
             entity_type: taxonomy_term
             value_key: name
         field_temporal_chronological_sub:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:temporal'
@@ -335,7 +335,7 @@ process:
             entity_type: taxonomy_term
             value_key: name
         field_topic_general_subdivision:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:topic'
@@ -350,7 +350,7 @@ process:
             entity_type: taxonomy_term
             value_key: name
   field_form:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
@@ -360,7 +360,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_genre:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:genre'
@@ -375,7 +375,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_geographic_subject:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject/mods:geographic'
@@ -390,7 +390,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_handle:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="hdl"]'
@@ -402,7 +402,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_hierarchical_geographic_su:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject/mods:hierarchicalGeographic'
@@ -414,7 +414,7 @@ process:
       process_values: true
       values:
         field_area:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:area'
@@ -424,7 +424,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_city:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:city'
@@ -434,7 +434,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_city_section:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:citySection'
@@ -444,7 +444,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_continent:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:continent'
@@ -454,7 +454,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_country:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:country'
@@ -464,7 +464,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_county:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:county'
@@ -474,7 +474,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extraterrestrial_area:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extraterrestrialArea'
@@ -484,7 +484,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_island:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:island'
@@ -494,7 +494,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_region:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:region'
@@ -504,7 +504,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_state:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:state'
@@ -514,7 +514,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_territory:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:territory'
@@ -524,7 +524,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_isbn:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="isbn"]'
@@ -536,7 +536,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_item_identifier:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
@@ -548,7 +548,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_lcc_classification:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:classification[@authority="lcc"]'
@@ -560,7 +560,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_local_identifier:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="local"]'
@@ -572,7 +572,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_note_location:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
@@ -584,7 +584,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_note_paragraph:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:note'
@@ -596,7 +596,7 @@ process:
       process_values: true
       values:
         field_note_type:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@type'
@@ -612,7 +612,7 @@ process:
             source: 'parent_value'
             property: nodeValue
   field_note:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:physicalDescription/mods:note'
@@ -624,7 +624,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_oclc_number:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="oclc"]'
@@ -636,7 +636,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_origin_information:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:originInfo'
@@ -648,7 +648,7 @@ process:
       process_values: true
       values:
         field_copyright_date:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:copyrightDate'
@@ -658,7 +658,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_captured:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateCaptured'
@@ -668,7 +668,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_created:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateCreated[@keydate="yes"]'
@@ -678,7 +678,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_issued:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateIssued[@keydate="yes"]'
@@ -688,7 +688,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_modified:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateModified'
@@ -698,7 +698,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_valid:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateValid'
@@ -708,7 +708,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_edition:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:edition'
@@ -718,7 +718,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_event_type:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@eventType'
@@ -728,7 +728,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_frequency:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:frequency'
@@ -738,7 +738,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_issuance:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:issuance'
@@ -748,7 +748,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_other_date:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:dateOther'
@@ -758,7 +758,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_place:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:place/mods:placeTerm'
@@ -768,7 +768,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_publisher:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:publisher'
@@ -778,7 +778,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_part:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:part'
@@ -790,7 +790,7 @@ process:
       process_values: true
       values:
         field_additional_information:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:text'
@@ -800,7 +800,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_caption:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:detail/mods:caption'
@@ -810,7 +810,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:date'
@@ -820,7 +820,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_end:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent/mods:end'
@@ -830,7 +830,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extent:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent'
@@ -840,7 +840,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extent_units:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent/@unit'
@@ -850,7 +850,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_list:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent/mods:list'
@@ -860,7 +860,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_number:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:detail/mods:number'
@@ -870,7 +870,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_part_order:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@order'
@@ -880,7 +880,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_part_type:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@type'
@@ -890,7 +890,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_start:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent/mods:start'
@@ -900,7 +900,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_title:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:detail/mods:title'
@@ -910,7 +910,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_total:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:extent/mods:total'
@@ -920,7 +920,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_physical_form:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:physicalDescription/mods:form'
@@ -935,7 +935,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_physical_location:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:physicalLocation'
@@ -945,7 +945,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_purl:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:identifier[@type="purl"]'
@@ -955,7 +955,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_record_information:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:recordInfo'
@@ -967,7 +967,7 @@ process:
       process_values: true
       values:
         field_description_standard:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:descriptionStandard'
@@ -977,7 +977,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_recording_catalog_language:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:languageOfCataloging'
@@ -987,7 +987,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_change_date:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:recordChangeDate'
@@ -997,7 +997,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_content_source:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '.'
@@ -1007,7 +1007,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_creation_date:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:recordCreationDate'
@@ -1017,7 +1017,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_identifier:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:recordIdentifier'
@@ -1027,7 +1027,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_information_note:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:recordInfoNote'
@@ -1037,7 +1037,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_origin:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:recordOrigin'
@@ -1047,7 +1047,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_reformatting_quality:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:physicalDescription/mods:reformattingQuality'
@@ -1057,7 +1057,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_related_item:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:relatedItem'
@@ -1069,7 +1069,7 @@ process:
       process_values: true
       values:
         field_relationship_type:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: '@type'
@@ -1079,7 +1079,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_title_plain:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:titleInfo/mods:title'
@@ -1089,7 +1089,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_url:
-          - plugin: dgi_migrate.process.context_query
+          - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
             query: 'mods:location/mods:url'
@@ -1099,7 +1099,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_resource_type:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:typeOfResource'
@@ -1114,7 +1114,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_restriction_on_access:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:accessCondition[@type="restriction on access"]'
@@ -1124,7 +1124,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_rights_statement:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:accessCondition[@type="use and reproduction"]'
@@ -1139,7 +1139,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_shelf_locator:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
@@ -1149,7 +1149,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_subject:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:subject/mods:topic'
@@ -1164,7 +1164,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_sub_location:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
@@ -1174,7 +1174,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_table_of_contents:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:tableOfContents'
@@ -1184,7 +1184,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_target_audience:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:targetAudience'
@@ -1194,7 +1194,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_temporal_subject:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:tableOfContents'
@@ -1209,7 +1209,7 @@ process:
       entity_type: taxonomy_term
       value_key: name
   field_title:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:titleInfo'
@@ -1219,7 +1219,7 @@ process:
     - plugin: dgi_standard_title_paragraph
       xpath: '@_mods_xpath'
   field_use_and_reproduction:
-    - plugin: dgi_migrate.process.context_query
+    - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
       query: 'mods:accessCondition[@type="use and reproduction"]'
