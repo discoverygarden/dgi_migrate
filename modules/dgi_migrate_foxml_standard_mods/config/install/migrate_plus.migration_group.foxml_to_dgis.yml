@@ -1,0 +1,12 @@
+id: foxml_to_dgis
+label: FOXML with MODS to DGI Standard
+description: Mapping from Fedora 3 FOXML from I7 on to DGI Standard I8 using a comprehensive MODS mapping.
+source_type: Directory of XML files
+shared_configuration:
+  source:
+    shared:
+      default_uid: 1
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_foxml_standard_mods

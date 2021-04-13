@@ -32,7 +32,8 @@ class Method extends ProcessPluginBase {
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!is_object($value)) {
-      throw new MigrateException('Input should be an object.');
+      $type = gettype($value);
+      throw new MigrateException("Input should be an object. (Attempting to add value to {$destination_property} of type {$type})");
     }
     $method = $this->configuration['method'];
 
