@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\dgi_migrate\Plugin\migrate\process;
+namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
@@ -11,12 +11,12 @@ use Drupal\migrate\MigrateException;
  * Query a DOMXPath using a DOMNode context as the source.
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.process.context_query"
+ *   id = "dgi_migrate.process.xml.context_query"
  * )
  *
  * @code
  * sub_context_values:
- *   plugin: dgi_migrate.process.context_query
+ *   plugin: dgi_migrate.process.xml.context_query
  *   source: '@some_dom_node'
  *   xpath: '@some_dom_xpath'
  *   query: '/my/query'
