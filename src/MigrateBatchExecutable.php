@@ -45,6 +45,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
     $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
     $this->queue = \Drupal::queue($queue_name, TRUE);
+
+    if (static::isCli()) {
+      // XXX: CLI Execution, most likely via drush. Let's adjust our memory
+      // threshold to be inline with Drush's constraint, with something of a
+      // fudge factor: 60% (drush's base) + 5% (our fudge factor), down from
+      // migrate's default of 85%.
+      // @see https://github.com/drush-ops/drush/blob/dbdb6733655231687d8ab68cdea6bf9fedbd0562/includes/batch.inc#L291-L298
+      // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
+      $this->memoryThreshold = 0.65;
+    }
   }
 
   /**
@@ -297,7 +307,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $status = parent::checkStatus();
 
     if ($status === MigrationInterface::RESULT_COMPLETED) {
-      if (!static::hasTime()) {
+      if (!static::isCli() && !static::hasTime()) {
         return MigrationInterface::RESULT_INCOMPLETE;
       }
     }
@@ -354,6 +364,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
     else {
       return static::MAX_TIME;
     }
+  }
+
+  /**
+   * Helper; determine if we are running in a CLI context.
+   *
+   * @return bool
+   *   TRUE if we are; otherwise, FALSE.
+   */
+  protected static function isCli() {
+    return PHP_SAPI === 'cli';
   }
 
 }
