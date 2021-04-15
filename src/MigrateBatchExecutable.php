@@ -282,6 +282,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
       try {
         $status = $this->processRowFromQueue($row);
+        ++$sandbox['current'];
         $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
           '@migration' => $this->migration->id(),
           '@current'   => $sandbox['current'],
