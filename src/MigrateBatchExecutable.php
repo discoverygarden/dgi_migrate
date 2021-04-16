@@ -45,6 +45,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
     $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
     $this->queue = \Drupal::queue($queue_name, TRUE);
+
+    if (static::isCli()) {
+      // XXX: CLI Execution, most likely via drush. Let's adjust our memory
+      // threshold to be inline with Drush's constraint, with something of a
+      // fudge factor: 60% (drush's base) + 5% (our fudge factor), down from
+      // migrate's default of 85%.
+      // @see https://github.com/drush-ops/drush/blob/dbdb6733655231687d8ab68cdea6bf9fedbd0562/includes/batch.inc#L291-L298
+      // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
+      $this->memoryThreshold = 0.65;
+    }
   }
 
   /**
@@ -142,7 +152,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
     // XXX: Nuke it, just in case.
     $this->queue->deleteQueue();
     foreach ($source as $row) {
-      $this->queue->createItem($row);
+      $this->queue->createItem([
+        'row' => $row,
+        'attempts' => 0,
+      ]);
     }
     return MigrationInterface::RESULT_COMPLETED;
   }
@@ -255,14 +268,25 @@ class MigrateBatchExecutable extends MigrateExecutable {
         $context['message'] = $this->t('Queue exhausted.');
         break;
       }
+      $row = $item->data['row'];
+      if ($item->data['attempts']++ > 0) {
+        $sleep_time = 2 ** ($item->data['attempts'] - 1);
+        $context['message'] = $this->t('Attempt @number processing row (IDs: @ids) in migration @migration; sleeping @time seconds.', [
+          '@attempt' => $item->data['attempts'],
+          '@ids' => var_export($row->getSourceIdValues(), TRUE),
+          '@migration' => $this->migration->id(),
+          '@time' => $sleep_time,
+        ]);
+        sleep($sleep_time);
+      }
 
       try {
-        $status = $this->processRowFromQueue($item->data);
-        $this->queue->deleteItem($item);
-        $context['finished'] = ++$sandbox['current'] / $sandbox['total'];
-        $context['message'] = $this->t('Migration "@migration": @current/@total', [
+        $status = $this->processRowFromQueue($row);
+        ++$sandbox['current'];
+        $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
           '@migration' => $this->migration->id(),
           '@current'   => $sandbox['current'],
+          '@ids'       => var_export($row->getSourceIdValues(), TRUE),
           '@total'     => $sandbox['total'],
         ]);
         if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
@@ -280,12 +304,37 @@ class MigrateBatchExecutable extends MigrateExecutable {
         }
       }
       catch (\Exception $e) {
-        $context['message'] = strtr("Exception while processing :migration (:source_ids):\n:message\n:trace", [
-          ':migration' => $this->migration->id(),
-          ':source_ids' => implode(',', $this->sourceIdValues),
-          ':message' => $e->getMessage(),
-          ':trace' => $e->getTraceAsString(),
-        ]);
+        if ($item->data['attempts'] < 3) {
+          // XXX: Not really making any progress, requeueing things, so don't
+          // increment 'current'.
+          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info::n:message:n:trace', [
+            '@migration' => $this->migration->id(),
+            '@current'   => $sandbox['current'],
+            '@ids'       => var_export($row->getSourceIdValues(), TRUE),
+            '@total'     => $sandbox['total'],
+            ':message'   => $e->getMessage(),
+            ':trace'     => $e->getTraceAsString(),
+            ':n'         => "\n",
+          ]);
+          $this->queue->createItem($item->data);
+        }
+        else {
+          ++$sandbox['current'];
+          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info::n:message:n:trace', [
+            '@migration' => $this->migration->id(),
+            '@current'   => $sandbox['current'],
+            '@ids'       => var_export($row->getSourceIdValues(), TRUE),
+            '@total'     => $sandbox['total'],
+            ':message'   => $e->getMessage(),
+            ':trace'     => $e->getTraceAsString(),
+            ':n'         => "\n",
+          ]);
+          $this->getIdMap()->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_FAILED);
+        }
+      }
+      finally {
+        $context['finished'] = $context['finished'] ?? ($sandbox['current'] / $sandbox['total']);
+        $this->queue->deleteItem($item);
       }
     }
   }
@@ -297,7 +346,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $status = parent::checkStatus();
 
     if ($status === MigrationInterface::RESULT_COMPLETED) {
-      if (!static::hasTime()) {
+      if (!static::isCli() && !static::hasTime()) {
         return MigrationInterface::RESULT_INCOMPLETE;
       }
     }
@@ -354,6 +403,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
     else {
       return static::MAX_TIME;
     }
+  }
+
+  /**
+   * Helper; determine if we are running in a CLI context.
+   *
+   * @return bool
+   *   TRUE if we are; otherwise, FALSE.
+   */
+  protected static function isCli() {
+    return PHP_SAPI === 'cli';
   }
 
 }
