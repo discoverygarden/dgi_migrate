@@ -271,7 +271,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $row = $item->data['row'];
       if ($item->data['attempts']++ > 0) {
         $sleep_time = 2 ** ($item->data['attempts'] - 1);
-        $context['message'] = $this->t('Attempt @number processing row (IDs: @ids) in migration @migration; sleeping @time seconds.', [
+        $context['message'] = $this->t('Attempt @attempt processing row (IDs: @ids) in migration @migration; sleeping @time seconds.', [
           '@attempt' => $item->data['attempts'],
           '@ids' => var_export($row->getSourceIdValues(), TRUE),
           '@migration' => $this->migration->id(),
