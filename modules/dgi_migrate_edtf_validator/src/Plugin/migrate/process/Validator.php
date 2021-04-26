@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\glbtdora\Plugin\migrate\process;
+namespace Drupal\dgi_migrate_edtf_validator\Plugin\migrate\process;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\controlled_access_terms\EDTFUtils;
@@ -21,10 +21,10 @@ use Drupal\migrate\Row;
  *   dates or not, defaults to FALSE.
  *
  * @MigrateProcessPlugin(
- *   id = "valid_edtf"
+ *   id = "dgi_migrate_edtf_validator"
  * )
  */
-class ValidEDTF extends ProcessPluginBase implements ConfigurableInterface {
+class Validator extends ProcessPluginBase implements ConfigurableInterface {
 
   /**
    * {@inheritdoc}
@@ -40,7 +40,7 @@ class ValidEDTF extends ProcessPluginBase implements ConfigurableInterface {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $errors = EDTFUtils::validate($value, $this->configuration['intervals'], $this->configuration['sets'], $this->configuration['strict']);
     if (!empty($errors)) {
-      throw new MigrateSkipRowException("The value: {$value} is not a valid EDTF date: "[?12;4$y . implode(' ', $errors));
+      throw new MigrateSkipRowException("The value: {$value} is not a valid EDTF date: " . implode(' ', $errors));
     }
     return $value;
   }
