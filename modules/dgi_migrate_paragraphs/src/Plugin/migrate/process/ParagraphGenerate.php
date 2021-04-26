@@ -43,10 +43,16 @@ use Drupal\paragraphs\Entity\Paragraph;
  * - type: The paragraph bundle with which to generate a paragraph.
  * - values: A mapping of values to use to create the paragraph. Exact contents
  *   vary based upon the "process_values" flag.
+ * - validate: A boolean flag indicating whether the contents of the paragraph
+ *   should be validated; defaults to FALSE.
  * - process_values: A boolean flag indicating whether values should be mapped
  *   directly from the current row (false, the default), or if we should kick
  *   of something of a subprocess flow, with nested process plugin
  *   configurations.
+ * - propagate_skip: A boolean indicating how a "MigrateSkipRowException" should
+ *   be handled when processing a specific paragraph entity. TRUE to also skip
+ *   import of the parent entity; otherwise, FALSE to skip only those sub-
+ *   entities throwing the exception. Defaults to TRUE.
  * - parent_row_key: A string representing a key under which to expose the
  *   the contents of the row to subprocessing with process_values. Defaults to
  *   "parent_row". The contents of the row are split into two keys "source" and
@@ -70,7 +76,15 @@ class ParagraphGenerate extends ProcessPluginBase {
         $extra_values = $this->processValues($value, $migrate_executable, $row);
       }
       catch (MigrateSkipRowException $e) {
-        return NULL;
+        if ($this->configuration['propagate_skip'] ?? TRUE) {
+          throw new MigrateSkipRowException(strtr("Propagating skip from processing :property: \n:upstream", [
+            ':property' => $destination_property,
+            ':upstream' => $e,
+          ]));
+        }
+        else {
+          return NULL;
+        }
       }
     }
     else {
@@ -83,6 +97,21 @@ class ParagraphGenerate extends ProcessPluginBase {
       ] +
       $extra_values
     );
+
+    $validate = $this->configuration['validate'] ?? FALSE;
+
+    $paragraph->setValidationRequired($validate);
+
+    if ($validate) {
+      $errors = $paragraph->validate();
+      if ($errors->count() > 0) {
+        throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
+          ':type' => $this->configuration['type'],
+          ':errors' => $errors,
+        ]));
+      }
+    }
+
     $paragraph->save();
 
     return [
