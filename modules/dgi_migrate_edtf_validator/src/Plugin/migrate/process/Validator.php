@@ -40,7 +40,11 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $errors = EDTFUtils::validate($value, $this->configuration['intervals'], $this->configuration['sets'], $this->configuration['strict']);
     if (!empty($errors)) {
-      throw new MigrateSkipRowException("The value: {$value} is not a valid EDTF date: " . implode(' ', $errors));
+      throw new MigrateSkipRowException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
+        ':value' => $value,
+        ':property' => $destination_property,
+        ':errors' => implode(' ', $errors)
+      ]));
     }
     return $value;
   }
