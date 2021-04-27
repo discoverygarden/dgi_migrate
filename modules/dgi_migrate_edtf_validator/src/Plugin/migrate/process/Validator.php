@@ -43,7 +43,7 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
       throw new MigrateSkipRowException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
         ':value' => $value,
         ':property' => $destination_property,
-        ':errors' => implode(' ', $errors)
+        ':errors' => implode(' ', $errors),
       ]));
     }
     return $value;
