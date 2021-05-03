@@ -144,7 +144,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
     catch (\Exception $e) {
       $this->message->display(
-        $this->t('Migration failed with source plugin exception: @e', ['@e' => $e->getMessage()]), 'error');
+        $this->t('Migration failed with source plugin exception: @e', ['@e' => $e]), 'error');
       $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
       return MigrationInterface::RESULT_FAILED;
     }
@@ -307,27 +307,25 @@ class MigrateBatchExecutable extends MigrateExecutable {
         if ($item->data['attempts'] < 3) {
           // XXX: Not really making any progress, requeueing things, so don't
           // increment 'current'.
-          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info::n:message:n:trace', [
+          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info:@n@ex', [
             '@migration' => $this->migration->id(),
             '@current'   => $sandbox['current'],
             '@ids'       => var_export($row->getSourceIdValues(), TRUE),
             '@total'     => $sandbox['total'],
-            ':message'   => $e->getMessage(),
-            ':trace'     => $e->getTraceAsString(),
-            ':n'         => "\n",
+            '@ex'        => $e,
+            '@n'         => "\n",
           ]);
           $this->queue->createItem($item->data);
         }
         else {
           ++$sandbox['current'];
-          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info::n:message:n:trace', [
+          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info:@n@ex', [
             '@migration' => $this->migration->id(),
             '@current'   => $sandbox['current'],
             '@ids'       => var_export($row->getSourceIdValues(), TRUE),
             '@total'     => $sandbox['total'],
-            ':message'   => $e->getMessage(),
-            ':trace'     => $e->getTraceAsString(),
-            ':n'         => "\n",
+            '@ex'        => $e,
+            '@n'         => "\n",
           ]);
           $this->getIdMap()->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_FAILED);
         }
