@@ -58,6 +58,21 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
         'field_title_type' => $this->getTitleType(),
       ]
     );
+
+    $validate = $this->configuration['validate'] ?? FALSE;
+
+    $paragraph->setValidationRequired($validate);
+
+    if ($validate) {
+      $errors = $paragraph->validate();
+      if ($errors->count() > 0) {
+        throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
+          ':type' => $this->configuration['type'],
+          ':errors' => $errors,
+        ]));
+      }
+    }
+
     $paragraph->save();
 
     return [

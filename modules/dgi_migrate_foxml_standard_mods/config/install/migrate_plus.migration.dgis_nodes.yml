@@ -12,7 +12,7 @@ destination:
   # XXX: We're not really dealing with translations here. To do so, seems like
   # you would need separate migrations.
   #translations: true
-  validate: true
+  validate: &validate true
 process:
   _node_foxml_parsed:
     - plugin: dgi_migrate.load_entity
@@ -278,6 +278,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: faceted_subject
       process_values: true
       values:
@@ -412,6 +413,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: hierarchical_geographic_subject
       process_values: true
       values:
@@ -594,6 +596,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: note
       process_values: true
       values:
@@ -646,6 +649,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: origin_information
       process_values: true
       values:
@@ -788,6 +792,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: part
       process_values: true
       values:
@@ -965,6 +970,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: record_information
       process_values: true
       values:
@@ -1067,6 +1073,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: related_item
       process_values: true
       values:
@@ -1219,7 +1226,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_standard_title_paragraph
-      xpath: '@_mods_xpath'
+      validate: *validate
   field_use_and_reproduction:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
