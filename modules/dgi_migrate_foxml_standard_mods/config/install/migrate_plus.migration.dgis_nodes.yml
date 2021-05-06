@@ -1236,7 +1236,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
-      property:
+      property: nodeValue
 migration_dependencies:
   required:
     - dgis_foxml_files
