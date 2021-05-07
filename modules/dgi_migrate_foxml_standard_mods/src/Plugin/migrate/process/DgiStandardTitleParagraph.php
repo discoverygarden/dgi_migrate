@@ -67,7 +67,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
       $errors = $paragraph->validate();
       if ($errors->count() > 0) {
         throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
-          ':type' => $this->configuration['type'],
+          ':type' => 'title',
           ':errors' => $errors,
         ]));
       }
