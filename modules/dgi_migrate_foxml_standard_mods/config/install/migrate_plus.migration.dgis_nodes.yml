@@ -140,20 +140,20 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_member_of:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
-      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
-    - plugin: callback
-      callable: iterator_to_array
+    - plugin: dgi_migrate.method
+      source: '@_parsed'
+      method: parents
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
+    - plugin: substr
+      start: 12
     - plugin: entity_generate
-      bundle_key: nid
-      bundle: islandora_object
-      value_key: label
       entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      default_values:
+        title: 'Migration stub'
+        status: 0
   _coordinates:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
