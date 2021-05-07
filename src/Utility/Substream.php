@@ -263,8 +263,9 @@ class Substream extends ReadOnlyStream {
       return $stat + $target_stat;
     }
     else {
-      throw new \Exception(strtr('Failed to stat target !file', [
+      throw new \Exception(strtr('Failed to stat target !file for !path', [
         '!file' => $target,
+        '!path' => $path,
       ]));
     }
   }// phpcs:enable
