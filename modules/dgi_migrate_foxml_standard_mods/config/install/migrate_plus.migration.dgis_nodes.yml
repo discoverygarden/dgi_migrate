@@ -1123,14 +1123,18 @@ process:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
-            query: 'mods:location/mods:url'
+            query: 'mods:location/mods:url[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-          - plugin: skip_on_empty
-            method: process
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
   field_resource_type:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1249,7 +1253,7 @@ process:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
-      query: 'mods:titleInfo'
+      query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
