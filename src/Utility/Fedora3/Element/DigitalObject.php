@@ -200,11 +200,24 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
   /**
    * Get the parents of the given object.
    *
+   * @param string[] $predicates
+   *   The predicates from the
+   *   "info:fedora/fedora-system:def/relations-external#" to query and return.
+   *
    * @return string[]
    *   The collection parents of the given object.
    */
-  public function parents() {
-    return $this->relsExtResourceQuery('/rdf:RDF/rdf:Description/*[self::fre:isMemberOfCollection or self::fre:isMemberOf]/@rdf:resource');
+  public function parents(array $predicates = [
+    'isMemberOf',
+    'isMemberOfCollection',
+  ]) {
+    assert(count($predicates) > 0, 'Has at least one predicate for which to look.');
+    $map = function ($pred) {
+      return "self::fre:$pred";
+    };
+    return $this->relsExtResourceQuery(strtr('/rdf:RDF/rdf:Description/*[!pred]/@rdf:resource', [
+      '!pred' => implode(' or ', array_map($map, $predicates)),
+    ]));
   }
 
 }

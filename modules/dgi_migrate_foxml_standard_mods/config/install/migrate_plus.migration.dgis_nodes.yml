@@ -143,6 +143,10 @@ process:
     - plugin: dgi_migrate.method
       source: '@_parsed'
       method: parents
+      args:
+        - - isMemberOf
+          - isMemberOfCollection
+          - isConstituentOf
     - plugin: multiple_values
     - plugin: substr
       start: 12
