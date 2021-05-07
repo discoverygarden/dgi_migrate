@@ -120,7 +120,7 @@ class FoxmlParser extends AbstractParser {
    */
   public function parse($target) {
     $item = $this->cache->get($target);
-    if ($item) {
+    if ($item && $item->data) {
       // XXX: Renew the cache.
       $this->cache->set(
         $target,
