@@ -1153,7 +1153,10 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-    - plugin: default_value
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
       default_value: Unspecified
     - plugin: entity_generate
       bundle: resource_types
