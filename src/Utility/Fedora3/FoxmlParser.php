@@ -104,7 +104,9 @@ class FoxmlParser extends AbstractParser {
    */
   protected function destroyParser() {
     if ($this->parser) {
-      xml_parser_free($this->parser);
+      if (!xml_parser_free($this->parser)) {
+        throw new \Exception('Failed to free parser.');
+      }
       $this->parser = NULL;
     }
   }
