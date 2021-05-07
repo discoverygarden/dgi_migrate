@@ -65,7 +65,14 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     $paragraph->setValidationRequired($validate);
 
     if ($validate) {
-      $errors = $paragraph->validate();
+      try {
+        $errors = $paragraph->validate();
+      }
+      catch (\Exception $e) {
+        throw new \Exception(strtr('Encountered exception when validating :property.', [
+          ':property' => $destination_property,
+        ]), 0, $e);
+      }
       if ($errors->count() > 0) {
         throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
           ':type' => 'title',
