@@ -151,6 +151,11 @@ class FoxmlParser extends AbstractParser {
           throw new FoxmlParserException($this->parser);
         }
       }
+
+      if (!$this->output instanceof DigitalObject) {
+        throw new \Exception("Parsing did not produce a DigitalObject class; truncated/bad file?");
+      }
+
       $this->cache->set(
         $target,
         $this->output,
