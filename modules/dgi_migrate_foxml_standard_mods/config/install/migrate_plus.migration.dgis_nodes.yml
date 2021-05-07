@@ -6,6 +6,8 @@ source:
   plugin: dgi_migrate.source.migration
   track_changes: true
   migration: dgis_foxml_files
+  dsf_misc:
+    case_insensitive: &case_insensitive true
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -309,6 +311,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_geographic_geographic_subd:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -324,6 +327,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_temporal_chronological_sub:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -339,6 +343,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_topic_general_subdivision:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -354,6 +359,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
   field_form:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -379,6 +385,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_geographic_subject:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -394,6 +401,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_handle:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -943,6 +951,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_physical_location:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1130,6 +1139,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_restriction_on_access:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1155,6 +1165,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_shelf_locator:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1180,6 +1191,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_sub_location:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1225,6 +1237,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_title:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
