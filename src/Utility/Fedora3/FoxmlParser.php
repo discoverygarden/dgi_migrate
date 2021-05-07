@@ -76,9 +76,7 @@ class FoxmlParser extends AbstractParser {
    * Setup the parser.
    */
   protected function initParser() {
-    // XXX: Ensure there's no stray references sticking around for whatever
-    // reason.
-    $this->close();
+    $this->clearParserProperties();
 
     $this->parser = xml_parser_create_ns();
     xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
@@ -96,11 +94,18 @@ class FoxmlParser extends AbstractParser {
       fclose($this->file);
     }
     $this->file = NULL;
+    $this->clearParserProperties();
+    parent::close();
+  }
+
+  /**
+   * Ensure there's no stray references sticking around for whatever reason.
+   */
+  protected function clearParserProperties() {
     $this->chunk = NULL;
     $this->target = NULL;
     $this->output = NULL;
     $this->destroyParser();
-    parent::close();
   }
 
   /**
