@@ -255,8 +255,18 @@ class Substream extends ReadOnlyStream {
     $stat = [
       7 => (int) $length,
       'size' => (int) $length,
-    ] + stat($target);
-    return $stat;
+    ]
+
+    $target_stat = stat($target);
+
+    if ($target_stat) {
+      return $stat + $target_stat;
+    }
+    else {
+      throw new \Exception('Failed to stat target !file', [
+        '!file' => $target,
+      ]);
+    }
   }// phpcs:enable
 
 }
