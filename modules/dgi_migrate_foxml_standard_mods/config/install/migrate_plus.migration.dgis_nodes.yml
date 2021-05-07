@@ -1066,7 +1066,7 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  field_related_item:
+  field_related_item_paragraph:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
@@ -1089,6 +1089,12 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: entity_lookup
+            bundle: dcmi_relation_types
+            bundle_key: vid
+            entity_type: taxonomy_term
+            value_key: name
+            ignore_case: *case_insensitive
         field_title_plain:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -1099,7 +1105,7 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_url:
+        field_url/uri:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
