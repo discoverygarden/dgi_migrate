@@ -1258,6 +1258,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_standard_title_paragraph
+      xpath: '@_mods_xpath'
       validate: *validate
   field_use_and_reproduction:
     - plugin: dgi_migrate.process.xml.context_query

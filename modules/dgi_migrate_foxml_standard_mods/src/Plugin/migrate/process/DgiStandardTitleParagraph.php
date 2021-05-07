@@ -52,6 +52,9 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     assert($value instanceof \DOMNode);
     $this->node = $value;
 
+    $this->xpath = $row->get($this->configuration['xpath']);
+    assert($this->xpath instanceof \DOMXPath);
+
     $paragraph = Paragraph::create(
       [
         'type' => 'title',
@@ -89,32 +92,27 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     ];
   }
 
+  const MAP = [
+    '@type' => '@type',
+    'nonSort' => 'mods:nonSort[1]',
+    'subTitle' => 'mods:subTitle[1]',
+    'partNumber' => 'mods:partNumber[1]',
+    'partName' => 'mods:partName[1]',
+    'title' => 'mods:title[1]',
+  ];
+
   /**
    * Gets the parts of the title we need, as an array.
    *
    * @return array
    *   An array of parts we want from the node, keyed by their node name, with
-   *   a single string as the value of each, or NULL if no value was parsed. The
-   *   title type is keyed as '@type'.
+   *   a single string as the value of each, or false-y if no value was parsed.
+   *   The title type is keyed as '@type'.
    */
   protected function getTitleParts() {
     if (empty($this->titleParts)) {
-      $this->titleParts = [
-        '@type' => NULL,
-        'nonSort' => NULL,
-        'subTitle' => NULL,
-        'partNumber' => NULL,
-        'partName' => NULL,
-        'title' => NULL,
-      ];
-
-      foreach ($this->node->childNodes as $child) {
-        if (isset($this->titleParts[$child->localName])) {
-          $this->titleParts[$child->localName] = $child->textContent;
-          if ($child->localName = 'title') {
-            $this->titleParts['@type'] = $child->getAttribute('type');
-          }
-        }
+      foreach (static::MAP as $key => $query) {
+        $this->titleParts[$key] = $this->xpath->evaluate("string($query)", $this->node);
       }
     }
 
