@@ -255,7 +255,7 @@ class Substream extends ReadOnlyStream {
     $stat = [
       7 => (int) $length,
       'size' => (int) $length,
-    ]
+    ];
 
     $target_stat = stat($target);
 
