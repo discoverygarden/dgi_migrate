@@ -786,6 +786,7 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
           - plugin: null_coalesce
         field_publisher:
           - plugin: dgi_migrate.process.xml.context_query
