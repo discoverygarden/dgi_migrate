@@ -780,12 +780,13 @@ process:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
-            query: 'mods:place/mods:placeTerm'
+            query: 'mods:place/mods:placeTerm[normalize-space()][1]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: null_coalesce
         field_publisher:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
