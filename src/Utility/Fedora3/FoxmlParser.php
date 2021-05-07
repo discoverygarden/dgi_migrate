@@ -76,8 +76,6 @@ class FoxmlParser extends AbstractParser {
    * Setup the parser.
    */
   protected function initParser() {
-    $this->clearParserProperties();
-
     $this->parser = xml_parser_create_ns();
     xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, FALSE);
     xml_parser_set_option($this->parser, XML_OPTION_SKIP_WHITE, TRUE);
