@@ -144,9 +144,7 @@ process:
       source: '@_node_foxml_parsed'
       method: parents
       args:
-        - - isMemberOf
-          - isMemberOfCollection
-          - isConstituentOf
+        - [isMemberOf, isMemberOfCollection, isConstituentOf]
     - plugin: multiple_values
     - plugin: substr
       start: 12
