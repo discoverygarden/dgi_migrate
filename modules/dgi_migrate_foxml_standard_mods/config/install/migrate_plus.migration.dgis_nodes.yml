@@ -141,7 +141,7 @@ process:
     - plugin: null_coalesce
   field_member_of:
     - plugin: dgi_migrate.method
-      source: '@_parsed'
+      source: '@_node_foxml_parsed'
       method: parents
       args:
         - - isMemberOf
