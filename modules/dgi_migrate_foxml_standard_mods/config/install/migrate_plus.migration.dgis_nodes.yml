@@ -1151,6 +1151,8 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+    - plugin: default_value
+      default_value: Unspecified
     - plugin: entity_generate
       bundle: resource_types
       bundle_key: vid
