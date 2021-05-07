@@ -326,7 +326,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle: genre
+            bundle: geo_location
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
