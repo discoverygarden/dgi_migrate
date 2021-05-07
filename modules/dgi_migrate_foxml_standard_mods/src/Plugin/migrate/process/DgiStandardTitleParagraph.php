@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
 
