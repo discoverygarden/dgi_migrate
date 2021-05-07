@@ -1127,6 +1127,8 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: skip_on_empty
+            method: process
   field_resource_type:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
