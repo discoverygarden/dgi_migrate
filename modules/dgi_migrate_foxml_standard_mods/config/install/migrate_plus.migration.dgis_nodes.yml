@@ -161,6 +161,8 @@ process:
       default_values:
         title: 'Migration stub'
         status: 0
+      values:
+        uid: '@uid'
   _coordinates:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
