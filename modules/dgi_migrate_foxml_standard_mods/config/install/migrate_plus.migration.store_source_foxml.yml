@@ -29,12 +29,6 @@ process:
       no_stub: true
     - plugin: skip_on_empty
       method: row
-    - plugin: extract
-      index: [ 0 ]
-    - plugin: skip_on_empty
-      method: row
-    - plugin: dgi_migrate.load_entity
-      entity_type: entity:node
   name:
     plugin: dgi_migrate.subproperty
     source: '@_parsed'

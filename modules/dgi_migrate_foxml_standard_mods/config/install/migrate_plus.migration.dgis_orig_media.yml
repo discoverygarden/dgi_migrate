@@ -18,15 +18,11 @@ destination:
   #   extensions for audio.
   #validate: true
 process:
-  field_media_of/target_id:
+  field_media_of:
     - plugin: migration_lookup
       migration: dgis_nodes
       source: fid
       no_stub: true
-    - plugin: skip_on_empty
-      method: row
-    - plugin: extract
-      index: [ 0 ]
     - plugin: skip_on_empty
       method: row
   _file_id:

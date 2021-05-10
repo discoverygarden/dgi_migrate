@@ -1,0 +1,45 @@
+---
+id: dgis_stub_nodes
+label: Create stub nodes, PID-wise.
+migration_group: foxml_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    pid:
+      type: string
+  dsf_misc:
+    case_insensitive: &case_insensitive true
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+process:
+  title:
+    - plugin: default_value
+      default_value: Migration stub
+  status:
+    - plugin: default_value
+      default_value: 0
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+  field_pid:
+    - plugin: get
+      source: pid
+  nid:
+    - plugin: entity_lookup
+      entity_type: node
+      bundle_key: type
+      bundle: islandora_object
+      value_key: field_pid
+      source: pid
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

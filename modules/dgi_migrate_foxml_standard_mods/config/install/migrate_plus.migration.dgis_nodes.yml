@@ -59,12 +59,9 @@ process:
       source: '@_node_foxml_parsed'
       property: PID
   nid:
-    - plugin: entity_lookup
-      entity_type: node
-      bundle_key: type
-      bundle: islandora_object
-      value_key: field_pid
+    - plugin: migration_lookup
       source: '@field_pid'
+      migration: dgis_stub_nodes
   _i8_model_uri:
     - plugin: static_map
       source: '@_models'
@@ -153,16 +150,9 @@ process:
     - plugin: multiple_values
     - plugin: substr
       start: 12
-    - plugin: entity_generate
-      entity_type: node
-      bundle_key: type
-      bundle: islandora_object
-      value_key: field_pid
-      default_values:
-        title: 'Migration stub'
-        status: 0
-      values:
-        uid: '@uid'
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
   _coordinates:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
