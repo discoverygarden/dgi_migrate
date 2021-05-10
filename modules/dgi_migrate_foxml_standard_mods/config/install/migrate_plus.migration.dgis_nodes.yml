@@ -617,8 +617,10 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-          - plugin: static_map
-            default_value: &unknown "Unknown"
+          - plugin: dgi_migrate.process.static_map
+            skip_process_instead_of_row: true
+            original_map_structure: true
+            bypass: false
             map:
               acquisition: acquisition
               action: action
@@ -643,11 +645,6 @@ process:
               thesis: thesis
               venue: venue
               version identification: version identification
-          # XXX: Ideally, we could nicely log the unknown type here...
-          - plugin: dgi_migrate.skip_on_value
-            method: process
-            message: 'Encountered invalid note type ":value" for :property; adding note without type.'
-            value: *unknown
         field_note:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
