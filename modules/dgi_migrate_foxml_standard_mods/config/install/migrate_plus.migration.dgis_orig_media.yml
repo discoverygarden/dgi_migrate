@@ -97,10 +97,6 @@ process:
     - plugin: dgi_migrate.method
       method: getMimeType
       source: '@_file'
-  created:
-    - plugin: callback
-      callable: time
-  changed: '@created'
   status:
     - plugin: default_value
       default_value: 1
