@@ -3,14 +3,11 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate_plus\Plugin\migrate\process\SkipOnValue as Upstream;
-use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipProcessException;
 use Drupal\migrate\MigrateSkipRowException;
-use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 use Drupal\migrate\Plugin\MigrationInterface;
-
 
 /**
  * Logging skip on value plugin.
@@ -42,7 +39,7 @@ class SkipOnValue extends Upstream {
    */
   public function process($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     try {
-      return parent::process($value, $migrate_exectuable, $row, $destination_property);
+      return parent::process($value, $migrate_executable, $row, $destination_property);
     }
     catch (MigrateSkipProcessException $e) {
       $migrate_executable->saveMessage(strtr($this->configuration['message'] ?? 'Skipping processing with ":value" when processing :property.', [
