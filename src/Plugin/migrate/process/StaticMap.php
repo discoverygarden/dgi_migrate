@@ -2,10 +2,12 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
+use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipProcessException;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Plugin\migrate\process\StaticMap as Upstream;
+use Drupal\migrate\Row;
 
 /**
  * Perform a mapping.
@@ -41,7 +43,7 @@ class StaticMap extends Upstream {
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     try {
-      return parent::transform($value, $migration_executable, $row, $destination_property);
+      return parent::transform($value, $migrate_executable, $row, $destination_property);
     }
     catch (MigrateSkipRowException $e) {
       if ($this->configuration['skip_process_instead_of_row'] ?? FALSE) {
@@ -49,7 +51,7 @@ class StaticMap extends Upstream {
           ':value' => $value,
           ':property' => $destination_property,
         ]);
-        $migration_executable->saveMessage($message, MigrationInterface::MESSAGE_WARNING);
+        $migrate_executable->saveMessage($message, MigrationInterface::MESSAGE_WARNING);
         throw new MigrateSkipProcessException($message, 0, $e);
       }
       else {
