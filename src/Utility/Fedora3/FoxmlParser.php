@@ -92,18 +92,11 @@ class FoxmlParser extends AbstractParser {
       fclose($this->file);
     }
     $this->file = NULL;
-    $this->clearParserProperties();
-    parent::close();
-  }
-
-  /**
-   * Ensure there's no stray references sticking around for whatever reason.
-   */
-  protected function clearParserProperties() {
     $this->chunk = NULL;
     $this->target = NULL;
     $this->output = NULL;
     $this->destroyParser();
+    parent::close();
   }
 
   /**
