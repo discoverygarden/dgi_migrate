@@ -27,10 +27,11 @@ class ContentLocation extends AbstractParser {
     if ($this->TYPE === 'URL') {
       return $this->REF;
     }
+    elseif ($this->TYPE === 'INTERNAL_ID') {
+      return $this->getFoxmlParser()->getLowLevelAdapter()->dereference($this->REF);
+    }
     else {
-      // XXX: An internal URI would require additional dereferencing to be
-      // useful.
-      throw new \Exception('Refusing to provide internal URI.');
+      throw new \Exception('Unhandled type.');
     }
   }
 
