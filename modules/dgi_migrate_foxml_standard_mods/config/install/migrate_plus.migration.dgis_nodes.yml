@@ -77,6 +77,9 @@ process:
         'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
         'info:fedora/islandora:pageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
         'info:fedora/islandora:bookCModel': 'https://schema.org/Book'
+        'info:fedora/islandora:newspaperPageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
+        'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
+        'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -1340,6 +1343,7 @@ process:
 migration_dependencies:
   required:
     - dgis_foxml_files
+    - dmfsm_tags
 dependencies:
   enforced:
     module:
