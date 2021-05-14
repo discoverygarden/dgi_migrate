@@ -6,6 +6,7 @@ use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
+use Drupal\migrate\MigrateSkipProcessException;
 use Drupal\migrate\MigrateSkipRowException;
 
 /**
@@ -14,8 +15,42 @@ use Drupal\migrate\MigrateSkipRowException;
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.subindex"
  * )
+ *
+ * Accepts:
+ * - One of:
+ *   - "index": An index to attempt to access.
+ *   - "index_from_destination": The name of a destination property to
+ *     dereference, to attempt to use as the index to access.
+ * - "skip_row_if_missing": Deprecated in favour of "missing_behavior". A flag
+ *   to indicate if the row should be skipped when we find there's no value.
+ * - "missing_behaviour": A string indicating what should happen when we fail
+ *   to find the target value. One of:
+ *   - "abort": Stop the migration, throwing an exception.
+ *   - "skip_process": Stop processing the property.
+ *   - "skip_row": Skip processing/saving the row.
  */
 class Subindex extends ProcessPluginBase {
+
+  use MissingBehaviorTrait {
+    getDefaultMissingBehavior as getDefaultMissingBehaviorTrait;
+  };
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->missingBehaviorInit();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDefaultMissingBehavior() {
+    return !empty($this->configuration['skip_row_if_missing']) ?
+      'skip_row' :
+      $this->getDefaultMissingBehaviorTrait();
+  }
 
   /**
    * {@inheritdoc}
@@ -38,12 +73,11 @@ class Subindex extends ProcessPluginBase {
     }
 
     if (!isset($value[$index])) {
-      if (empty($this->configuration['skip_row_if_missing'])) {
-        throw new MigrateException('Index not present, extraction failed.');
-      }
-      else {
-        throw new MigrateSkipRowException('Index not present, skipping row.');
-      }
+      throw $this->getMissingException(strtr('Missing :index when processing :property; behavior is :behavior.', [
+        ':index' => $index,
+        ':property' => $destination_property,
+        ':behavior' => $this->missingBehavior,
+      ]));
     }
 
     return $value[$index];
