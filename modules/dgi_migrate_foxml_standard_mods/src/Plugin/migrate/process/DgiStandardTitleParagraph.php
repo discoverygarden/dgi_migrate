@@ -49,6 +49,8 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     assert($value instanceof \DOMNode);
+
+    $this->titleParts = NULL;
     $this->node = $value;
 
     $paragraph = Paragraph::create(
@@ -86,9 +88,9 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
       ];
 
       foreach ($this->node->childNodes as $child) {
-        if (isset($this->titleParts[$child->localName])) {
+        if (array_key_exists($child->localName, $this->titleParts)) {
           $this->titleParts[$child->localName] = $child->textContent;
-          if ($child->localName = 'title') {
+          if ($child->localName == 'title') {
             $this->titleParts['@type'] = $child->getAttribute('type');
           }
         }
