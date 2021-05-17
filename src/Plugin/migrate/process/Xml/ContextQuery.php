@@ -5,7 +5,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\migrate\MigrateException;
 use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
 
 /**

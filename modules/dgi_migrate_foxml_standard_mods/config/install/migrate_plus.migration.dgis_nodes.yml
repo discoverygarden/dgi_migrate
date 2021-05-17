@@ -1038,7 +1038,7 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
-  field_resource_type:
+  _resource_type:
     - << : *base_mods_node
       query: 'mods:typeOfResource'
     - plugin: callback
@@ -1049,7 +1049,9 @@ process:
     - plugin: single_value
     - plugin: callback
       callable: array_filter
-    - plugin: null_coalesce
+  field_resource_type:
+    - plugin: default_value
+      source: '@_resource_type'
       default_value: Unspecified
     - plugin: entity_generate
       bundle: resource_types

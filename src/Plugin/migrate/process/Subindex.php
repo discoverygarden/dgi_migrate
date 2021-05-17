@@ -6,8 +6,6 @@ use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
-use Drupal\migrate\MigrateSkipProcessException;
-use Drupal\migrate\MigrateSkipRowException;
 
 /**
  * Accesses a property from an object.
@@ -33,7 +31,7 @@ class Subindex extends ProcessPluginBase {
 
   use MissingBehaviorTrait {
     getDefaultMissingBehavior as getDefaultMissingBehaviorTrait;
-  };
+  }
 
   /**
    * {@inheritdoc}
