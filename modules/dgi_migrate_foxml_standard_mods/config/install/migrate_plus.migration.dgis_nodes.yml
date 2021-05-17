@@ -1162,7 +1162,7 @@ process:
 migration_dependencies:
   required:
     - dgis_foxml_files
-    - dmfsm_tags
+    - islandora_tags
 dependencies:
   enforced:
     module:
