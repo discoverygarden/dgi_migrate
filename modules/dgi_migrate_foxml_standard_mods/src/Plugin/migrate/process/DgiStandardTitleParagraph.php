@@ -51,7 +51,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
   public function transform($node, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $xpath = $row->get($this->configuration['xpath']);
 
-    $parts = static::getParts($xpath, $node);
+    $parts = static::getTitleParts($xpath, $node);
 
     $paragraph = Paragraph::create([
       'type' => 'title',
