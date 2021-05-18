@@ -99,6 +99,11 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
   /**
    * Gets the parts of the title we need, as an array.
    *
+   * @param \DOMXPath $xpath
+   *   The XPath instance in which to query.
+   * @param \DOMNode $node
+   *   The node relative which to query.
+   *
    * @return array
    *   An array of parts we want from the node, keyed by their node name, with
    *   a single string as the value of each, or false-y if no value was parsed.
@@ -117,10 +122,13 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
   /**
    * Gets a string to represent the title field.
    *
+   * @param string[] $title_parts
+   *   The parts to assemble into the title.
+   *
    * @return string
    *   The title string.
    */
-  protected static function getTitle($title_parts) {
+  protected static function getTitle(array $title_parts) {
     $title = '';
     if (!empty($title_parts['nonSort'])) {
       $title .= "{$title_parts['nonSort']} ";
