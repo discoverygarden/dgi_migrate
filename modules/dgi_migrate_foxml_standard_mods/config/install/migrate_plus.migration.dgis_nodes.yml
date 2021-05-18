@@ -74,6 +74,8 @@ process:
         'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
         'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
         'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
+        'info:fedora/islandora:bookCModel': 'https://schema.org/Book'
+        'info:fedora/islandora:pageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -104,6 +106,10 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
+  field_weight:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: sequenceNumber
   _mods_xpath:
     - plugin: dgi_migrate.subindex
       index: 'MODS'

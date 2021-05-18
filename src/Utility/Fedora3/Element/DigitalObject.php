@@ -159,6 +159,7 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
         'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'fre' => 'info:fedora/fedora-system:def/relations-external#',
         'fm' => 'info:fedora/fedora-system:def/model#',
+        'isl' => 'http://islandora.ca/ontology/relsext#',
       ];
       foreach ($ns as $prefix => $uri) {
         $this->xpath->registerNamespace($prefix, $uri);
@@ -195,6 +196,18 @@ class DigitalObject extends AbstractParser implements \ArrayAccess {
    */
   public function models() {
     return $this->relsExtResourceQuery('/rdf:RDF/rdf:Description/fm:hasModel/@rdf:resource');
+  }
+
+  /**
+   * Gets the sequence number for the given object.
+   *
+   * @return int|null
+   *   The sequence number of the given object, or NULL.
+   */
+  public function sequenceNumber() {
+    $sequences = $this->relsExtResourceQuery('/rdf:RDF/rdf:Description/isl:isSequenceNumber');
+    $first = reset($sequences);
+    return $first ? (int) $first : NULL;
   }
 
   /**
