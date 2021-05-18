@@ -8,6 +8,15 @@ source:
   migration: dgis_foxml_files
   dsf_misc:
     case_insensitive: &case_insensitive true
+    base_mods_node: &base_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      missing_behavior: skip_process
+      source: '@_mods_node'
+      xpath: '@_mods_xpath'
+    nested_mods_node: &nested_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      source: 'parent_value'
+      xpath: 'parent_row/dest/_mods_xpath'
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -77,6 +86,9 @@ process:
         'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
         'info:fedora/islandora:pageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
         'info:fedora/islandora:bookCModel': 'https://schema.org/Book'
+        'info:fedora/islandora:newspaperPageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
+        'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
+        'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -148,6 +160,7 @@ process:
     - plugin: dgi_migrate.subindex
       index: 'MODS'
       source: '@_node_foxml_parsed'
+      missing_behavior: skip_process
     - plugin: dgi_migrate.method
       method: getUri
     - plugin: dgi_migrate.process.xml.domfile
@@ -157,8 +170,10 @@ process:
         xsi: 'http://www.w3.org/2001/XMLSchema-instance'
         xlink: 'http://www.w3.org/1999/xlink'
   _mods_node:
-    - plugin: dgi_migrate.method
+    - plugin: skip_on_empty
+      method: process
       source: '@_mods_xpath'
+    - plugin: dgi_migrate.method
       method: query
       args:
         - '//mods:mods[1]'
@@ -166,9 +181,7 @@ process:
       callable: iterator_to_array
     - plugin: array_shift
   field_ark:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="ark"]'
     - plugin: callback
       callable: iterator_to_array
@@ -190,9 +203,7 @@ process:
       migration: dgis_stub_nodes
       stub_id: dgis_stub_nodes
   _coordinates:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject/mods:cartographic/mods:coordinates'
     - plugin: callback
       callable: iterator_to_array
@@ -207,9 +218,7 @@ process:
   'field_coordinates/lat': '@_coordinates/0'
   'field_coordinates/lng': '@_coordinates/1'
   field_coordinates_text:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject/mods:cartographic/mods:coordinates'
     - plugin: callback
       callable: iterator_to_array
@@ -217,9 +226,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_edtf_date_created:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
     - plugin: callback
       callable: iterator_to_array
@@ -227,9 +234,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_edtf_date_issued:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:originInfo/mods:dateIssued[@keydate="yes"]'
     - plugin: callback
       callable: iterator_to_array
@@ -237,9 +242,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_description:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:abstract'
     - plugin: callback
       callable: iterator_to_array
@@ -249,9 +252,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_digital_origin:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:physicalDescription/mods:digitalOrigin'
     - plugin: callback
       callable: iterator_to_array
@@ -259,9 +260,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_doi:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="doi"]'
     - plugin: callback
       callable: iterator_to_array
@@ -271,9 +270,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_electronic_locator:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
     - plugin: callback
       callable: iterator_to_array
@@ -283,9 +280,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_enumeration_and_chronology:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
     - plugin: callback
       callable: iterator_to_array
@@ -295,9 +290,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_extent:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:physicalDescription/mods:extent'
     - plugin: callback
       callable: iterator_to_array
@@ -305,9 +298,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_faceted_subject:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject'
     - plugin: callback
       callable: iterator_to_array
@@ -318,9 +309,7 @@ process:
       process_values: true
       values:
         field_authority_sources:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@authority'
           - plugin: callback
             callable: iterator_to_array
@@ -328,9 +317,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_genre_form_subdivision_:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:genre'
           - plugin: callback
             callable: iterator_to_array
@@ -344,9 +331,7 @@ process:
             value_key: name
             ignore_case: *case_insensitive
         field_geographic_geographic_subd:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:geographic'
           - plugin: callback
             callable: iterator_to_array
@@ -360,9 +345,7 @@ process:
             value_key: name
             ignore_case: *case_insensitive
         field_temporal_chronological_sub:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:temporal'
           - plugin: callback
             callable: iterator_to_array
@@ -376,9 +359,7 @@ process:
             value_key: name
             ignore_case: *case_insensitive
         field_topic_general_subdivision:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:topic'
           - plugin: callback
             callable: iterator_to_array
@@ -392,9 +373,7 @@ process:
             value_key: name
             ignore_case: *case_insensitive
   field_form:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
     - plugin: callback
       callable: iterator_to_array
@@ -402,9 +381,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_genre:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:genre'
     - plugin: callback
       callable: iterator_to_array
@@ -418,9 +395,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_geographic_subject:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject/mods:geographic'
     - plugin: callback
       callable: iterator_to_array
@@ -434,9 +409,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_handle:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="hdl"]'
     - plugin: callback
       callable: iterator_to_array
@@ -446,9 +419,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_hierarchical_geographic_su:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject/mods:hierarchicalGeographic'
     - plugin: callback
       callable: iterator_to_array
@@ -459,9 +430,7 @@ process:
       process_values: true
       values:
         field_area:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:area'
           - plugin: callback
             callable: iterator_to_array
@@ -469,9 +438,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_city:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:city'
           - plugin: callback
             callable: iterator_to_array
@@ -479,9 +446,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_city_section:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:citySection'
           - plugin: callback
             callable: iterator_to_array
@@ -489,9 +454,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_continent:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:continent'
           - plugin: callback
             callable: iterator_to_array
@@ -499,9 +462,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_country:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:country'
           - plugin: callback
             callable: iterator_to_array
@@ -509,9 +470,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_county:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:county'
           - plugin: callback
             callable: iterator_to_array
@@ -519,9 +478,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extraterrestrial_area:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extraterrestrialArea'
           - plugin: callback
             callable: iterator_to_array
@@ -529,9 +486,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_island:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:island'
           - plugin: callback
             callable: iterator_to_array
@@ -539,9 +494,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_region:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:region'
           - plugin: callback
             callable: iterator_to_array
@@ -549,9 +502,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_state:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:state'
           - plugin: callback
             callable: iterator_to_array
@@ -559,9 +510,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_territory:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:territory'
           - plugin: callback
             callable: iterator_to_array
@@ -569,9 +518,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_isbn:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="isbn"]'
     - plugin: callback
       callable: iterator_to_array
@@ -581,9 +528,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_item_identifier:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
     - plugin: callback
       callable: iterator_to_array
@@ -593,9 +538,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_lcc_classification:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:classification[@authority="lcc"]'
     - plugin: callback
       callable: iterator_to_array
@@ -605,9 +548,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_local_identifier:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="local"]'
     - plugin: callback
       callable: iterator_to_array
@@ -617,9 +558,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_note_location:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
     - plugin: callback
       callable: iterator_to_array
@@ -629,9 +568,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_note_paragraph:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:note'
     - plugin: callback
       callable: iterator_to_array
@@ -642,9 +579,7 @@ process:
       process_values: true
       values:
         field_note_type:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@type'
           - plugin: callback
             callable: iterator_to_array
@@ -686,9 +621,7 @@ process:
             source: 'parent_value'
             property: nodeValue
   field_note:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:physicalDescription/mods:note'
     - plugin: callback
       callable: iterator_to_array
@@ -698,9 +631,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_oclc_number:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="oclc"]'
     - plugin: callback
       callable: iterator_to_array
@@ -710,9 +641,7 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_origin_information:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:originInfo'
     - plugin: callback
       callable: iterator_to_array
@@ -723,9 +652,7 @@ process:
       process_values: true
       values:
         field_copyright_date:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:copyrightDate'
           - plugin: callback
             callable: iterator_to_array
@@ -733,9 +660,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_captured:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateCaptured'
           - plugin: callback
             callable: iterator_to_array
@@ -743,9 +668,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_created:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateCreated[@keydate="yes"]'
           - plugin: callback
             callable: iterator_to_array
@@ -753,9 +676,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_issued:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateIssued[@keydate="yes"]'
           - plugin: callback
             callable: iterator_to_array
@@ -763,9 +684,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_modified:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateModified'
           - plugin: callback
             callable: iterator_to_array
@@ -773,9 +692,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date_valid:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateValid'
           - plugin: callback
             callable: iterator_to_array
@@ -783,9 +700,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_edition:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:edition'
           - plugin: callback
             callable: iterator_to_array
@@ -793,9 +708,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_event_type:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@eventType'
           - plugin: callback
             callable: iterator_to_array
@@ -803,9 +716,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_frequency:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:frequency'
           - plugin: callback
             callable: iterator_to_array
@@ -813,9 +724,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_issuance:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:issuance'
           - plugin: callback
             callable: iterator_to_array
@@ -823,9 +732,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_other_date:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:dateOther'
           - plugin: callback
             callable: iterator_to_array
@@ -833,9 +740,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_place:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
           - plugin: callback
             callable: iterator_to_array
@@ -845,9 +750,7 @@ process:
           - plugin: single_value
           - plugin: null_coalesce
         field_publisher:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:publisher'
           - plugin: callback
             callable: iterator_to_array
@@ -855,9 +758,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_part:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:part'
     - plugin: callback
       callable: iterator_to_array
@@ -868,9 +769,7 @@ process:
       process_values: true
       values:
         field_additional_information:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:text'
           - plugin: callback
             callable: iterator_to_array
@@ -878,9 +777,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_caption:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:detail/mods:caption'
           - plugin: callback
             callable: iterator_to_array
@@ -888,9 +785,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_date:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:date'
           - plugin: callback
             callable: iterator_to_array
@@ -898,9 +793,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_end:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent/mods:end'
           - plugin: callback
             callable: iterator_to_array
@@ -908,9 +801,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extent:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent'
           - plugin: callback
             callable: iterator_to_array
@@ -918,9 +809,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_extent_units:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent/@unit'
           - plugin: callback
             callable: iterator_to_array
@@ -928,9 +817,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_list:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent/mods:list'
           - plugin: callback
             callable: iterator_to_array
@@ -938,9 +825,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_number:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:detail/mods:number'
           - plugin: callback
             callable: iterator_to_array
@@ -948,9 +833,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_part_order:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@order'
           - plugin: callback
             callable: iterator_to_array
@@ -958,9 +841,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_part_type:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@type'
           - plugin: callback
             callable: iterator_to_array
@@ -968,9 +849,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_start:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent/mods:start'
           - plugin: callback
             callable: iterator_to_array
@@ -978,9 +857,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_title:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:detail/mods:title'
           - plugin: callback
             callable: iterator_to_array
@@ -988,9 +865,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_total:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:extent/mods:total'
           - plugin: callback
             callable: iterator_to_array
@@ -998,9 +873,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_physical_form:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:physicalDescription/mods:form'
     - plugin: callback
       callable: iterator_to_array
@@ -1014,9 +887,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_physical_location:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: '(mods:location/mods:physicalLocation[normalize-space()])[1]'
     - plugin: callback
       callable: iterator_to_array
@@ -1030,9 +901,7 @@ process:
       callable: array_filter
     - plugin: null_coalesce
   field_purl:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:identifier[@type="purl"]'
     - plugin: callback
       callable: iterator_to_array
@@ -1040,9 +909,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_record_information:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:recordInfo'
     - plugin: callback
       callable: iterator_to_array
@@ -1053,9 +920,7 @@ process:
       process_values: true
       values:
         field_description_standard:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:descriptionStandard'
           - plugin: callback
             callable: iterator_to_array
@@ -1063,9 +928,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_recording_catalog_language:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:languageOfCataloging'
           - plugin: callback
             callable: iterator_to_array
@@ -1073,9 +936,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_change_date:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:recordChangeDate'
           - plugin: callback
             callable: iterator_to_array
@@ -1083,9 +944,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_content_source:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '.'
           - plugin: callback
             callable: iterator_to_array
@@ -1093,9 +952,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_creation_date:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:recordCreationDate'
           - plugin: callback
             callable: iterator_to_array
@@ -1103,9 +960,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_identifier:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:recordIdentifier'
           - plugin: callback
             callable: iterator_to_array
@@ -1113,9 +968,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_information_note:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:recordInfoNote'
           - plugin: callback
             callable: iterator_to_array
@@ -1123,9 +976,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_record_origin:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:recordOrigin'
           - plugin: callback
             callable: iterator_to_array
@@ -1133,9 +984,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
   field_reformatting_quality:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:physicalDescription/mods:reformattingQuality'
     - plugin: callback
       callable: iterator_to_array
@@ -1143,9 +992,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_related_item_paragraph:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:relatedItem'
     - plugin: callback
       callable: iterator_to_array
@@ -1156,9 +1003,7 @@ process:
       process_values: true
       values:
         field_relationship_type:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: '@type'
           - plugin: callback
             callable: iterator_to_array
@@ -1172,9 +1017,7 @@ process:
             value_key: name
             ignore_case: *case_insensitive
         field_title_plain:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:titleInfo/mods:title'
           - plugin: callback
             callable: iterator_to_array
@@ -1182,9 +1025,7 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_url/uri:
-          - plugin: dgi_migrate.process.xml.context_query
-            source: 'parent_value'
-            xpath: 'parent_row/dest/_mods_xpath'
+          - << : *nested_mods_node
             query: 'mods:location/mods:url[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
@@ -1197,10 +1038,8 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
-  field_resource_type:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+  _resource_type:
+    - << : *base_mods_node
       query: 'mods:typeOfResource'
     - plugin: callback
       callable: iterator_to_array
@@ -1210,7 +1049,9 @@ process:
     - plugin: single_value
     - plugin: callback
       callable: array_filter
-    - plugin: null_coalesce
+  field_resource_type:
+    - plugin: default_value
+      source: '@_resource_type'
       default_value: Unspecified
     - plugin: entity_generate
       bundle: resource_types
@@ -1219,9 +1060,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_restriction_on_access:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:accessCondition[@type="restriction on access"]'
     - plugin: callback
       callable: iterator_to_array
@@ -1229,9 +1068,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_rights_statement:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:accessCondition[@type="use and reproduction"]'
     - plugin: callback
       callable: iterator_to_array
@@ -1245,9 +1082,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_shelf_locator:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
     - plugin: callback
       callable: iterator_to_array
@@ -1255,9 +1090,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_subject:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:subject/mods:topic'
     - plugin: callback
       callable: iterator_to_array
@@ -1271,9 +1104,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_sub_location:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
     - plugin: callback
       callable: iterator_to_array
@@ -1281,9 +1112,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_table_of_contents:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:tableOfContents'
     - plugin: callback
       callable: iterator_to_array
@@ -1291,9 +1120,7 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_target_audience:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:targetAudience'
     - plugin: callback
       callable: iterator_to_array
@@ -1301,9 +1128,8 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
   field_temporal_subject:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
+      # TODO: Figure out what this should be...
       query: 'mods:tableOfContents'
     - plugin: callback
       callable: iterator_to_array
@@ -1317,9 +1143,7 @@ process:
       value_key: name
       ignore_case: *case_insensitive
   field_title:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
     - plugin: callback
       callable: iterator_to_array
@@ -1328,9 +1152,7 @@ process:
       xpath: '@_mods_xpath'
       validate: *validate
   field_use_and_reproduction:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
+    - << : *base_mods_node
       query: 'mods:accessCondition[@type="use and reproduction"]'
     - plugin: callback
       callable: iterator_to_array
@@ -1340,6 +1162,7 @@ process:
 migration_dependencies:
   required:
     - dgis_foxml_files
+    - islandora_tags
 dependencies:
   enforced:
     module:
