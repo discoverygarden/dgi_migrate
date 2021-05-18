@@ -6,11 +6,15 @@ source:
   plugin: dgi_migrate.source.migration
   track_changes: true
   migration: dgis_foxml_files
+  dsf_misc:
+    case_insensitive: &case_insensitive true
 destination:
   plugin: entity:node
   default_bundle: islandora_object
-  translations: true
-  validate: true
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate true
 process:
   _node_foxml_parsed:
     - plugin: dgi_migrate.load_entity
@@ -55,12 +59,9 @@ process:
       source: '@_node_foxml_parsed'
       property: PID
   nid:
-    - plugin: entity_lookup
-      entity_type: node
-      bundle_key: type
-      bundle: islandora_object
-      value_key: field_pid
+    - plugin: migration_lookup
       source: '@field_pid'
+      migration: dgis_stub_nodes
   _i8_model_uri:
     - plugin: static_map
       source: '@_models'
@@ -74,6 +75,8 @@ process:
         'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
         'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
         'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
+        'info:fedora/islandora:pageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
+        'info:fedora/islandora:bookCModel': 'https://schema.org/Book'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -93,6 +96,7 @@ process:
       map:
         - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
         - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+        - ['http://id.loc.gov/ontologies/bibframe/part', ['http://openseadragon.github.io']]
     - plugin: flatten
     - plugin: skip_on_empty
       method: process
@@ -104,6 +108,42 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
+  _rels_ext_xpath:
+    - plugin: dgi_migrate.subindex
+      index: 'RELS-EXT'
+      source: '@_node_foxml_parsed'
+    - plugin: dgi_migrate.method
+      method: getUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+        fedora-relations-external: 'info:fedora/fedora-system:def/relations-external#'
+        fedora-model: 'info:fedora/fedora-system:def/model#'
+        islandora-rels-ext: 'http://islandora.ca/ontology/relsext#'
+        islandora-rels-int: 'http://islandora.ca/ontology/relsint#'
+  _rels_ext_node:
+    - plugin: dgi_migrate.method
+      source: '@_rels_ext_xpath'
+      method: query
+      args: ['/rdf:RDF/*[self::rdf:Description or self::rdf:description]']
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
+  field_weight:
+    - plugin: dgi_migrate.process.xml.context_query
+      source: '@_rels_ext_node'
+      xpath: '@_rels_ext_xpath'
+      query: 'islandora-rels-ext:isSequenceNumber'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
   _mods_xpath:
     - plugin: dgi_migrate.subindex
       index: 'MODS'
@@ -138,20 +178,17 @@ process:
     - plugin: single_value
     - plugin: null_coalesce
   field_member_of:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mods_node'
-      xpath: '@_mods_xpath'
-      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
-    - plugin: callback
-      callable: iterator_to_array
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: parents
+      args:
+        - [isMemberOf, isMemberOfCollection, isConstituentOf]
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle_key: nid
-      bundle: islandora_object
-      value_key: label
-      entity_type: node
+    - plugin: substr
+      start: 12
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
   _coordinates:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -276,6 +313,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: faceted_subject
       process_values: true
       values:
@@ -304,6 +342,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_geographic_geographic_subd:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -315,10 +354,11 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: entity_generate
-            bundle: genre
+            bundle: geo_location
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_temporal_chronological_sub:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -334,6 +374,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
         field_topic_general_subdivision:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -349,6 +390,7 @@ process:
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
+            ignore_case: *case_insensitive
   field_form:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -374,6 +416,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_geographic_subject:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -389,6 +432,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_handle:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -410,6 +454,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: hierarchical_geographic_subject
       process_values: true
       values:
@@ -592,6 +637,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: note
       process_values: true
       values:
@@ -607,6 +653,34 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
+          - plugin: dgi_migrate.process.static_map
+            skip_process_instead_of_row: true
+            original_map_structure: true
+            bypass: false
+            map:
+              acquisition: acquisition
+              action: action
+              additional physical form: additional physical form
+              bibliography: bibliography
+              biographical/historical: biographical/historical
+              creation/production credits: creation/production credits
+              date/sequential designation: date/sequential designation
+              exhibitions: exhibitions
+              funding: funding
+              language: language
+              numbering: numbering
+              original location: original location
+              ownership: ownership
+              performers: performers
+              preferred citation: preferred citation
+              provenance: provenance
+              publications: publications
+              reproduction: reproduction
+              statement of responsibility: statement of responsibility
+              system details: system details
+              thesis: thesis
+              venue: venue
+              version identification: version identification
         field_note:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
@@ -644,6 +718,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: origin_information
       process_values: true
       values:
@@ -761,12 +836,14 @@ process:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
-            query: 'mods:place/mods:placeTerm'
+            query: 'mods:place/mods:placeTerm[normalize-space()][1]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
         field_publisher:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -786,6 +863,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: part
       process_values: true
       values:
@@ -934,16 +1012,23 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_physical_location:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
-      query: 'mods:location/mods:physicalLocation'
+      query: '(mods:location/mods:physicalLocation[normalize-space()])[1]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
   field_purl:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -963,6 +1048,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: record_information
       process_values: true
       values:
@@ -1056,7 +1142,7 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  field_related_item:
+  field_related_item_paragraph:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
@@ -1065,6 +1151,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
+      validate: *validate
       type: related_item
       process_values: true
       values:
@@ -1078,6 +1165,12 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: entity_lookup
+            bundle: dcmi_relation_types
+            bundle_key: vid
+            entity_type: taxonomy_term
+            value_key: name
+            ignore_case: *case_insensitive
         field_title_plain:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
@@ -1088,16 +1181,22 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_url:
+        field_url/uri:
           - plugin: dgi_migrate.process.xml.context_query
             source: 'parent_value'
             xpath: 'parent_row/dest/_mods_xpath'
-            query: 'mods:location/mods:url'
+            query: 'mods:location/mods:url[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
   field_resource_type:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1108,11 +1207,17 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+      default_value: Unspecified
     - plugin: entity_generate
       bundle: resource_types
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_restriction_on_access:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1138,6 +1243,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_shelf_locator:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1163,6 +1269,7 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_sub_location:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1208,16 +1315,18 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
+      ignore_case: *case_insensitive
   field_title:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
       xpath: '@_mods_xpath'
-      query: 'mods:titleInfo'
+      query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_standard_title_paragraph
       xpath: '@_mods_xpath'
+      validate: *validate
   field_use_and_reproduction:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mods_node'
@@ -1227,7 +1336,7 @@ process:
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
-      property:
+      property: nodeValue
 migration_dependencies:
   required:
     - dgis_foxml_files

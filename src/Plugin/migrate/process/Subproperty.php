@@ -21,7 +21,10 @@ class Subproperty extends ProcessPluginBase {
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!is_object($value)) {
-      throw new MigrateException('The passed value is not an object.');
+      throw new MigrateException(strtr('The passed value when processing !property is not an object; got a !type', [
+        '!property' => $destination_property,
+        '!type' => gettype($value),
+      ]));
     }
     elseif (isset($this->configuration['property'])) {
       $prop = $this->configuration['property'];

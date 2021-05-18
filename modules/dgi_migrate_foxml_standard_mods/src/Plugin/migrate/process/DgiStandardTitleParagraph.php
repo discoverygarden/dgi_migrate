@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
 
@@ -51,6 +52,9 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     assert($value instanceof \DOMNode);
     $this->node = $value;
 
+    $this->xpath = $row->get($this->configuration['xpath']);
+    assert($this->xpath instanceof \DOMXPath);
+
     $paragraph = Paragraph::create(
       [
         'type' => 'title',
@@ -58,6 +62,28 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
         'field_title_type' => $this->getTitleType(),
       ]
     );
+
+    $validate = $this->configuration['validate'] ?? FALSE;
+
+    $paragraph->setValidationRequired($validate);
+
+    if ($validate) {
+      try {
+        $errors = $paragraph->validate();
+      }
+      catch (\Exception $e) {
+        throw new \Exception(strtr('Encountered exception when validating :property.', [
+          ':property' => $destination_property,
+        ]), 0, $e);
+      }
+      if ($errors->count() > 0) {
+        throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
+          ':type' => 'title',
+          ':errors' => $errors,
+        ]));
+      }
+    }
+
     $paragraph->save();
 
     return [
@@ -66,32 +92,27 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     ];
   }
 
+  const MAP = [
+    '@type' => '@type',
+    'nonSort' => 'mods:nonSort[1]',
+    'subTitle' => 'mods:subTitle[1]',
+    'partNumber' => 'mods:partNumber[1]',
+    'partName' => 'mods:partName[1]',
+    'title' => 'mods:title[1]',
+  ];
+
   /**
    * Gets the parts of the title we need, as an array.
    *
    * @return array
    *   An array of parts we want from the node, keyed by their node name, with
-   *   a single string as the value of each, or NULL if no value was parsed. The
-   *   title type is keyed as '@type'.
+   *   a single string as the value of each, or false-y if no value was parsed.
+   *   The title type is keyed as '@type'.
    */
   protected function getTitleParts() {
     if (empty($this->titleParts)) {
-      $this->titleParts = [
-        '@type' => NULL,
-        'nonSort' => NULL,
-        'subTitle' => NULL,
-        'partNumber' => NULL,
-        'partName' => NULL,
-        'title' => NULL,
-      ];
-
-      foreach ($this->node->childNodes as $child) {
-        if (isset($this->titleParts[$child->localName])) {
-          $this->titleParts[$child->localName] = $child->textContent;
-          if ($child->localName = 'title') {
-            $this->titleParts['@type'] = $child->getAttribute('type');
-          }
-        }
+      foreach (static::MAP as $key => $query) {
+        $this->titleParts[$key] = $this->xpath->evaluate("string($query)", $this->node);
       }
     }
 

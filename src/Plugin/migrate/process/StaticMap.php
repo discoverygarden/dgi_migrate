@@ -2,7 +2,12 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
+use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateSkipProcessException;
+use Drupal\migrate\MigrateSkipRowException;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Plugin\migrate\process\StaticMap as Upstream;
+use Drupal\migrate\Row;
 
 /**
  * Perform a mapping.
@@ -26,9 +31,33 @@ class StaticMap extends Upstream {
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     // Remap our array of two-tuples onto the map structure.
-    $configuration['map'] = array_column($configuration['map'], 1, 0);
+    if (!($configuration['original_map_structure'] ?? FALSE)) {
+      $configuration['map'] = array_column($configuration['map'], 1, 0);
+    }
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    try {
+      return parent::transform($value, $migrate_executable, $row, $destination_property);
+    }
+    catch (MigrateSkipRowException $e) {
+      if ($this->configuration['skip_process_instead_of_row'] ?? FALSE) {
+        $message = strtr('Could not map ":value" when processing :property; aborting processing.', [
+          ':value' => $value,
+          ':property' => $destination_property,
+        ]);
+        $migrate_executable->saveMessage($message, MigrationInterface::MESSAGE_WARNING);
+        throw new MigrateSkipProcessException($message, 0, $e);
+      }
+      else {
+        throw $e;
+      }
+    }
   }
 
 }

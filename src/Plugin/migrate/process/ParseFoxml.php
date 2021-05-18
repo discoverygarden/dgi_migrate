@@ -7,6 +7,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
 use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
+use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -54,7 +55,9 @@ class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInte
     if (!is_string($value) || !file_exists($value)) {
       throw new MigrateException('The passed value is not a file path.');
     }
-    return $this->parser->parse($value);
+    $parsed = $this->parser->parse($value);
+    assert($parsed instanceof DigitalObject, "Parser parsed under $destination_property");
+    return $parsed;
   }
 
 }

@@ -18,15 +18,11 @@ destination:
   #   extensions for audio.
   #validate: true
 process:
-  field_media_of/target_id:
+  field_media_of:
     - plugin: migration_lookup
       migration: dgis_nodes
       source: fid
       no_stub: true
-    - plugin: skip_on_empty
-      method: row
-    - plugin: extract
-      index: [ 0 ]
     - plugin: skip_on_empty
       method: row
   _file_id:
@@ -75,6 +71,7 @@ process:
         'info:fedora/islandora:sp_pdf': 'file'
         'info:fedora/islandora:sp_videoCModel': 'video'
         'info:fedora/islandora:sp-audioCModel': 'audio'
+        'info:fedora/islandora:pageCModel': 'image'
     - plugin: extract
       index: [ 0 ]
   # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
@@ -100,10 +97,6 @@ process:
     - plugin: dgi_migrate.method
       method: getMimeType
       source: '@_file'
-  created:
-    - plugin: callback
-      callable: time
-  changed: '@created'
   status:
     - plugin: default_value
       default_value: 1

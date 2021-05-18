@@ -86,6 +86,12 @@ class ParagraphGenerate extends ProcessPluginBase {
           return NULL;
         }
       }
+      catch (\Exception $e) {
+        // Wrap exception with a bit of context.
+        throw new \Exception(strtr('Encountered exception when processing :property.', [
+          ':property' => $destination_property,
+        ]), 0, $e);
+      }
     }
     else {
       $extra_values = $this->mapValues($migrate_executable, $row);
@@ -103,9 +109,17 @@ class ParagraphGenerate extends ProcessPluginBase {
     $paragraph->setValidationRequired($validate);
 
     if ($validate) {
-      $errors = $paragraph->validate();
+      try {
+        $errors = $paragraph->validate();
+      }
+      catch (\Exception $e) {
+        throw new \Exception(strtr('Encountered exception when validating :property.', [
+          ':property' => $destination_property,
+        ]), 0, $e);
+      }
       if ($errors->count() > 0) {
-        throw new MigrateSkipRowException(strtr('Paragraph (:type) validation error(s): :errors', [
+        throw new MigrateSkipRowException(strtr('Paragraph property :property of type :type validation error(s): :errors', [
+          ':property' => $destination_property,
           ':type' => $this->configuration['type'],
           ':errors' => $errors,
         ]));

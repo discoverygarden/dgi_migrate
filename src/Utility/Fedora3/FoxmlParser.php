@@ -104,7 +104,9 @@ class FoxmlParser extends AbstractParser {
    */
   protected function destroyParser() {
     if ($this->parser) {
-      xml_parser_free($this->parser);
+      if (!xml_parser_free($this->parser)) {
+        throw new \Exception('Failed to free parser.');
+      }
       $this->parser = NULL;
     }
   }
@@ -120,7 +122,7 @@ class FoxmlParser extends AbstractParser {
    */
   public function parse($target) {
     $item = $this->cache->get($target);
-    if ($item) {
+    if ($item && $item->data) {
       // XXX: Renew the cache.
       $this->cache->set(
         $target,
@@ -149,6 +151,11 @@ class FoxmlParser extends AbstractParser {
           throw new FoxmlParserException($this->parser);
         }
       }
+
+      if (!$this->output instanceof DigitalObject) {
+        throw new \Exception("Parsing did not produce a DigitalObject class; truncated/bad file?");
+      }
+
       $this->cache->set(
         $target,
         $this->output,

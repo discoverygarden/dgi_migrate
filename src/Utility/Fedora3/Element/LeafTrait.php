@@ -21,7 +21,9 @@ trait LeafTrait {
    *   Encountered something invalid.
    */
   public function tagOpen($parser, $tag, array $attributes) {
-    throw new \Exception('Leaf node should not contain additional elements.');
+    throw new \Exception(strtr('Leaf node should not contain additional elements; got a "!name" tag.', [
+      '!name' => $tag,
+    ]));
   }
 
   /**
@@ -36,7 +38,9 @@ trait LeafTrait {
    *   Encountered something invalid.
    */
   public function tagClose($parser, $tag) {
-    throw new \Exception('Leaf node should not contain additional elements.');
+    throw new \Exception(strtr('Leaf node should not contain additional elements; got a "!name" tag.', [
+      '!name' => $tag,
+    ]));
   }
 
 }

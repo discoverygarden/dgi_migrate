@@ -150,6 +150,8 @@ abstract class AbstractParser implements ParserInterface {
   public function close() {
     // XXX: Attempt to avoid circular references, just in case.
     unset($this->foxmlParser);
+    $this->depths = [];
+    $this->stack = [];
   }
 
   /**
