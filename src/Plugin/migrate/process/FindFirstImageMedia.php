@@ -68,11 +68,21 @@ class FindFirstImageMedia extends ProcessPluginBase implements ContainerFactoryP
    *
    * @param string|int $value
    *   The node ID for which to obtain an image.
+   * @param array $visited
+   *   Used internally during traversal to avoid endless loops.
    *
    * @return string|int|null
-   *   The node ID, or NULL if we didn't find anything.
+   *   The media ID, or NULL if we didn't find anything.
    */
-  protected function search($value) {
+  protected function search($value, array &$visited = []) {
+    if (!in_array($value, $visited)) {
+      $visited[] = $value;
+    }
+    else {
+      // We've already searched this one... abort!
+      return;
+    }
+
     // Find all the nodes that are a member of the current.
     $nodes = $this->nodeStorage->getQuery()
       ->condition('field_member_of', $value)
@@ -96,7 +106,7 @@ class FindFirstImageMedia extends ProcessPluginBase implements ContainerFactoryP
 
     // Otherwise, recurse over ALL the children.
     foreach ($nodes as $candidate) {
-      $result = $this->search($candidate);
+      $result = $this->search($candidate, $visited);
       if ($result) {
         return $result;
       }
