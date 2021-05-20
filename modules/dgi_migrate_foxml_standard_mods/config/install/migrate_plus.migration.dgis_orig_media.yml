@@ -83,8 +83,6 @@ process:
   #    source: '@_file'
   field_media_use:
     - plugin: default_value
-      # XXX: Not a perfect match, but seems to be closest, without rolling our
-      # own.
       default_value: http://pcdm.org/use#OriginalFile
     - plugin: entity_lookup
       bundle_key: vid
