@@ -89,7 +89,7 @@ process:
         'info:fedora/islandora:newspaperPageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
         'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
         'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
-        'info:fedora/islandora:compoundCModel': 'http://purl.org/dc/dcmitype/Collection'
+        'info:fedora/islandora:compoundCModel': 'http://vocab.getty.edu/aat/300242735'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
