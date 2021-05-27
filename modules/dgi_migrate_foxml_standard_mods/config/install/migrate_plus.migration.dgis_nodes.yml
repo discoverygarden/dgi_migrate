@@ -1129,8 +1129,7 @@ process:
       property: nodeValue
   field_temporal_subject:
     - << : *base_mods_node
-      # TODO: Figure out what this should be...
-      query: 'mods:tableOfContents'
+      query: 'mods:subject/mods:temporal'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
