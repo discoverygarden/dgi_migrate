@@ -42,6 +42,7 @@ process:
         'info:fedora/islandora:bookCModel': 'TN'
         'info:fedora/islandora:newspaperIssueCModel': 'TN'
         'info:fedora/islandora:newspaperCModel': 'TN'
+        'info:fedora/islandora:compoundCModel': 'TN'
     - plugin: extract
       index: [0]
   _latest:
