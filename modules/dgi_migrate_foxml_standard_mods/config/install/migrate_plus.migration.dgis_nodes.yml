@@ -168,8 +168,11 @@ process:
     - plugin: callback
       callable: array_unique
   _constituent_count:
-    - plugin: callback
+    - plugin: skip_on_empty
       source: '@_constituents'
+      method: process
+    - plugin: single_value
+    - plugin: callback
       callable: count
     # XXX: Constrain to 0 or 1 constituent relationships... for now.
     - plugin: static_map
