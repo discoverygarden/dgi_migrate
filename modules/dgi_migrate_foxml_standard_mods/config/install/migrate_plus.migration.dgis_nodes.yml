@@ -89,6 +89,7 @@ process:
         'info:fedora/islandora:newspaperPageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
         'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
         'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
+        'info:fedora/islandora:compoundCModel': 'http://vocab.getty.edu/aat/300242735'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -101,6 +102,7 @@ process:
       ignore_case: true
     - plugin: skip_on_empty
       method: row
+      message: 'Failed to lookup the model taxonomy term.'
   field_display_hints:
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
@@ -142,7 +144,53 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: array_shift
-  field_weight:
+  _members:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: parents
+      args:
+        - [isMemberOf, isMemberOfCollection]
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: single_value
+    - plugin: callback
+      callable: array_unique
+  _constituents:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: parents
+      args:
+        - [isConstituentOf]
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: single_value
+    - plugin: callback
+      callable: array_unique
+  _constituent_count:
+    - plugin: skip_on_empty
+      source: '@_constituents'
+      method: process
+    - plugin: single_value
+    - plugin: callback
+      callable: count
+    # XXX: Constrain to 0 or 1 constituent relationships... for now.
+    - plugin: static_map
+      bypass: false
+      map:
+        0: 0
+        1: 1
+  field_member_of:
+    - plugin: flatten
+      source:
+        - '@_members'
+        - '@_constituents'
+    - plugin: multiple_values
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
+  _sequence_number:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_rels_ext_node'
       xpath: '@_rels_ext_xpath'
@@ -153,6 +201,21 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: single_value
+  _constituent_sequence:
+    - plugin: skip_on_empty
+      source: '@_constituents'
+      method: process
+    - plugin: dgi_migrate_foxml_standard_mods.constituent_sequence
+      node: '@_rels_ext_node'
+      xpath: '@_rels_ext_xpath'
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to grab the constituent sequence numbers.'
+  field_weight:
+    - plugin: flatten
+      source:
+        - '@_sequence_number'
+        - '@_constituent_sequence'
     - plugin: null_coalesce
     - plugin: skip_on_empty
       method: process
@@ -190,18 +253,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-  field_member_of:
-    - plugin: dgi_migrate.method
-      source: '@_node_foxml_parsed'
-      method: parents
-      args:
-        - [isMemberOf, isMemberOfCollection, isConstituentOf]
-    - plugin: multiple_values
-    - plugin: substr
-      start: 12
-    - plugin: migration_lookup
-      migration: dgis_stub_nodes
-      stub_id: dgis_stub_nodes
   _coordinates:
     - << : *base_mods_node
       query: 'mods:subject/mods:cartographic/mods:coordinates'

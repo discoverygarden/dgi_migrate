@@ -65,6 +65,7 @@ process:
         'info:fedora/islandora:bookCModel': 'image'
         'info:fedora/islandora:newspaperIssueCModel': 'image'
         'info:fedora/islandora:newspaperCModel': 'image'
+        'info:fedora/islandora:compoundCModel': 'image'
     - plugin: extract
       index: [ 0 ]
   # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
