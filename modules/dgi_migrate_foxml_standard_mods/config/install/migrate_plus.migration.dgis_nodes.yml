@@ -102,6 +102,7 @@ process:
       ignore_case: true
     - plugin: skip_on_empty
       method: row
+      message: 'Failed to lookup the model taxonomy term.'
   field_display_hints:
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
