@@ -41,7 +41,12 @@ class Method extends ProcessPluginBase {
       if (!is_array($this->configuration['args'])) {
         throw new MigrateException('The arguments for the method should be in an array.');
       }
-      return call_user_func_array([$value, $method], $this->configuration['args']);
+
+      $args = $this->configuration['args'];
+      foreach (($this->configuration['deref_args'] ?? []) as $offset) {
+        $args[$offset] = $row->get($args[$offset]);
+      }
+      return call_user_func_array([$value, $method], $args);
     }
     else {
       return call_user_func([$value, $method]);
