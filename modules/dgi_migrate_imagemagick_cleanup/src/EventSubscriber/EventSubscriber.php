@@ -59,6 +59,16 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
   protected $eventDispatcher;
 
   /**
+   * Boolean flag, enabling the emitting of debug messages.
+   *
+   * XXX: Not presently exposed for configuration anywhere... kinda expected to
+   * flip it by hand, if dealing with these behaviours.
+   *
+   * @var bool
+   */
+  protected $emitDebug = FALSE;
+
+  /**
    * Constructor.
    */
   public function __construct(
@@ -75,17 +85,29 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
   }
 
   /**
+   * Helper; emit debug messages if so-configured.
+   */
+  protected function debug($message, $context = []) {
+    if ($this->emitDebug) {
+      $formatter = function ($item) {
+        return print_r($item, TRUE);
+      };
+      $this->logger->debug($message, array_map($formatter, $context));
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
     return [
-      MigrateEvents::PRE_IMPORT => 'push',
+      MigrateEvents::PRE_ROW_SAVE => 'push',
       TempImageEvent::EVENT_NAME => 'newTemp',
       ImagemagickExecutionEvent::ENSURE_SOURCE_LOCAL_PATH => [
         'ensureSourceLocalPath',
         100,
       ],
-      MigrateEvents::POST_IMPORT => 'pop',
+      MigrateEvents::POST_ROW_SAVE => 'pop',
     ];
   }
 
@@ -94,6 +116,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    */
   public function push(MigratePreRowSaveEvent $event) {
     $this->stack[] = [];
+    $this->debug('Pushed empty array.');
   }
 
   /**
@@ -103,8 +126,9 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    */
   public function ensureSourceLocalPath(ImagemagickExecutionEvent $event) {
     $current = end($this->stack);
-    if (!$current) {
+    if ($current === FALSE) {
       // Do nothing; let the imagemagick module handle it.
+      $this->debug('Stack empty; passing on ::ensureSourceLocalPath().');
       return;
     }
 
@@ -118,11 +142,14 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    */
   public function newTemp(TempImageEvent $event) {
     $current = array_pop($this->stack);
-    if (!$current) {
+    if ($current === NULL) {
+      $this->debug('Stack empty... how did you get here!?');
       return;
     }
 
-    $current[] = $event->getPath();
+    $path = $event->getPath();
+    $this->debug('Registered {path}', ['path' => $path]);
+    $current[] = $path;
 
     $this->stack[] = $current;
   }
@@ -134,6 +161,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
     $to_drop = array_pop($this->stack);
 
     if (!$to_drop) {
+      $this->debug('Stack empty or had an empty entry; nothing else to do.');
       return;
     }
 
@@ -147,7 +175,9 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    *   An array of paths/URIs to delete.
    */
   protected function deleteChunk(array $chunk) {
+    $this->debug('Deleting chunk: {chunk}', ['chunk' => $chunk]);
     array_map([$this->fileSystem, 'delete'], $chunk);
+    $this->debug('Deleted chunk: {chunk}', ['chunk' => $chunk]);
   }
 
   /**
