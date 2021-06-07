@@ -52,18 +52,25 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
   protected $streamWrapperManager;
 
   /**
+   * Event dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructor.
    */
   public function __construct(
     LoggerInterface $logger,
     FileSystemInterface $file_system,
     StreamWrapperManagerInterface $stream_wrapper_manager,
-    EventDispatcherInterface $event_dispatch
+    EventDispatcherInterface $event_dispatcher
   ) {
     $this->logger = $logger;
     $this->fileSystem = $file_system;
     $this->streamWrapperManager = $stream_wrapper_manager;
-    $this->eventDispatch = $event_dispatch;
+    $this->eventDispatcher = $event_dispatcher;
     $this->stack = [];
   }
 
@@ -187,6 +194,9 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
           $temp_path .= '.' . pathinfo($source, PATHINFO_EXTENSION);
           $path = $this->fileSystem->copy($arguments->getSource(), $temp_path, FileSystemInterface::EXISTS_ERROR);
           $arguments->setSourceLocalPath($this->fileSystem->realpath($path));
+
+          // XXX: Divergence is here, emitting the event instead of registering
+          // a shutdown handler.
           $this->eventDispatcher->dispatch(TempImageEvent::EVENT_NAME, new TempImageEvent($arguments->getSourceLocalPath()));
         }
         catch (FileException $e) {
