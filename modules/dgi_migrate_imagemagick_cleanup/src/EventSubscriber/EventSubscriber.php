@@ -18,6 +18,9 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
+/**
+ * Cleaning event subscriber.
+ */
 class EventSubscriber implements EventSubscriberInterface, DestructableInterface {
 
   /**
@@ -46,7 +49,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    *
    * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
    */
-  protected $streamWrapperManager
+  protected $streamWrapperManager;
 
   /**
    * Constructor.
@@ -71,9 +74,12 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
     return [
       MigrateEvents::PRE_IMPORT => 'push',
       TempImageEvent::EVENT_NAME => 'newTemp',
-      ImagemagickExecutionEvent::ENSURE_SOURCE_LOCAL_PATH => ['ensureSourceLocalPath', 100],
+      ImagemagickExecutionEvent::ENSURE_SOURCE_LOCAL_PATH => [
+        'ensureSourceLocalPath',
+        100,
+      ],
       MigrateEvents::POST_IMPORT => 'pop',
-    ]
+    ];
   }
 
   /**
@@ -89,7 +95,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
    * @see \Drupal\imagemagick\EventSubscriber\ImagemagickEventSubscriber::ensureSourceLocalPath()
    */
   public function ensureSourceLocalPath(ImagemagickExecutionEvent $event) {
-    $current = end($this->stack);;
+    $current = end($this->stack);
     if (!$current) {
       // Do nothing; let the imagemagick module handle it.
       return;
