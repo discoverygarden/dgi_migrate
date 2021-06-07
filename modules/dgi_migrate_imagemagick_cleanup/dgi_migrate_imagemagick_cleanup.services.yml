@@ -1,0 +1,15 @@
+---
+services:
+  logger.channel.dgi_migrate_imagemagick_cleanup:
+    parent: logger.channel_base
+    arguments: ['dgi_migrate_imagemagick_cleanup']
+  dgi_migrate_imagemagick_cleanup.event_subscriber:
+    class: Drupal\dgi_migrate_imagemagick_cleanup\EventSubscriber\EventSubscriber
+    arguments:
+      - '@logger.channel.dgi_migrate_imagemagick_cleanup'
+      - '@file_system'
+      - '@stream_wrapper_manager'
+      - '@event_dispatch'
+    tags:
+      - { name: 'event_subscriber' }
+      - { name: 'needs_destruction' }
