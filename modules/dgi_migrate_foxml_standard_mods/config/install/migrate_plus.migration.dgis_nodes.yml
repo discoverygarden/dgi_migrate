@@ -359,7 +359,22 @@ process:
       type: faceted_subject
       process_values: true
       values:
-        field_authority_sources:
+        field_authority_sources/0/uri:
+          - << : *nested_mods_node
+            query: '@valueURI'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: skip_on_empty
+            method: process
+          - plugin: extract
+            index: [ 0 ]
+        field_authority_sources/0/source:
+          # XXX: This "source" value does not appear to be saved if there is not
+          # an associated "uri" value.
           - << : *nested_mods_node
             query: '@authority'
           - plugin: callback
@@ -367,6 +382,11 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: skip_on_empty
+            method: process
+          - plugin: extract
+            index: [ 0 ]
         field_genre_form_subdivision_:
           - << : *nested_mods_node
             query: 'mods:genre'
