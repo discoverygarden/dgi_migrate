@@ -1220,6 +1220,7 @@ process:
     - plugin: multiple_values
     - plugin: dgi_standard_title_paragraph
       xpath: '@_mods_xpath'
+      max_length: 255
       validate: *validate
   field_use_and_reproduction:
     - << : *base_mods_node

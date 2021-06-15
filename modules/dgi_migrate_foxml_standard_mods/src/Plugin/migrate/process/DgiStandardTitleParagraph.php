@@ -2,11 +2,14 @@
 
 namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
-use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipRowException;
+use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
+
+use Drupal\Component\Utility\Unicode;
 
 /**
  * Generate a Title paragraph.
@@ -43,6 +46,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->validate = $this->configuration['validate'] ?? $this->validate;
+    $this->maxLength = $this->configuration['max_length'] ?? FALSE;
   }
 
   /**
@@ -55,7 +59,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
 
     $paragraph = Paragraph::create([
       'type' => 'title',
-      'field_title' => static::getTitle($parts),
+      'field_title' => $this->getTitle($parts),
       'field_title_type' => $parts['@type'],
     ]);
 
@@ -124,11 +128,13 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
    *
    * @param string[] $title_parts
    *   The parts to assemble into the title.
+   * @param \Drupal\migrate\MigrateExecutableInterface $migrate_executable
+   *   The migration executable, so we can log messages if necessary.
    *
    * @return string
    *   The title string.
    */
-  protected static function getTitle(array $title_parts) {
+  protected function getTitle(array $title_parts, MigrateExecutableInterface $migrate_executable) {
     $title = '';
     if (!empty($title_parts['nonSort'])) {
       $title .= "{$title_parts['nonSort']} ";
@@ -144,7 +150,21 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
       $title .= ". {$title_parts['partName']}";
     }
 
-    return $title;
+    if ($this->maxLength < 1 || mb_strlen($title) <= $this->maxLength) {
+      return $title;
+    }
+    else {
+      $truncated = Unicode::truncate($title, $this->maxLength, TRUE, TRUE);
+      $migrate_executable->saveMessage(
+        strtr('Truncated ":title" to ":truncated" to fit within configured limit of :limit characters.', [
+          ':title' => $title,
+          ':truncated' => $truncated,
+          ':limit' => $this->maxLength,
+        ]),
+        MigrationInterface::MESSAGE_WARNING
+      );
+      return $truncated;
+    }
   }
 
 }
