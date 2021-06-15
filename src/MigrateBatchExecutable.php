@@ -48,7 +48,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
    * {@inheritdoc}
    */
   public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
-    $this->idMapStatuses = StatusFilter::mapStatuses($options['statuses'] ?? []);
+    $this->idMapStatuses = isset($options['statuses']) ?
+      StatusFilter::mapStatuses($options['statuses']) :
+      [];
 
     parent::__construct($migration, $message, $options);
 
