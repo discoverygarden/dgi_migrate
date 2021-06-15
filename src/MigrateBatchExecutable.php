@@ -38,9 +38,18 @@ class MigrateBatchExecutable extends MigrateExecutable {
   protected $queue;
 
   /**
+   * An array of statuses to filter.
+   *
+   * @var array
+   */
+  protected $idMapStatuses;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
+    $this->idMapStatuses = StatusFilter::mapStatuses($options['statuses'] ?? []);
+
     parent::__construct($migration, $message, $options);
 
     $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
@@ -433,6 +442,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
    */
   protected static function isCli() {
     return PHP_SAPI === 'cli';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getIdMap() {
+    return new StatusFilter(parent::getIdMap(), $this->idMapStatuses);
   }
 
 }

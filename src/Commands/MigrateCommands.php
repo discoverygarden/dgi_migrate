@@ -22,7 +22,9 @@ class MigrateCommands extends MigrateToolsCommands {
    * @param array $options
    *   Additional options for the command.
    *
-   * @command migrate:batch-import
+   * @command dgi-migrate:import
+   *
+   * @aliases migrate:batch-import
    *
    * @option all Process all migrations.
    * @option group A comma-separated list of migration groups to import
@@ -159,6 +161,120 @@ class MigrateCommands extends MigrateToolsCommands {
     }
 
     if ($error_message) {
+      if ($options['continue-on-failure']) {
+        $this->logger()->error($error_message);
+      }
+      else {
+        // Nudge Drush to use a non-zero exit code.
+        throw new \Exception($error_message);
+      }
+    }
+  }
+
+  /**
+   * Rollback one or more migrations.
+   *
+   * XXX: Largely copypasta from
+   * \Drupal\migrate_tools\Commands\MigrateToolsCommands::rollback() with the
+   * exception of: The "statuses" option, and use of our MigrateBatchExecutable
+   * class to handle it.
+   *
+   * @param string $migration_names
+   *   Name of migration(s) to rollback. Delimit multiple using commas.
+   * @param array $options
+   *   Additional options for the command.
+   *
+   * @command dgi-migrate:rollback
+   *
+   * @option all Process all migrations.
+   * @option group A comma-separated list of migration groups to rollback
+   * @option tag ID of the migration tag to rollback
+   * @option feedback Frequency of progress messages, in items processed
+   * @option idlist Comma-separated list of IDs to rollback
+   * @option idlist-delimiter The delimiter for records
+   * @option skip-progress-bar Skip displaying a progress bar.
+   * @option continue-on-failure When a rollback fails, continue processing
+   *   remaining migrations.
+   * @option statuses
+   *   An optional set of row statuses, comma-separated, to which to constrain
+   *   the rollback. Valid states are: "imported", "needs_update", "ignored",
+   *   and "failed".
+   *
+   * @default $options []
+   *
+   * @usage dgi-migrate:rollback --all
+   *   Perform all migrations
+   * @usage dgi-migrate:rollback --group=beer
+   *   Rollback all migrations in the beer group
+   * @usage dgi-migrate:rollback --tag=user
+   *   Rollback all migrations with the user tag
+   * @usage dgi-migrate:rollback --group=beer --tag=user
+   *   Rollback all migrations in the beer group and with the user tag
+   * @usage dgi-migrate:rollback beer_term,beer_node
+   *   Rollback imported terms and nodes
+   * @usage dgi-migrate:rollback beer_user --idlist=5
+   *   Rollback imported user record with source ID 5
+   * @validate-module-enabled migrate_tools
+   *
+   * @throws \Exception
+   *   If there are not enough parameters to the command.
+   */
+  public function rollback($migration_names = '', array $options = [
+    'all' => FALSE,
+    'group' => self::REQ,
+    'tag' => self::REQ,
+    'feedback' => self::REQ,
+    'idlist' => self::REQ,
+    'idlist-delimiter' => self::DEFAULT_ID_LIST_DELIMITER,
+    'skip-progress-bar' => FALSE,
+    'continue-on-failure' => FALSE,
+    'statuses' => self::REQ,
+  ]) {
+    $group_names = $options['group'];
+    $tag_names = $options['tag'];
+    $all = $options['all'];
+    if (!$all && !$group_names && !$migration_names && !$tag_names) {
+      throw new \Exception(dt('You must specify --all, --group, --tag, or one or more migration names separated by commas'));
+    }
+
+    $migrations = $this->migrationsList($migration_names, $options);
+    if (empty($migrations)) {
+      $this->logger()->error(dt('No migrations found.'));
+    }
+
+    // Take it one group at a time,
+    // rolling back the migrations within each group.
+    $has_failure = FALSE;
+    foreach ($migrations as $migration_list) {
+      // Roll back in reverse order.
+      $migration_list = array_reverse($migration_list);
+      foreach ($migration_list as $migration_id => $migration) {
+        if ($options['skip-progress-bar']) {
+          $migration->set('skipProgressBar', TRUE);
+        }
+        // Initialize the Synmfony Console progress bar.
+        // XXX: Copypasta, don't care about the global use.
+        // phpcs:ignore DrupalPractice.Objects.GlobalDrupal.GlobalDrupal
+        \Drupal::service('migrate_tools.migration_drush_command_progress')->initializeProgress(
+          $this->output(),
+          $migration
+        );
+        $executable = new MigrateBatchExecutable(
+          $migration,
+          $this->getMigrateMessage(),
+          $options
+        );
+        // drush_op() provides --simulate support.
+        $result = drush_op([$executable, 'rollback']);
+        if ($result == MigrationInterface::RESULT_FAILED) {
+          $has_failure = TRUE;
+        }
+      }
+    }
+
+    // If any rollbacks failed, throw an exception to generate exit status.
+    if ($has_failure) {
+      $error_message = dt('!name migration failed.', ['!name' => $migration_id]);
       if ($options['continue-on-failure']) {
         $this->logger()->error($error_message);
       }
