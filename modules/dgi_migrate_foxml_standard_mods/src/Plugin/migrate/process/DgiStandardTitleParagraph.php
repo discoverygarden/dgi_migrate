@@ -59,7 +59,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
 
     $paragraph = Paragraph::create([
       'type' => 'title',
-      'field_title' => $this->getTitle($parts),
+      'field_title' => $this->getTitle($parts, $migration_executable),
       'field_title_type' => $parts['@type'],
     ]);
 
