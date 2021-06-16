@@ -1081,12 +1081,20 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
           - plugin: entity_lookup
-            bundle: dcmi_relation_types
+            bundle: mods_relation_types
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
-            ignore_case: *case_insensitive
+          - plugin: skip_on_empty
+            method: row
+            message: "Encountered invalid relatedItem/@type attribute"
         field_title_plain:
           - << : *nested_mods_node
             query: 'mods:titleInfo/mods:title'
