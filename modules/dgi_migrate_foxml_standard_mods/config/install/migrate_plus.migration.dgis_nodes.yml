@@ -1117,6 +1117,20 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
+        field_related_item_extent:
+          - << : *nested_mods_node
+            query: 'mods:physicalDescription/mods:extent[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
   _resource_type:
     - << : *base_mods_node
       query: 'mods:typeOfResource'
