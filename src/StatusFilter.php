@@ -45,7 +45,13 @@ class StatusFilter extends \FilterIterator {
    * {@inheritdoc}
    */
   public function accept() {
-    return empty($this->statuses) || in_array($this->getInnerIterator()->current()['source_row_status'], $this->statuses);
+    if (empty($this->statuses)) {
+      return TRUE;
+    }
+
+    $id_map = $this->getInnerIterator()->getInnerIterator();
+    $entry = $id_map->getRowBySource($id_map->currentSource());
+    return in_array($entry['source_row_status'], $this->statuses);
   }
 
   /**
