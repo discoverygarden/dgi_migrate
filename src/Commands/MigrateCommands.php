@@ -214,7 +214,9 @@ class MigrateCommands extends MigrateToolsCommands {
    *   Rollback imported terms and nodes
    * @usage dgi-migrate:rollback beer_user --idlist=5
    *   Rollback imported user record with source ID 5
+   *
    * @validate-module-enabled migrate_tools
+   * @dgi-i8-helper-user-wrap
    *
    * @throws \Exception
    *   If there are not enough parameters to the command.
