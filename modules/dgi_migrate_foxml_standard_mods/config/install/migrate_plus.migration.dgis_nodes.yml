@@ -17,6 +17,11 @@ source:
       plugin: dgi_migrate.process.xml.context_query
       source: 'parent_value'
       xpath: 'parent_row/dest/_mods_xpath'
+    nested_date_query: &nested_date_query
+      plugin: dgi_migrate.process.xml.assemble_edtf_date_range
+      source: 'parent_value'
+      xpath: 'parent_row/dest/_mods_xpath'
+      indicate_open: false
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -703,53 +708,35 @@ process:
       process_values: true
       values:
         field_copyright_date:
-          - << : *nested_mods_node
-            query: 'mods:copyrightDate'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:copyrightDate'
+            range_start: 'mods:copyrightDate[@point="start"]'
+            range_end: 'mods:copyrightDate[@point="end"]'
         field_date_captured:
-          - << : *nested_mods_node
-            query: 'mods:dateCaptured'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateCaptured'
+            range_start: 'mods:dateCaptured[@point="start"]'
+            range_end: 'mods:dateCaptured[@point="end"]'
         field_date_created:
-          - << : *nested_mods_node
-            query: 'mods:dateCreated[@keydate="yes"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateCreated[@keydate="yes"]'
+            range_start: 'mods:dateCreated[@keydate="yes"][@point="start"]'
+            range_end: 'mods:dateCreated[@keydate="yes"][@point="end"]'
         field_date_issued:
-          - << : *nested_mods_node
-            query: 'mods:dateIssued[@keydate="yes"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateIssued[@keydate="yes"]'
+            range_start: 'mods:dateIssued[@keydate="yes"][@point="start"]'
+            range_end: 'mods:dateIssued[@keydate="yes"][@point="end"]'
         field_date_modified:
-          - << : *nested_mods_node
-            query: 'mods:dateModified'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateModified'
+            range_start: 'mods:dateModified[@point="start"]'
+            range_end: 'mods:dateModified[@point="end"]'
         field_date_valid:
-          - << : *nested_mods_node
-            query: 'mods:dateValid'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateValid'
+            range_start: 'mods:dateModified[@point="start"]'
+            range_end: 'mods:dateModified[@point="end"]'
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -783,13 +770,10 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_other_date:
-          - << : *nested_mods_node
-            query: 'mods:dateOther'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+          - << : *nested_date_query
+            single_date: 'mods:dateOther'
+            range_start: 'mods:dateOther[@point="start"]'
+            range_end: 'mods:dateOther[@point="end"]'
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
