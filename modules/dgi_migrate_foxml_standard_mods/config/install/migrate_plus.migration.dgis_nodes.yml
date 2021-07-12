@@ -266,8 +266,8 @@ process:
       replace: ''
     - plugin: explode
       delimiter: ','
-  'field_coordinates/lat': '@_coordinates/0'
-  'field_coordinates/lng': '@_coordinates/1'
+  field_coordinates/lat: '@_coordinates/0/0'
+  field_coordinates/lng: '@_coordinates/0/1'
   field_coordinates_text:
     - << : *base_mods_node
       query: 'mods:subject/mods:cartographic/mods:coordinates'
@@ -769,7 +769,54 @@ process:
             stub_id: dgis_stub_persons
           - plugin: skip_on_empty
             method: row
-    - plugin: dgi_migrate.process.log
+  field_organizations:
+    - << : *base_mods_node
+      query: 'mods:name[@type="corporate"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        rel_type:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:role[1]/mods:roleTerm[1])'
+            method: evaluate
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: flatten
+          - plugin: dgi_migrate.process.log
+          - plugin: migration_lookup
+            migration: dgis_stub_orgs
+            stub_id: dgis_stub_orgs
+          - plugin: skip_on_empty
+            method: row
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'
@@ -1317,6 +1364,7 @@ migration_dependencies:
     - islandora_tags
     - dgis_stub_persons
     - dgis_stub_nodes
+    - dgis_stub_orgs
 dependencies:
   enforced:
     module:
