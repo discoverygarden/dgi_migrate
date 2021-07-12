@@ -1,6 +1,6 @@
 ---
-id: dgis_stub_persons
-label: Create stub person terms.
+id: dgis_stub_terms_corporate_body
+label: Create stub corporate/organization terms.
 migration_group: foxml_to_dgis
 source:
   plugin: embedded_data
@@ -12,17 +12,13 @@ source:
       type: string
     untyped_name:
       type: string
-    given_name:
-      type: string
-    family_name:
-      type: string
     date_name_part:
       type: string
     display_form:
       type: string
   dsf_misc:
     type: &type entity:taxonomy_term
-    bundle: &bundle person
+    bundle: &bundle corporate_body
     case_insensitive: &case_insensitive true
     lookup_defaults: &lookup_defaults
       plugin: dgi_migrate.process.entity_query
@@ -40,8 +36,6 @@ process:
     - plugin: dgi_migrate.process.dc_name
       map:
         untyped: untyped_name
-        family: family_name
-        given: given_name
         date: date_name_part
         display_form: display_form
   field_authority_link/source:
@@ -55,29 +49,12 @@ process:
     - plugin: skip_on_empty
       source: auth_value_uri
       method: process
-  field_person_preferred_name/given:
-    - plugin: default_value
-      source: given_name
-      default_value: '(none provided)'
-  field_person_preferred_name/family:
-    - plugin: default_value
-      source: family_name
-      default_value: '(none provided)'
   _tid_auth:
     - << : *lookup_defaults
       conditions:
         - [vid, *bundle]
         - [field_authority_link.source, auth_source]
         - [field_authority_link.uri, auth_value_uri]
-  _tid_name_parts:
-    - << : *lookup_defaults
-      conditions:
-        - [vid, *bundle]
-        - [field_person_preferred_name.given, given_name]
-        - [field_person_preferred_name.family, family_name]
-      empty:
-        - field_authority_link.source
-        - field_authority_link.uri
   _tid_dc_name:
     - << : *lookup_defaults
       conditions:
@@ -86,13 +63,10 @@ process:
       empty:
         - field_authority_link.source
         - field_authority_link.uri
-        - field_person_preferred_name.given
-        - field_person_preferred_name.family
   tid:
     - plugin: get
       source:
         - '@_tid_auth'
-        - '@_tid_name_parts'
         - '@_tid_dc_name'
     - plugin: flatten
     - plugin: null_coalesce

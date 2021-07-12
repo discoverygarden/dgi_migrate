@@ -17,6 +17,35 @@ source:
       plugin: dgi_migrate.process.xml.context_query
       source: 'parent_value'
       xpath: 'parent_row/dest/_mods_xpath'
+    generic_term:
+      before: &generic_term_before
+        _auth_value_uri:
+          - << : *nested_mods_node
+            query: '@valeuURI'
+            method: evaluate
+        _auth_source:
+          - << : *nested_mods_node
+            query: '@authority'
+            method: evaluate
+        _value:
+          - << : *nested_mods_node
+            query: 'normalize-space(.)'
+            method: evaluate
+      after: &generic_term_after
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+      extract: &generic_term_extract
+        plugin: extract
+        index: [actual]
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -393,56 +422,56 @@ process:
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: genre
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values:
+              <<: *generic_term_before
+              _vid:
+                - plugin: default_value
+                  default_value: genre
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_geographic_geographic_subd:
           - << : *nested_mods_node
             query: 'mods:geographic'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: geo_location
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values:
+              <<: *generic_term_before
+              _vid:
+                - plugin: default_value
+                  default_value: geo_location
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_temporal_chronological_sub:
           - << : *nested_mods_node
             query: 'mods:temporal'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: temporal
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values:
+              <<: *generic_term_before
+              _vid:
+                - plugin: default_value
+                  default_value: temporal
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_topic_general_subdivision:
           - << : *nested_mods_node
             query: 'mods:topic'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: subject
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values:
+              <<: *generic_term_before
+              _vid:
+                - plugin: default_value
+                  default_value: subject
+              <<: *generic_term_after
+          - <<: *generic_term_extract
   field_form:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
@@ -457,28 +486,28 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: genre
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values:
+        <<: *generic_term_before
+        _vid:
+          - plugin: default_value
+            default_value: genre
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_geographic_subject:
     - << : *base_mods_node
       query: 'mods:subject/mods:geographic'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: geo_location
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values:
+        <<: *generic_term_before
+        _vid:
+          - plugin: default_value
+            default_value: geo_location
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_handle:
     - << : *base_mods_node
       query: 'mods:identifier[@type="hdl"]'
@@ -765,8 +794,8 @@ process:
           - plugin: flatten
           - plugin: dgi_migrate.process.log
           - plugin: migration_lookup
-            migration: dgis_stub_persons
-            stub_id: dgis_stub_persons
+            migration: dgis_stub_terms_person
+            stub_id: dgis_stub_terms_person
           - plugin: skip_on_empty
             method: row
   field_organizations:
@@ -813,8 +842,8 @@ process:
           - plugin: flatten
           - plugin: dgi_migrate.process.log
           - plugin: migration_lookup
-            migration: dgis_stub_orgs
-            stub_id: dgis_stub_orgs
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
           - plugin: skip_on_empty
             method: row
   field_origin_information:
@@ -1055,14 +1084,14 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: physical_form
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values:
+        <<: *generic_term_before
+        _vid:
+          - plugin: default_value
+            default_value: physical_form
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_physical_location:
     - << : *base_mods_node
       query: '(mods:location/mods:physicalLocation[normalize-space()])[1]'
@@ -1294,14 +1323,14 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: subject
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values:
+        <<: *generic_term_before
+        _vid:
+          - plugin: default_value
+            default_value: subject
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_sub_location:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
@@ -1332,14 +1361,14 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: temporal
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values:
+        <<: *generic_term_before
+        _vid:
+          - plugin: default_value
+            default_value: temporal
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_title:
     - << : *base_mods_node
       query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
@@ -1362,9 +1391,10 @@ migration_dependencies:
   required:
     - dgis_foxml_files
     - islandora_tags
-    - dgis_stub_persons
     - dgis_stub_nodes
-    - dgis_stub_orgs
+    - dgis_stub_terms_person
+    - dgis_stub_terms_corporate_body
+    - dgis_stub_terms_generic
 dependencies:
   enforced:
     module:
