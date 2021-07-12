@@ -1,0 +1,82 @@
+---
+id: dgis_stub_persons
+label: Create stub personterms.
+migration_group: foxml_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    auth_source:
+      type: string
+    auth_value_uri:
+      type: uri
+    untyped_name:
+      type: string
+    given_name:
+      type: string
+    family_name:
+      type: string
+    date_name_part:
+      type: string
+    display_form:
+      type: string
+  dsf_misc:
+    case_insensitive: &case_insensitive true
+destination:
+  plugin: entity:taxonomy_term
+  default_bundle: person
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+  overwrite_properties: []
+process:
+  name:
+    - plugin: dgi_migrate.process.dc_name
+      map:
+        untyped: untyped_name
+        family: family_name
+        given: given_name
+        date: date_name_part
+        display_form: display_form
+  field_person_preferred_name/given:
+    - plugin: default_value
+      source: given_name
+      default_value: '(none provided)'
+  field_person_preferred_name/family:
+    - plugin: default_value
+      source: family_name
+      default_value: '(none provided)'
+  _tid_auth:
+    - plugin: dgi_migrate.process.entity_query
+      entity_type: taxonomy_term
+      conditions:
+        vid: person
+        field_authority_link.source: auth_source
+        field_authority_link.uri: auth_value_uri
+  _tid_name_parts:
+    - plugin: dgi_migrate.process.entity_query
+      entity_type: taxonomy_term
+      conditions:
+        vid: person
+        field_person_preferred_name.given: given_name
+        field_person_preferred_name.family: family_name
+  _tid_dc_name:
+    - plugin: dgi_migrate.process.entity_query
+      entity_type: taxonomy_term
+      conditions:
+        vid: person
+        name: '@name'
+  tid:
+    - plugin: get
+      source:
+        - '@_tid_auth'
+        - '@_tid_name_parts'
+        - '@_tid_dc_name'
+    - plugin: flatten
+    - plugin: null_coalesce
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

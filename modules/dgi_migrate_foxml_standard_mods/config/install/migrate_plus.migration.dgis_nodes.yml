@@ -711,6 +711,93 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
+  field_linked_agent:
+    - << : *base_mods_node
+      query: 'mods:name[@type="person"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        rel_type:
+          - << : *nested_mods_node
+            query: 'mods:role/mods:roleTerm'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _authority:
+          - << : *nested_mods_node
+            query: '@authority'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _value_uri:
+          - << : *nested_mods_node
+            query: '@valueURI'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _given_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][0])'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _family_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][0])'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][0])'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][0])'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: concat
+            delimiter: ' '
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_given_name'
+              - '@_family_name'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: migration_lookup
+            migration: dgis_stub_persons
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'
