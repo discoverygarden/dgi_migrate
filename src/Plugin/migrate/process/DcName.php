@@ -5,7 +5,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\migrate\MigrateException;
 
 /**
  * Accesses a property from an object.
