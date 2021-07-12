@@ -30,6 +30,7 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
+  overwrite_properties: []
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
@@ -59,6 +60,9 @@ process:
       conditions:
         - [vid, *bundle]
         - [name, '@name']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
   tid:
     - plugin: get
       source:

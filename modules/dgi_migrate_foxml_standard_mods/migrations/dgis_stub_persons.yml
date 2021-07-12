@@ -34,6 +34,7 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
+  overwrite_properties: []
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
@@ -74,11 +75,19 @@ process:
         - [vid, *bundle]
         - [field_person_preferred_name.given, given_name]
         - [field_person_preferred_name.family, family_name]
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
   _tid_dc_name:
     - << : *lookup_defaults
       conditions:
         - [vid, *bundle]
         - [name, '@name']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+        - field_person_preferred_name.given
+        - field_person_preferred_name.family
   tid:
     - plugin: get
       source:
