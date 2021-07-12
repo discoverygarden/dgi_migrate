@@ -713,79 +713,45 @@ process:
     - plugin: null_coalesce
   field_linked_agent:
     - << : *base_mods_node
-      query: 'mods:name[@type="person"]'
+      query: 'mods:name[@type="personal"]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
       values:
         rel_type:
           - << : *nested_mods_node
-            query: 'mods:role/mods:roleTerm'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(mods:role[1]/mods:roleTerm[1])'
+            method: evaluate
         _authority:
           - << : *nested_mods_node
-            query: '@authority'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(@authority)'
+            method: evaluate
         _value_uri:
           - << : *nested_mods_node
-            query: '@valueURI'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
         _given_name:
           - << : *nested_mods_node
-            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][0])'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][1])'
+            method: evaluate
         _family_name:
           - << : *nested_mods_node
-            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][0])'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][1])'
+            method: evaluate
         _date_name:
           - << : *nested_mods_node
-            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][0])'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
         _display_form:
           - << : *nested_mods_node
-            query: 'normalize-space(mods:displayForm[normalize-space()][0])'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
         _untyped_names:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: concat
-            delimiter: ' '
+            method: evaluate
         target_id:
           - plugin: get
             source:
@@ -796,8 +762,14 @@ process:
               - '@_family_name'
               - '@_date_name'
               - '@_display_form'
+          - plugin: flatten
+          - plugin: dgi_migrate.process.log
           - plugin: migration_lookup
             migration: dgis_stub_persons
+            stub_id: dgis_stub_persons
+          - plugin: skip_on_empty
+            method: row
+    - plugin: dgi_migrate.process.log
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'
@@ -1343,6 +1315,8 @@ migration_dependencies:
   required:
     - dgis_foxml_files
     - islandora_tags
+    - dgis_stub_persons
+    - dgis_stub_nodes
 dependencies:
   enforced:
     module:

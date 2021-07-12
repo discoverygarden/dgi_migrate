@@ -32,16 +32,21 @@ class ContextQuery extends ProcessPluginBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->missingBehaviorInit();
+
+    assert(!empty($this->configuration['xpath']));
+    assert(!empty($this->configuration['query']));
+    $this->xpath = $this->configuration['xpath'];
+    $this->query = $this->configuration['query'];
+    assert(!isset($this->configuration['method']) || in_array($this->configuration['method'], ['query', 'evaluate']));
+    $this->method = $this->configuration['method'] ?? 'query';
   }
 
   /**
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    assert(!empty($this->configuration['xpath']));
-    assert(!empty($this->configuration['query']));
 
-    $xpath = $row->get($this->configuration['xpath']);
+    $xpath = $row->get($this->xpath);
     if (!($xpath instanceof \DOMXPath)) {
       throw $this->getMissingException(strtr('Requires an ":xpath" parameter that is an instance of :domxpath for :property.', [
         ':xpath' => 'xpath',
@@ -55,7 +60,7 @@ class ContextQuery extends ProcessPluginBase {
       ]));
     }
 
-    return $xpath->query($this->configuration['query'], $value);
+    return call_user_func([$xpath, $this->method], $this->query, $value);
   }
 
 }

@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\EntityFieldDefinitionTrait;
+use Drupal\migrate\ProcessPluginBase;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;

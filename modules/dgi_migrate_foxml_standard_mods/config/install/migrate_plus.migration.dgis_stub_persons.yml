@@ -1,6 +1,6 @@
 ---
 id: dgis_stub_persons
-label: Create stub personterms.
+label: Create stub person terms.
 migration_group: foxml_to_dgis
 source:
   plugin: embedded_data
@@ -9,7 +9,7 @@ source:
     auth_source:
       type: string
     auth_value_uri:
-      type: uri
+      type: string
     untyped_name:
       type: string
     given_name:
@@ -22,6 +22,9 @@ source:
       type: string
   dsf_misc:
     case_insensitive: &case_insensitive true
+    lookup_defaults: &lookup_defaults
+      plugin: dgi_migrate.process.entity_query
+      entity_type: entity:taxonomy_term
 destination:
   plugin: entity:taxonomy_term
   default_bundle: person
@@ -29,7 +32,6 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
-  overwrite_properties: []
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
@@ -39,6 +41,17 @@ process:
         given: given_name
         date: date_name_part
         display_form: display_form
+  field_authority_link/source:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+    - plugin: default_value
+      source: auth_source
+      default_value: other
+  field_authority_link/uri:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
   field_person_preferred_name/given:
     - plugin: default_value
       source: given_name
@@ -48,25 +61,22 @@ process:
       source: family_name
       default_value: '(none provided)'
   _tid_auth:
-    - plugin: dgi_migrate.process.entity_query
-      entity_type: taxonomy_term
+    - << : *lookup_defaults
       conditions:
-        vid: person
-        field_authority_link.source: auth_source
-        field_authority_link.uri: auth_value_uri
+        - [vid, person]
+        - [field_authority_link.source, auth_source]
+        - [field_authority_link.uri, auth_value_uri]
   _tid_name_parts:
-    - plugin: dgi_migrate.process.entity_query
-      entity_type: taxonomy_term
+    - << : *lookup_defaults
       conditions:
-        vid: person
-        field_person_preferred_name.given: given_name
-        field_person_preferred_name.family: family_name
+        - [vid, person]
+        - [field_person_preferred_name.given, given_name]
+        - [field_person_preferred_name.family, family_name]
   _tid_dc_name:
-    - plugin: dgi_migrate.process.entity_query
-      entity_type: taxonomy_term
+    - << : *lookup_defaults
       conditions:
-        vid: person
-        name: '@name'
+        - [vid, person]
+        - [name, '@name']
   tid:
     - plugin: get
       source:
@@ -75,6 +85,8 @@ process:
         - '@_tid_dc_name'
     - plugin: flatten
     - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
 dependencies:
   enforced:
     module:

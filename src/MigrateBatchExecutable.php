@@ -275,7 +275,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
 
     try {
-      $context['finished'] = $sanbox['current'] / $sandbox['total'];
+      $context['finished'] = $sandbox['current'] / $sandbox['total'];
       while ($context['finished'] < 1) {
         $item = $this->queue->claimItem();
         if (!$item) {
