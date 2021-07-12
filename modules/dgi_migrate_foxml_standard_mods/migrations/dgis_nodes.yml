@@ -18,20 +18,19 @@ source:
       source: 'parent_value'
       xpath: 'parent_row/dest/_mods_xpath'
     generic_term:
-      before: &generic_term_before
+      after: &generic_term_after
         _auth_value_uri:
           - << : *nested_mods_node
-            query: '@valeuURI'
+            query: 'string(@valueURI)'
             method: evaluate
         _auth_source:
           - << : *nested_mods_node
-            query: '@authority'
+            query: 'string(@authority)'
             method: evaluate
         _value:
           - << : *nested_mods_node
             query: 'normalize-space(.)'
             method: evaluate
-      after: &generic_term_after
         actual:
           - plugin: get
             source:
@@ -44,6 +43,7 @@ source:
             migration: dgis_stub_terms_generic
             stub_id: dgis_stub_terms_generic
       extract: &generic_term_extract
+        #plugin: dgi_migrate.process.log
         plugin: extract
         index: [actual]
 destination:
@@ -388,43 +388,31 @@ process:
       type: faceted_subject
       process_values: true
       values:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
         field_authority_sources/0/uri:
           - << : *nested_mods_node
-            query: '@valueURI'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: skip_on_empty
-            method: process
-          - plugin: extract
-            index: [ 0 ]
+            query: 'string(@valueURI)'
+            method: evaluate
         field_authority_sources/0/source:
           # XXX: This "source" value does not appear to be saved if there is not
           # an associated "uri" value.
           - << : *nested_mods_node
-            query: '@authority'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: skip_on_empty
-            method: process
-          - plugin: extract
-            index: [ 0 ]
+            query: 'string(@authority)'
+            method: evaluate
         field_genre_form_subdivision_:
           - << : *nested_mods_node
-            query: 'mods:genre'
+            query: 'mods:genre[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
           - plugin: dgi_migrate.sub_process
-            process_values:
-              <<: *generic_term_before
+            process_values: true
+            values:
               _vid:
                 - plugin: default_value
                   default_value: genre
@@ -432,13 +420,15 @@ process:
           - <<: *generic_term_extract
         field_geographic_geographic_subd:
           - << : *nested_mods_node
-            query: 'mods:geographic'
+            query: 'mods:geographic[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
           - plugin: dgi_migrate.sub_process
-            process_values:
-              <<: *generic_term_before
+            process_values: true
+            values:
               _vid:
                 - plugin: default_value
                   default_value: geo_location
@@ -446,13 +436,15 @@ process:
           - <<: *generic_term_extract
         field_temporal_chronological_sub:
           - << : *nested_mods_node
-            query: 'mods:temporal'
+            query: 'mods:temporal[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
           - plugin: dgi_migrate.sub_process
-            process_values:
-              <<: *generic_term_before
+            process_values: true
+            values:
               _vid:
                 - plugin: default_value
                   default_value: temporal
@@ -460,13 +452,15 @@ process:
           - <<: *generic_term_extract
         field_topic_general_subdivision:
           - << : *nested_mods_node
-            query: 'mods:topic'
+            query: 'mods:topic[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
           - plugin: dgi_migrate.sub_process
-            process_values:
-              <<: *generic_term_before
+            process_values: true
+            values:
               _vid:
                 - plugin: default_value
                   default_value: subject
@@ -482,13 +476,15 @@ process:
       property: nodeValue
   field_genre:
     - << : *base_mods_node
-      query: 'mods:genre'
+      query: 'mods:genre[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
-      process_values:
-        <<: *generic_term_before
+      process_values: true
+      values:
         _vid:
           - plugin: default_value
             default_value: genre
@@ -496,13 +492,15 @@ process:
     - <<: *generic_term_extract
   field_geographic_subject:
     - << : *base_mods_node
-      query: 'mods:subject/mods:geographic'
+      query: 'mods:subject/mods:geographic[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
-      process_values:
-        <<: *generic_term_before
+      process_values: true
+      values:
         _vid:
           - plugin: default_value
             default_value: geo_location
@@ -792,7 +790,6 @@ process:
               - '@_date_name'
               - '@_display_form'
           - plugin: flatten
-          - plugin: dgi_migrate.process.log
           - plugin: migration_lookup
             migration: dgis_stub_terms_person
             stub_id: dgis_stub_terms_person
@@ -840,7 +837,6 @@ process:
               - '@_date_name'
               - '@_display_form'
           - plugin: flatten
-          - plugin: dgi_migrate.process.log
           - plugin: migration_lookup
             migration: dgis_stub_terms_corporate_body
             stub_id: dgis_stub_terms_corporate_body
@@ -1080,13 +1076,15 @@ process:
             property: nodeValue
   field_physical_form:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:form'
+      query: 'mods:physicalDescription/mods:form[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
-      process_values:
-        <<: *generic_term_before
+      process_values: true
+      values:
         _vid:
           - plugin: default_value
             default_value: physical_form
@@ -1320,13 +1318,15 @@ process:
       property: nodeValue
   field_subject:
     - << : *base_mods_node
-      query: 'mods:subject/mods:topic'
+      query: 'mods:subject/mods:topic[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
-      process_values:
-        <<: *generic_term_before
+      process_values: true
+      values:
         _vid:
           - plugin: default_value
             default_value: subject
@@ -1358,13 +1358,15 @@ process:
       property: nodeValue
   field_temporal_subject:
     - << : *base_mods_node
-      query: 'mods:subject/mods:temporal'
+      query: 'mods:subject/mods:temporal[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
-      process_values:
-        <<: *generic_term_before
+      process_values: true
+      values:
         _vid:
           - plugin: default_value
             default_value: temporal
@@ -1388,6 +1390,22 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+  field_language:
+    - << : *base_mods_node
+      query: 'mods:language/mods:languageTerm[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: language
+        <<: *generic_term_after
+    - <<: *generic_term_extract
 migration_dependencies:
   required:
     - dgis_foxml_files

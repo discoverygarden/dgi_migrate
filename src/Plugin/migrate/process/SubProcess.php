@@ -119,7 +119,7 @@ class SubProcess extends ProcessPluginBase {
       }
       catch (MigrateSkipRowException $e) {
         if ($this->propagateSkip) {
-          throw new MigrateSkipRowException(strtr("Propagating skip from processing :property: \n:upstream", [
+          throw new MigrateSkipRowException(strtr("Propagating skip from processing \":property\": \n:upstream", [
             ':property' => $destination_property,
             ':upstream' => $e,
           ]));
@@ -130,7 +130,7 @@ class SubProcess extends ProcessPluginBase {
       }
       catch (\Exception $e) {
         // Wrap exception with a bit of context.
-        throw new \Exception(strtr('Encountered exception when processing :property.', [
+        throw new \Exception(strtr('Encountered exception when processing ":property".', [
           ':property' => $destination_property,
         ]), 0, $e);
       }
