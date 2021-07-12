@@ -1295,20 +1295,21 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  field_rights_statement:
-    - << : *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"]'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: rights_statements
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+  # XXX: Was intended as outbound mapping, not inbound. Let's just comment for now.
+  #field_rights_statement:
+  #  - << : *base_mods_node
+  #    query: 'mods:accessCondition[@type="use and reproduction"]'
+  #  - plugin: callback
+  #    callable: iterator_to_array
+  #  - plugin: multiple_values
+  #  - plugin: dgi_migrate.subproperty
+  #    property: nodeValue
+  #  - plugin: entity_generate
+  #    bundle: rights_statements
+  #    bundle_key: vid
+  #    entity_type: taxonomy_term
+  #    value_key: name
+  #    ignore_case: *case_insensitive
   field_shelf_locator:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
