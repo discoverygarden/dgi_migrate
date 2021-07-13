@@ -89,14 +89,28 @@ process:
       empty:
         - field_authority_link.source
         - field_authority_link.uri
+        # XXX: Strictly, these would be invalid without the given and family
+        # names being populated, due to the field definition.
         - field_person_preferred_name.given
         - field_person_preferred_name.family
+  _tid_dc_name_with_others:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [name, '@name']
+        - [field_person_preferred_name.given, '@field_person_preferred_name/given']
+        - [field_person_preferred_name.family, '@field_person_preferred_name/family']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
   tid:
     - plugin: get
       source:
         - '@_tid_auth'
         - '@_tid_name_parts'
         - '@_tid_dc_name'
+        - '@_tid_dc_name_with_others'
     - plugin: flatten
     - plugin: null_coalesce
     - plugin: skip_on_empty
