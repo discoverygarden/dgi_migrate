@@ -51,14 +51,16 @@ process:
       method: process
   _tid_auth:
     - << : *lookup_defaults
-      conditions:
+      static_conditions:
         - [vid, *bundle]
+      conditions:
         - [field_authority_link.source, auth_source]
         - [field_authority_link.uri, auth_value_uri]
   _tid_dc_name:
     - << : *lookup_defaults
-      conditions:
+      static_conditions:
         - [vid, *bundle]
+      conditions:
         - [name, '@name']
       empty:
         - field_authority_link.source

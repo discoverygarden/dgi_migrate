@@ -20,6 +20,10 @@ class EntityQuery extends AbstractEntityAccessor {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $query = $this->storage->getQuery();
 
+    foreach (($this->configuration['static_conditions'] ?? []) as $info) {
+      list($field, $descriptor) = $info;
+      $query->condition($field, $descriptor);
+    }
     foreach (($this->configuration['conditions'] ?? []) as $info) {
       list($field, $descriptor) = $info;
       $query->condition($field, $row->get($descriptor));

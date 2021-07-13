@@ -65,14 +65,16 @@ process:
       default_value: '(none provided)'
   _tid_auth:
     - << : *lookup_defaults
-      conditions:
+      static_conditions:
         - [vid, *bundle]
+      conditions:
         - [field_authority_link.source, auth_source]
         - [field_authority_link.uri, auth_value_uri]
   _tid_name_parts:
     - << : *lookup_defaults
-      conditions:
+      static_conditions:
         - [vid, *bundle]
+      conditions:
         - [field_person_preferred_name.given, given_name]
         - [field_person_preferred_name.family, family_name]
       empty:
@@ -80,8 +82,9 @@ process:
         - field_authority_link.uri
   _tid_dc_name:
     - << : *lookup_defaults
-      conditions:
+      static_conditions:
         - [vid, *bundle]
+      conditions:
         - [name, '@name']
       empty:
         - field_authority_link.source
