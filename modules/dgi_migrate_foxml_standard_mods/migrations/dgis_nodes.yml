@@ -45,7 +45,7 @@ source:
       extract: &generic_term_extract
         #plugin: dgi_migrate.process.log
         plugin: extract
-        index: [actual]
+        index: [0, actual]
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -743,6 +743,8 @@ process:
       query: 'mods:name[@type="personal"]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
@@ -800,6 +802,8 @@ process:
       query: 'mods:name[@type="corporate"]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
