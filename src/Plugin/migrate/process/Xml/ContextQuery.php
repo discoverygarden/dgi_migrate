@@ -37,7 +37,10 @@ class ContextQuery extends ProcessPluginBase {
     assert(!empty($this->configuration['query']));
     $this->xpath = $this->configuration['xpath'];
     $this->query = $this->configuration['query'];
-    assert(!isset($this->configuration['method']) || in_array($this->configuration['method'], ['query', 'evaluate']));
+    assert(!isset($this->configuration['method']) || in_array($this->configuration['method'], [
+      'query',
+      'evaluate',
+    ]));
     $this->method = $this->configuration['method'] ?? 'query';
   }
 
