@@ -97,7 +97,7 @@ class ParagraphGenerate extends SubProcess {
       [
         'type' => $this->paragraphType,
       ] +
-      parent::transform($value, $migrate_executable, $row, $destination)
+      parent::transform($value, $migrate_executable, $row, $destination_property)
     );
 
     $paragraph->setValidationRequired($this->validate);
