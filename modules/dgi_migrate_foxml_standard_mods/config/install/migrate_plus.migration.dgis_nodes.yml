@@ -17,11 +17,6 @@ source:
       plugin: dgi_migrate.process.xml.context_query
       source: 'parent_value'
       xpath: 'parent_row/dest/_mods_xpath'
-    nested_date_query: &nested_date_query
-      plugin: dgi_migrate.process.xml.assemble_edtf_date_range
-      source: 'parent_value'
-      xpath: 'parent_row/dest/_mods_xpath'
-      indicate_open: false
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -708,8 +703,17 @@ process:
       process_values: true
       values:
         field_copyright_date:
-          - << : *nested_date_query
-            single_date: 'mods:copyrightDate'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:copyrightDate'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
             range_start: 'mods:copyrightDate[@point="start"]'
             range_end: 'mods:copyrightDate[@point="end"]'
         field_date_captured:
