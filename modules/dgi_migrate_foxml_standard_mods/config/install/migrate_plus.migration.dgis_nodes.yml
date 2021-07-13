@@ -714,33 +714,204 @@ process:
                 property: nodeValue
               - plugin: single_value
               - plugin: null_coalesce
-            range_start: 'mods:copyrightDate[@point="start"]'
-            range_end: 'mods:copyrightDate[@point="end"]'
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:copyrightDate[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:copyrightDate[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_date_captured:
-          - << : *nested_date_query
-            single_date: 'mods:dateCaptured'
-            range_start: 'mods:dateCaptured[@point="start"]'
-            range_end: 'mods:dateCaptured[@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateCaptured'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateCaptured[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateCaptured[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_date_created:
-          - << : *nested_date_query
-            single_date: 'mods:dateCreated[@keydate="yes"]'
-            range_start: 'mods:dateCreated[@keydate="yes"][@point="start"]'
-            range_end: 'mods:dateCreated[@keydate="yes"][@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateCreated'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateCreated[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateCreated[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_date_issued:
-          - << : *nested_date_query
-            single_date: 'mods:dateIssued[@keydate="yes"]'
-            range_start: 'mods:dateIssued[@keydate="yes"][@point="start"]'
-            range_end: 'mods:dateIssued[@keydate="yes"][@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateIssued'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateIssued[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateIssued[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_date_modified:
-          - << : *nested_date_query
-            single_date: 'mods:dateModified'
-            range_start: 'mods:dateModified[@point="start"]'
-            range_end: 'mods:dateModified[@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateModified'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateModified[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateModified[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_date_valid:
-          - << : *nested_date_query
-            single_date: 'mods:dateValid'
-            range_start: 'mods:dateModified[@point="start"]'
-            range_end: 'mods:dateModified[@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateValid'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateValid[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateValid[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -774,10 +945,40 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
         field_other_date:
-          - << : *nested_date_query
-            single_date: 'mods:dateOther'
-            range_start: 'mods:dateOther[@point="start"]'
-            range_end: 'mods:dateOther[@point="end"]'
+          - plugin: dgi_migrate.process.assemble_date
+            single_date:
+              - << : *nested_mods_node
+                query: 'mods:dateOther'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_start:
+              - << : *nested_mods_node
+                query: 'mods:dateOther[@point="start"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+            range_end:
+              - << : *nested_mods_node
+                query: 'mods:dateOther[@point="end"]'
+              - plugin: callback
+                callable: iterator_to_array
+              - plugin: multiple_values
+              - plugin: dgi_migrate.subproperty
+                property: nodeValue
+              - plugin: single_value
+              - plugin: null_coalesce
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
