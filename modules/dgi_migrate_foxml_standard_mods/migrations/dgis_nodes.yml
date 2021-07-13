@@ -37,13 +37,14 @@ source:
               - '@_auth_source'
               - '@_auth_value_uri'
               - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
               - '@_vid'
           - plugin: flatten
           - plugin: migration_lookup
             migration: dgis_stub_terms_generic
             stub_id: dgis_stub_terms_generic
       extract: &generic_term_extract
-        #plugin: dgi_migrate.process.log
         plugin: extract
         index: [0, actual]
 destination:
@@ -282,9 +283,9 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-  _coordinates:
+  field_coordinates:
     - << : *base_mods_node
-      query: 'mods:subject/mods:cartographic/mods:coordinates'
+      query: 'mods:subject/mods:cartographics/mods:coordinates'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -295,16 +296,32 @@ process:
       replace: ''
     - plugin: explode
       delimiter: ','
-  field_coordinates/lat: '@_coordinates/0/0'
-  field_coordinates/lng: '@_coordinates/0/1'
-  field_coordinates_text:
-    - << : *base_mods_node
-      query: 'mods:subject/mods:cartographic/mods:coordinates'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
+    - plugin: single_value
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _count:
+          - plugin: callback
+            callable: count
+            source: parent_value
+        lat:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count/0'
+            value: 2
+            method: process
+          - plugin: extract
+            source: parent_value
+            index: [ 0, 0 ]
+        lng:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count/0'
+            value: 2
+            method: process
+          - plugin: extract
+            source: parent_value
+            index: [ 0, 1 ]
   field_edtf_date_created:
     - << : *base_mods_node
       query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
