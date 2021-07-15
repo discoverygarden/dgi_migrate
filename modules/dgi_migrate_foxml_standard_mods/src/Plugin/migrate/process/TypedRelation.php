@@ -39,10 +39,39 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
    */
   protected $mapping;
 
+  /**
+   * The key on the row containing a \DOMXPath instance.
+   *
+   * @var string
+   */
   protected $xpathKey;
+
+  /**
+   * The default role to assign, if none is mapped.
+   *
+   * @var string
+   */
   protected $defaultRole;
+
+  /**
+   * The key from the parent dealio to use as the target ID in the relation.
+   *
+   * @var string
+   */
   protected $entityKey;
+
+  /**
+   * Prefix of role codes in the field.
+   *
+   * @var string
+   */
   protected $prefix;
+
+  /**
+   * Regex pattern consuming the suffix of the role.
+   *
+   * @var string
+   */
   protected $textSuffixPattern;
 
   /**
@@ -99,12 +128,12 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
    */
   public function transform($node, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!($node instanceof \DOMElement)) {
-      // TODO: Go boom.
+      throw new MigrateException('The passed value is not a DOMElement instance.');
     }
 
     $xpath = $row->get($this->xpathKey);
     if (!($xpath instanceof \DOMXPath)) {
-      // TODO: Go boom.
+      throw new MigrateException('The "xpath" key does not point at a DOMXPath instance.');
     }
 
     $typed_rels = [];
@@ -112,9 +141,8 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
     // Lookup the entity..
     $entity = parent::transform($node, $migrate_executable, $row, $destination_property)[$this->entityKey];
 
-    // TODO: Map/reduce the roles
+    // Map/reduce the roles
     $roles = $this->mapRoles($node, $xpath);
-
     $roles = array_unique($roles);
 
     if ($roles) {
@@ -135,6 +163,18 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
     return $typed_rels;
   }
 
+  /**
+   * Actually map roleTerms to roles.
+   *
+   * @param \DOMElement $node
+   *   A node of a MODS "name" element, from which to scrape roles.
+   * @param \DOMXPath $xpath
+   *   The xpath instance to facilitate accessing the child role/roleTerm
+   *   elements.
+   *
+   * @return array
+   *   An array of roles from $this->mapping present on the given name.
+   */
   public function mapRoles(\DOMElement $node, \DOMXPath $xpath) {
     $roles = [];
 
@@ -166,7 +206,7 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
         $sep = '/';
         $quoted = preg_quote($content, $sep);
 
-        $matches = preg_grep("{$sep}{$quoted}{$this->textSuffixPattern}{$sep}i", $this->mapping);
+        $matches = preg_grep("{$sep}^{$quoted}{$this->textSuffixPattern}\${$sep}i", $this->mapping);
         if ($matches) {
           $roles = array_merge($roles, array_keys($matches));
           continue 2;

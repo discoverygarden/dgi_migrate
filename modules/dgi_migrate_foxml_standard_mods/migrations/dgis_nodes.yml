@@ -735,13 +735,12 @@ process:
     - plugin: skip_on_empty
       method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.sub_process
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_linked_agent
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
       process_values: true
       values:
-        rel_type:
-          - << : *nested_mods_node
-            query: 'normalize-space(mods:role[1]/mods:roleTerm[1])'
-            method: evaluate
         _authority:
           - << : *nested_mods_node
             query: 'normalize-space(@authority)'
@@ -786,6 +785,7 @@ process:
             stub_id: dgis_stub_terms_person
           - plugin: skip_on_empty
             method: row
+    - plugin: dgi_migrate.unpack_array
   field_organizations:
     - << : *base_mods_node
       query: 'mods:name[@type="corporate"]'
@@ -794,13 +794,12 @@ process:
     - plugin: skip_on_empty
       method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.sub_process
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_organizations
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
       process_values: true
       values:
-        rel_type:
-          - << : *nested_mods_node
-            query: 'normalize-space(mods:role[1]/mods:roleTerm[1])'
-            method: evaluate
         _authority:
           - << : *nested_mods_node
             query: 'normalize-space(@authority)'
@@ -835,6 +834,7 @@ process:
             stub_id: dgis_stub_terms_corporate_body
           - plugin: skip_on_empty
             method: row
+    - plugin: dgi_migrate.unpack_array
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'
