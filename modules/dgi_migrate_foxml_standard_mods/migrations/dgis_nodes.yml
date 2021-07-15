@@ -703,34 +703,6 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-          - plugin: dgi_migrate.process.static_map
-            skip_process_instead_of_row: true
-            original_map_structure: true
-            bypass: false
-            map:
-              acquisition: acquisition
-              action: action
-              additional physical form: additional physical form
-              bibliography: bibliography
-              biographical/historical: biographical/historical
-              creation/production credits: creation/production credits
-              date/sequential designation: date/sequential designation
-              exhibitions: exhibitions
-              funding: funding
-              language: language
-              numbering: numbering
-              original location: original location
-              ownership: ownership
-              performers: performers
-              preferred citation: preferred citation
-              provenance: provenance
-              publications: publications
-              reproduction: reproduction
-              statement of responsibility: statement of responsibility
-              system details: system details
-              thesis: thesis
-              venue: venue
-              version identification: version identification
         field_note:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
