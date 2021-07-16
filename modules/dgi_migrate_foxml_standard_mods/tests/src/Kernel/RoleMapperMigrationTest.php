@@ -5,17 +5,8 @@ namespace Drupal\Tests\dgi_migrate_foxml_standard_mods\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use Symfony\Component\Yaml\Yaml;
 
-use Drupal\dgi_migrate\Plugin\migrate\process\Method;
-use Drupal\dgi_migrate\Plugin\migrate\process\Xml\ContextQuery;
-use Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process\TypedRelation;
 use Drupal\migrate\MigrateExecutable;
-use Drupal\migrate\Plugin\migrate\process\Callback;
-use Drupal\migrate\Plugin\migrate\process\Get;
-use Drupal\migrate\Plugin\MigrationInterface;
-use Drupal\migrate\Plugin\MigrateIdMapInterface;
-use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
-use Drupal\migrate_plus\Plugin\migrate\process\MultipleValues;
 
 /**
  * Test out the role mapper.
@@ -24,6 +15,9 @@ use Drupal\migrate_plus\Plugin\migrate\process\MultipleValues;
  */
 class RoleMapperMigrationTest extends KernelTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'migrate',
     'dgi_migrate',
@@ -31,9 +25,18 @@ class RoleMapperMigrationTest extends KernelTestBase {
     'migrate_plus',
   ];
 
-  protected $xpath;
+  /**
+   * Stub row.
+   *
+   * @var \Drupal\migrate\Row
+   */
   protected $row;
-  protected $plugin;
+
+  /**
+   * Stub migrate executable.
+   *
+   * @var \Drupal\migrate\MigrateExecutableInterfaace
+   */
   protected $migrateExecutable;
 
   /**

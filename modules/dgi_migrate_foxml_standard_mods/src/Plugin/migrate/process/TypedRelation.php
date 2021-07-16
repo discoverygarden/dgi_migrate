@@ -3,12 +3,10 @@
 namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
 use Drupal\dgi_migrate\Plugin\migrate\process\SubProcess;
-use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
 
-use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -176,7 +174,7 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
     // Lookup the entity..
     $entity = parent::transform($node, $migrate_executable, $row, $destination_property)[$this->entityKey];
 
-    // Map/reduce the roles
+    // Map/reduce the roles.
     $roles = $this->mapRoles($node, $xpath);
     $roles = array_unique($roles);
 
