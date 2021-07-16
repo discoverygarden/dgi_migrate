@@ -730,11 +730,6 @@ process:
   field_linked_agent:
     - << : *base_mods_node
       query: 'mods:name[@type="personal"]'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: skip_on_empty
-      method: process
-    - plugin: multiple_values
     - plugin: dgi_migrate_foxml_standard_mods.typed_relation
       field_name: node.islandora_object.field_linked_agent
       xpath: '@_mods_xpath'
@@ -785,15 +780,9 @@ process:
             stub_id: dgis_stub_terms_person
           - plugin: skip_on_empty
             method: row
-    - plugin: dgi_migrate.unpack_array
   field_organizations:
     - << : *base_mods_node
       query: 'mods:name[@type="corporate"]'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: skip_on_empty
-      method: process
-    - plugin: multiple_values
     - plugin: dgi_migrate_foxml_standard_mods.typed_relation
       field_name: node.islandora_object.field_organizations
       xpath: '@_mods_xpath'
@@ -834,7 +823,6 @@ process:
             stub_id: dgis_stub_terms_corporate_body
           - plugin: skip_on_empty
             method: row
-    - plugin: dgi_migrate.unpack_array
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'

@@ -75,6 +75,13 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
   protected $textSuffixPattern;
 
   /**
+   * Flag for the ::multiple().
+   *
+   * @var bool
+   */
+  protected $multipleValues;
+
+  /**
    * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
@@ -89,36 +96,39 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
     $this->entityKey = $this->configuration['entity_key'] ?? 'target_id';
     $this->prefix = $this->configuration['role_prefix'] ?? 'relators:';
     $this->textSuffixPattern = $this->configuration['text_suffix_pattern'] ?? ' \\([a-z]{3}\\)';
+    $this->multipleValues = FALSE;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    $entity_field_manager = $container->get('entity_field.manager');
-    $field_type_plugin_manager = $container->get('plugin.manager.field.field_type');
+    if (!isset($configuration['mapping'])) {
+      $entity_field_manager = $container->get('entity_field.manager');
+      $field_type_plugin_manager = $container->get('plugin.manager.field.field_type');
 
-    if (!isset($configuration['field_name'])) {
-      throw new \InvalidArgumentException('Missing the "field_name" argument.');
+      if (!isset($configuration['field_name'])) {
+        throw new \InvalidArgumentException('Missing the "field_name" argument.');
+      }
+
+      list($entity_type, $bundle, $field_name) = explode('.', $configuration['field_name']);
+      $field_def = $entity_field_manager->getFieldDefinitions($entity_type, $bundle)[$field_name];
+
+      if ($field_def->getType() !== 'typed_relation') {
+        throw new \InvalidArgumentException(strtr('Field of type :type passed; :required required.', [
+          ':type' => $field_def->getType(),
+          ':required' => 'typed_relation',
+        ]));
+      }
+
+      $field_type = $field_type_plugin_manager->createInstance($field_def->getType(), [
+        'field_definition' => $field_def,
+        'name' => NULL,
+        'parent' => NULL,
+      ]);
+
+      $configuration['mapping'] = $field_type->getRelTypes();
     }
-
-    list($entity_type, $bundle, $field_name) = explode('.', $configuration['field_name']);
-    $field_def = $entity_field_manager->getFieldDefinitions($entity_type, $bundle)[$field_name];
-
-    if ($field_def->getType() !== 'typed_relation') {
-      throw new \InvalidArgumentException(strtr('Field of type :type passed; :required required.', [
-        ':type' => $field_def->getType(),
-        ':required' => 'typed_relation',
-      ]));
-    }
-
-    $field_type = $field_type_plugin_manager->createInstance($field_def->getType(), [
-      'field_definition' => $field_def,
-      'name' => NULL,
-      'parent' => NULL,
-    ]);
-
-    $configuration['mapping'] = $field_type->getRelTypes();
 
     return new static($configuration, $plugin_id, $plugin_definition);
   }
@@ -126,14 +136,39 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
   /**
    * {@inheritdoc}
    */
-  public function transform($node, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+  public function transform($node_list, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    if (!($node_list instanceof \DOMNodeList)) {
+      throw new MigrateException('The passed value is not a DOMNodeList instance.');
+    }
+
+    $results = [];
+
+    foreach ($node_list as $node) {
+      $transformed = $this->doTransform($node, $migrate_executable, $row, $destination_property);
+      if ($this->multiple()) {
+        $results = array_merge($results, $transformed);
+      }
+      elseif ($transformed) {
+        $results[] = $transformed;
+      }
+    }
+
+    return $results;
+  }
+
+  /**
+   * Helper; wrap around the transform proper.
+   *
+   * @see ::transform()
+   */
+  protected function doTransform($node, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!($node instanceof \DOMElement)) {
       throw new MigrateException('The passed value is not a DOMElement instance.');
     }
 
     $xpath = $row->get($this->xpathKey);
     if (!($xpath instanceof \DOMXPath)) {
-      throw new MigrateException('The "xpath" key does not point at a DOMXPath instance.');
+      throw new MigrateException('The "xpath" key does not point at a DOMXPath instance. Row: ' . var_export($row, TRUE));
     }
 
     $typed_rels = [];
@@ -160,7 +195,19 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
       ];
     }
 
-    return $typed_rels;
+    $count = count($typed_rels);
+    if ($count > 1) {
+      $this->multipleValues = TRUE;
+      return $typed_rels;
+    }
+    elseif ($count === 1) {
+      $this->multipleValues = FALSE;
+      return reset($typed_rels);
+    }
+    else {
+      $this->multipleValues = FALSE;
+      return NULL;
+    }
   }
 
   /**
@@ -221,7 +268,7 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
    * {@inheritdoc}
    */
   public function multiple() {
-    return TRUE;
+    return $this->multipleValues;
   }
 
 }
