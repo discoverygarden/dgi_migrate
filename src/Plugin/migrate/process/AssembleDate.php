@@ -96,10 +96,10 @@ class AssembleDate extends ProcessPluginBase {
     }
 
     $this->missing = (isset($this->configuration['indicate_open']) && isset($this->configuration['indicate_open'])) ? '..' : '';
-    $return_value = $this->getDateRange($value, $this->configuration['range_start'], $this->configuration['range_end']);
+    $return_value = $this->getDateRange($value, $this->configuration['range_start'], $this->configuration['range_end'], $migrate_executable, $row);
     if (!$return_value) {
-      $return_value = (!empty($this->configuration['process_values']) && $this->configuration['process_values']) ?
-        $this->processValue($value, $this->confiugration['single_date']) :
+      $return_value = (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) ?
+        $this->processValue($value, $this->confiugration['single_date'], $migrate_executable, $row) :
         $this->configuration['single_date'];
     }
     return $return_value;
@@ -114,19 +114,25 @@ class AssembleDate extends ProcessPluginBase {
    *   The value to use as the range start.
    * @param mixed $range_end
    *   The value to use as the range end.
+   * @param \Drupal\migrate\MigrateExecutableInterface $executable
+   *   A migrate executable.
+   * @param \Drupal\migrate\Row $row
+   *   The row being processed.
    *
    * @return string|null
    *   A date range string, or NULL if the start and end could not be
    *   found.
    */
-  protected function getDateRange($source, $range_start, $range_end) {
+  protected function getDateRange($source, $range_start, $range_end, MigrateExecutableInterface $executable, Row $row) {
     if (!$range_start && !$range_end) {
       return NULL;
     }
+    print_r($range_start);
+    print_r($range_end);
 
-    if (!empty($this->configuration['process_values']) && $this->configuration['process_values']) {
-      $range_start = $this->processValue($source, $range_start);
-      $range_end = $this->processValue($source, $range_end);
+    if (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) {
+      $range_start = $this->processValue($source, $range_start, $executable, $row);
+      $range_end = $this->processValue($source, $range_end, $executable, $row);
     }
     $range_start = $range_start ?? $this->missing;
     $range_end = $range_end ?? $this->missing;
@@ -165,7 +171,7 @@ class AssembleDate extends ProcessPluginBase {
       ],
       $parent_value_key => $source,
     ]);
-    $executable->processRow($new_row, $to_process);
+    $executable->processRow($new_row, $value);
 
     return $new_row->getDestination();
   }
