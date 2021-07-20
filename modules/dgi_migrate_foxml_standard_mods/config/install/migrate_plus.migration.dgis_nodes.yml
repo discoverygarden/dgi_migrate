@@ -704,7 +704,7 @@ process:
       values:
         _field_copyright_date_single:
           - << : *nested_mods_node
-            query: 'mods:copyrightDate'
+            query: 'mods:copyrightDate[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -743,7 +743,7 @@ process:
             strict: true
         _field_date_captured_single:
           - << : *nested_mods_node
-            query: 'mods:dateCaptured'
+            query: 'mods:dateCaptured[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -782,7 +782,7 @@ process:
             strict: true
         _field_date_created_single:
           - << : *nested_mods_node
-            query: 'mods:dateCreated'
+            query: 'mods:dateCreated[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -821,7 +821,7 @@ process:
             strict: true
         _field_date_issued_single:
           - << : *nested_mods_node
-            query: 'mods:dateIssued'
+            query: 'mods:dateIssued[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -860,7 +860,7 @@ process:
             strict: true
         _field_date_modified_single:
           - << : *nested_mods_node
-            query: 'mods:dateModified'
+            query: 'mods:dateModified[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -899,7 +899,7 @@ process:
             strict: true
         _field_date_valid_single:
           - << : *nested_mods_node
-            query: 'mods:dateValid'
+            query: 'mods:dateValid[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -970,7 +970,7 @@ process:
             property: nodeValue
         _field_other_date_single:
           - << : *nested_mods_node
-            query: 'mods:dateOther'
+            query: 'mods:dateOther[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values

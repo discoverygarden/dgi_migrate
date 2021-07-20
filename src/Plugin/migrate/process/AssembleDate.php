@@ -5,15 +5,14 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
 
 /**
  * Assemble a date or date range using some EDTF standard pieces.
  *
  * At least one of three properties need to be provided:
- * - 'single_date' for an individual date
- * - 'range_start' for the start of a date range
- * - 'range_end' for the end of a date range
+ * - 'single_date' for an individual date,
+ * - 'range_start' for the start of a date range,
+ * - 'range_end' for the end of a date range.
  *
  * The output is handled thus:
  * - If a range_start, or a range_end, or both, are provided and not empty, an
@@ -99,7 +98,7 @@ class AssembleDate extends ProcessPluginBase {
     $return_value = $this->getDateRange($value, $this->configuration['range_start'], $this->configuration['range_end'], $migrate_executable, $row);
     if (!$return_value) {
       $return_value = (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) ?
-        $this->processValue($value, $this->confiugration['single_date'], $migrate_executable, $row) :
+        $row->get($this->configuration['single_date']) :
         $this->configuration['single_date'];
     }
     return $return_value;
@@ -129,49 +128,17 @@ class AssembleDate extends ProcessPluginBase {
     }
 
     if (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) {
-      $range_start = $this->processValue($source, $range_start, $executable, $row);
-      $range_end = $this->processValue($source, $range_end, $executable, $row);
+      $range_start = $row->get($range_start);
+      $range_end = $row->get($range_end);
     }
     $range_start = $range_start ?? $this->missing;
     $range_end = $range_end ?? $this->missing;
-
 
     if ($range_start === $this->missing && $range_end === $this->missing) {
       return NULL;
     }
 
     return "{$range_start}/{$range_end}";
-  }
-
-  /**
-   * Processes the input values.
-   *
-   * @param mixed $source
-   *   The source value for the current row.
-   * @param mixed $value
-   *   The value to transform.
-   * @param \Drupal\migrate\MigrateExecutableInterface $executable
-   *   A migrate executable.
-   * @param \Drupal\migrate\Row $row
-   *   The row being processed.
-   *
-   * @return array
-   *   An array with the same keys, whose values are processed.
-   */
-  protected function processValue($source, $value, MigrateExecutableInterface $executable, Row $row) {
-    $parent_row_key = $this->configuration['parent_row_key'] ?? 'parent_row';
-    $parent_value_key = $this->configuration['parent_value_key'] ?? 'parent_value';
-
-    $new_row = new Row([
-      $parent_row_key => [
-        'source' => $row->getSource(),
-        'dest' => $row->getDestination(),
-      ],
-      $parent_value_key => $source,
-    ]);
-    $executable->processRow($new_row, $value);
-
-    return $new_row->getDestination();
   }
 
 }
