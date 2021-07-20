@@ -127,8 +127,6 @@ class AssembleDate extends ProcessPluginBase {
     if (!$range_start && !$range_end) {
       return NULL;
     }
-    print_r($range_start);
-    print_r($range_end);
 
     if (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) {
       $range_start = $this->processValue($source, $range_start, $executable, $row);
