@@ -22,9 +22,8 @@ use Drupal\migrate\Row;
  *   single_date is provided and has a value, it is returned.
  * - If no provided property has a value, null will be returned.
  *
- * Use the 'process_keys' flag to indicate that the keys in the source should be
- * processed. In such a case, 'parent_row_key' and 'parent_value_key' can be
- * passed to indicate where to pull source values from.
+ * Use the 'get_values' flag to indicate that 'single_date', 'range_start', and
+ * 'range_end' should be pulled from destination values in other fields.
  *
  * Use the 'indicate_open' flag to indicate that a missing part of a found range
  * should use the EDTF 'open' range indicator, i.e., "..". Default behaviour is
@@ -50,7 +49,7 @@ use Drupal\migrate\Row;
  * @code
  * process:
  *   - plugin: dgi_migrate.process.assemble_date
- *     process_keys: true
+ *     get_values: true
  *     parent_row_key: parent_row
  *     parent_value_key: parent_value
  *     single_date:
@@ -94,10 +93,10 @@ class AssembleDate extends ProcessPluginBase {
       ]));
     }
 
-    $this->missing = (isset($this->configuration['indicate_open']) && isset($this->configuration['indicate_open'])) ? '..' : '';
+    $this->missing = (isset($this->configuration['indicate_open']) && $this->configuration['indicate_open']) ? '..' : '';
     $return_value = $this->getDateRange($value, $this->configuration['range_start'], $this->configuration['range_end'], $migrate_executable, $row);
     if (!$return_value) {
-      $return_value = (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) ?
+      $return_value = (!empty($this->configuration['get_values']) && $this->configuration['get_values']) ?
         $row->get($this->configuration['single_date']) :
         $this->configuration['single_date'];
     }
@@ -127,7 +126,7 @@ class AssembleDate extends ProcessPluginBase {
       return NULL;
     }
 
-    if (!empty($this->configuration['process_keys']) && $this->configuration['process_keys']) {
+    if (!empty($this->configuration['get_values']) && $this->configuration['get_values']) {
       $range_start = $row->get($range_start);
       $range_end = $row->get($range_end);
     }
