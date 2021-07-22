@@ -50,11 +50,7 @@ use Drupal\migrate\Row;
  * process:
  *   - plugin: dgi_migrate.process.assemble_date
  *     get_values: true
- *     parent_row_key: parent_row
- *     parent_value_key: parent_value
- *     single_date:
- *       - plugin: get
- *         source: thing_to_get
+ *     single_date: property_to_get
  *   - plugin: dgi_migrate_edtf_validator
  *     intervals: true
  *     strict: true
@@ -76,29 +72,44 @@ class AssembleDate extends ProcessPluginBase {
   protected $missing;
 
   /**
+   * Array containing the passed-in original values for dates.
+   *
+   * @var array
+   */
+  protected $dates;
+
+  /**
+   * Boolean flagging if values for dates should be gotten from the parent row.
+   *
+   * @var bool
+   */
+  protected $getValues;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->missingBehaviorInit();
+    $this->dates = [
+      'single_date' => isset($this->configuration['single_date']) ? $this->configuration['single_date'] : NULL,
+      'range_start' => isset($this->configuration['range_start']) ? $this->configuration['range_start'] : NULL,
+      'range_end' => isset($this->configuration['range_end']) ? $this->configuration['range_end'] : NULL,
+    ];
+    if (is_null($this->dates['single_date']) && is_null($this->dates['range_start']) && is_null($this->dates['range_end'])) {
+      throw $this->getMissingException(strtr('Requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided for :property.'));
+    }
+    $this->missing = isset($this->configuration['indicate_open']) && $this->configuration['indicate_open'] ? '..' : '';
+    $this->getValues = isset($this->configuration['get_values']) ? $this->configuration['get_values'] : FALSE;
   }
 
   /**
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    if (empty($this->configuration['single_date']) && empty($this->configuration['range_start']) && empty($this->configuration['range_end'])) {
-      throw $this->getMissingException(strtr('Requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided for :property.', [
-        ':property' => $destination_property,
-      ]));
-    }
-
-    $this->missing = (isset($this->configuration['indicate_open']) && $this->configuration['indicate_open']) ? '..' : '';
-    $return_value = $this->getDateRange($value, $this->configuration['range_start'], $this->configuration['range_end'], $migrate_executable, $row);
+    $return_value = $this->getDateRange($value, $this->dates['range_start'], $this->dates['range_end'], $migrate_executable, $row);
     if (!$return_value) {
-      $return_value = (!empty($this->configuration['get_values']) && $this->configuration['get_values']) ?
-        $row->get($this->configuration['single_date']) :
-        $this->configuration['single_date'];
+      $return_value = $this->getValues ? $row->get($this->dates['single_date']) : $this->dates['single_date'];
     }
     return $return_value;
   }
@@ -126,7 +137,7 @@ class AssembleDate extends ProcessPluginBase {
       return NULL;
     }
 
-    if (!empty($this->configuration['get_values']) && $this->configuration['get_values']) {
+    if ($this->getValues) {
       $range_start = $row->get($range_start);
       $range_end = $row->get($range_end);
     }
