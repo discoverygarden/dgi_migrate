@@ -737,7 +737,7 @@ process:
             single_date: '@_field_copyright_date_single'
             range_start: '@_field_copyright_date_start'
             range_end: '@_field_copyright_date_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -776,7 +776,7 @@ process:
             single_date: '@_field_date_captured_single'
             range_start: '@_field_date_captured_start'
             range_end: '@_field_date_captured_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -815,7 +815,7 @@ process:
             single_date: '@_field_date_created_single'
             range_start: '@_field_date_created_start'
             range_end: '@_field_date_created_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -854,7 +854,7 @@ process:
             single_date: '@_field_date_issued_single'
             range_start: '@_field_date_issued_start'
             range_end: '@_field_date_issued_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -893,7 +893,7 @@ process:
             single_date: '@_field_date_modified_single'
             range_start: '@_field_date_modified_start'
             range_end: '@_field_date_modified_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -932,7 +932,7 @@ process:
             single_date: '@_field_date_valid_single'
             range_start: '@_field_date_valid_start'
             range_end: '@_field_date_valid_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true
@@ -1003,7 +1003,7 @@ process:
             single_date: '@_field_other_date_single'
             range_start: '@_field_other_date_start'
             range_end: '@_field_other_date_end'
-            process_keys: true
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: true

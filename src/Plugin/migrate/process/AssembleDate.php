@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateException;
 use Drupal\migrate\Row;
 
 /**
@@ -90,24 +91,24 @@ class AssembleDate extends ProcessPluginBase {
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->missingBehaviorInit();
     $this->dates = [
-      'single_date' => isset($this->configuration['single_date']) ? $this->configuration['single_date'] : NULL,
-      'range_start' => isset($this->configuration['range_start']) ? $this->configuration['range_start'] : NULL,
-      'range_end' => isset($this->configuration['range_end']) ? $this->configuration['range_end'] : NULL,
+      'single_date' => $this->configuration['single_date'] ?? NULL,
+      'range_start' => $this->configuration['range_start'] ?? NULL,
+      'range_end' => $this->configuration['range_end'] ?? NULL,
     ];
-    if (is_null($this->dates['single_date']) && is_null($this->dates['range_start']) && is_null($this->dates['range_end'])) {
-      throw $this->getMissingException(strtr('Requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided for :property.'));
+    if (!array_filter($this->dates)) {
+      throw new MigrateException(strtr('Plugin dgi_migrate.process.assemble_date requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided.'));
     }
-    $this->missing = isset($this->configuration['indicate_open']) && $this->configuration['indicate_open'] ? '..' : '';
-    $this->getValues = isset($this->configuration['get_values']) ? $this->configuration['get_values'] : FALSE;
+    $indicate_open = $this->configuration['indicate_open'] ?? FALSE;
+    $this->missing = $indicate_open ? '..' : '';
+    $this->getValues = $this->configuration['get_values'] ?? FALSE;
   }
 
   /**
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    $return_value = $this->getDateRange($value, $this->dates['range_start'], $this->dates['range_end'], $migrate_executable, $row);
+    $return_value = $this->getDateRange($value, $migrate_executable, $row);
     if (!$return_value) {
       $return_value = $this->getValues ? $row->get($this->dates['single_date']) : $this->dates['single_date'];
     }
@@ -119,10 +120,6 @@ class AssembleDate extends ProcessPluginBase {
    *
    * @param mixed $source
    *   The source value of the row.
-   * @param mixed $range_start
-   *   The value to use as the range start.
-   * @param mixed $range_end
-   *   The value to use as the range end.
    * @param \Drupal\migrate\MigrateExecutableInterface $executable
    *   A migrate executable.
    * @param \Drupal\migrate\Row $row
@@ -132,7 +129,10 @@ class AssembleDate extends ProcessPluginBase {
    *   A date range string, or NULL if the start and end could not be
    *   found.
    */
-  protected function getDateRange($source, $range_start, $range_end, MigrateExecutableInterface $executable, Row $row) {
+  protected function getDateRange($source, MigrateExecutableInterface $executable, Row $row) {
+    $range_start = $this->dates['range_start'];
+    $range_end = $this->dates['range_end'];
+
     if (!$range_start && !$range_end) {
       return NULL;
     }
