@@ -12,7 +12,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Call a method on an object.
+ * Map to a "typed_relation" field.
  *
  * Example:
  * @code
