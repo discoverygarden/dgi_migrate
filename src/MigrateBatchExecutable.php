@@ -250,8 +250,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
     if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
       $return = $this->migration->getInterruptionResult();
       $this->migration->clearInterruptionResult();
-      return $return;
     }
+
+    return $return;
 
   }
 
