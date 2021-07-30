@@ -102,7 +102,7 @@ class ParagraphGenerate extends SubProcess {
 
     $paragraph->setValidationRequired($this->validate);
 
-    if ($validate) {
+    if ($this->validate) {
       try {
         $errors = $paragraph->validate();
       }
