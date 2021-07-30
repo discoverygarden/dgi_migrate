@@ -1,0 +1,71 @@
+---
+id: dgis_stub_terms_generic
+label: Create stub misc authoried terms.
+migration_group: foxml_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    auth_source:
+      type: string
+    auth_value_uri:
+      type: string
+    name:
+      type: string
+    vid:
+      type: string
+  dsf_misc:
+    type: &type entity:taxonomy_term
+    case_insensitive: &case_insensitive true
+    lookup_defaults: &lookup_defaults
+      plugin: dgi_migrate.process.entity_query
+      entity_type: *type
+destination:
+  plugin: *type
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+  overwrite_properties: []
+process:
+  vid: vid
+  name: name
+  field_authority_link/source:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+    - plugin: default_value
+      source: auth_source
+      default_value: other
+  field_authority_link/uri:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+  _tid_auth:
+    - << : *lookup_defaults
+      conditions:
+        - [vid, vid]
+        - [field_authority_link.source, auth_source]
+        - [field_authority_link.uri, auth_value_uri]
+  _tid_name:
+    - << : *lookup_defaults
+      conditions:
+        - [vid, vid]
+        - [name, '@name']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+  tid:
+    - plugin: get
+      source:
+        - '@_tid_auth'
+        - '@_tid_name'
+    - plugin: flatten
+    - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

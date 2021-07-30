@@ -17,6 +17,36 @@ source:
       plugin: dgi_migrate.process.xml.context_query
       source: 'parent_value'
       xpath: 'parent_row/dest/_mods_xpath'
+    generic_term:
+      after: &generic_term_after
+        _auth_value_uri:
+          - << : *nested_mods_node
+            query: 'string(@valueURI)'
+            method: evaluate
+        _auth_source:
+          - << : *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
+        _value:
+          - << : *nested_mods_node
+            query: 'normalize-space(.)'
+            method: evaluate
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+      extract: &generic_term_extract
+        plugin: extract
+        index: [0, actual]
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -253,9 +283,9 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-  _coordinates:
+  field_coordinates:
     - << : *base_mods_node
-      query: 'mods:subject/mods:cartographic/mods:coordinates'
+      query: 'mods:subject/mods:cartographics/mods:coordinates'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -266,16 +296,32 @@ process:
       replace: ''
     - plugin: explode
       delimiter: ','
-  'field_coordinates/lat': '@_coordinates/0'
-  'field_coordinates/lng': '@_coordinates/1'
-  field_coordinates_text:
-    - << : *base_mods_node
-      query: 'mods:subject/mods:cartographic/mods:coordinates'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
+    - plugin: single_value
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _count:
+          - plugin: callback
+            callable: count
+            source: parent_value
+        lat:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count/0'
+            value: 2
+            method: process
+          - plugin: extract
+            source: parent_value
+            index: [ 0, 0 ]
+        lng:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count/0'
+            value: 2
+            method: process
+          - plugin: extract
+            source: parent_value
+            index: [ 0, 1 ]
   field_edtf_date_created:
     - << : *base_mods_node
       query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
@@ -359,70 +405,84 @@ process:
       type: faceted_subject
       process_values: true
       values:
-        field_authority_sources:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
+        field_authority_sources/0/uri:
           - << : *nested_mods_node
-            query: '@authority'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'string(@valueURI)'
+            method: evaluate
+        field_authority_sources/0/source:
+          # XXX: This "source" value does not appear to be saved if there is not
+          # an associated "uri" value.
+          - << : *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
         field_genre_form_subdivision_:
           - << : *nested_mods_node
-            query: 'mods:genre'
+            query: 'mods:genre[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: genre
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: genre
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_geographic_geographic_subd:
           - << : *nested_mods_node
-            query: 'mods:geographic'
+            query: 'mods:geographic[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: geo_location
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: geo_location
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_temporal_chronological_sub:
           - << : *nested_mods_node
-            query: 'mods:temporal'
+            query: 'mods:temporal[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: temporal
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: temporal
+              <<: *generic_term_after
+          - <<: *generic_term_extract
         field_topic_general_subdivision:
           - << : *nested_mods_node
-            query: 'mods:topic'
+            query: 'mods:topic[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: entity_generate
-            bundle: subject
-            bundle_key: vid
-            entity_type: taxonomy_term
-            value_key: name
-            ignore_case: *case_insensitive
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: subject
+              <<: *generic_term_after
+          - <<: *generic_term_extract
   field_form:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
@@ -433,32 +493,36 @@ process:
       property: nodeValue
   field_genre:
     - << : *base_mods_node
-      query: 'mods:genre'
+      query: 'mods:genre[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: genre
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: genre
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_geographic_subject:
     - << : *base_mods_node
-      query: 'mods:subject/mods:geographic'
+      query: 'mods:subject/mods:geographic[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: geo_location
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: geo_location
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_handle:
     - << : *base_mods_node
       query: 'mods:identifier[@type="hdl"]'
@@ -639,34 +703,6 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-          - plugin: dgi_migrate.process.static_map
-            skip_process_instead_of_row: true
-            original_map_structure: true
-            bypass: false
-            map:
-              acquisition: acquisition
-              action: action
-              additional physical form: additional physical form
-              bibliography: bibliography
-              biographical/historical: biographical/historical
-              creation/production credits: creation/production credits
-              date/sequential designation: date/sequential designation
-              exhibitions: exhibitions
-              funding: funding
-              language: language
-              numbering: numbering
-              original location: original location
-              ownership: ownership
-              performers: performers
-              preferred citation: preferred citation
-              provenance: provenance
-              publications: publications
-              reproduction: reproduction
-              statement of responsibility: statement of responsibility
-              system details: system details
-              thesis: thesis
-              venue: venue
-              version identification: version identification
         field_note:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
@@ -691,6 +727,102 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
+  field_linked_agent:
+    - << : *base_mods_node
+      query: 'mods:name[@type="personal"]'
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_linked_agent
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _given_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][1])'
+            method: evaluate
+        _family_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][1])'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_given_name'
+              - '@_family_name'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_person
+            stub_id: dgis_stub_terms_person
+          - plugin: skip_on_empty
+            method: row
+  field_organizations:
+    - << : *base_mods_node
+      query: 'mods:name[@type="corporate"]'
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_organizations
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
+          - plugin: skip_on_empty
+            method: row
   field_origin_information:
     - << : *base_mods_node
       query: 'mods:originInfo'
@@ -925,18 +1057,20 @@ process:
             property: nodeValue
   field_physical_form:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:form'
+      query: 'mods:physicalDescription/mods:form[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: physical_form
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: physical_form
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_physical_location:
     - << : *base_mods_node
       query: '(mods:location/mods:physicalLocation[normalize-space()])[1]'
@@ -1061,12 +1195,20 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
           - plugin: entity_lookup
-            bundle: dcmi_relation_types
+            bundle: mods_relation_types
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
-            ignore_case: *case_insensitive
+          - plugin: skip_on_empty
+            method: row
+            message: "Encountered invalid relatedItem/@type attribute"
         field_title_plain:
           - << : *nested_mods_node
             query: 'mods:titleInfo/mods:title'
@@ -1078,6 +1220,20 @@ process:
         field_url/uri:
           - << : *nested_mods_node
             query: 'mods:location/mods:url[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+        field_related_item_extent:
+          - << : *nested_mods_node
+            query: 'mods:physicalDescription/mods:extent[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1118,20 +1274,21 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  field_rights_statement:
-    - << : *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"]'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: rights_statements
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+  # XXX: Was intended as outbound mapping, not inbound. Let's just comment for now.
+  #field_rights_statement:
+  #  - << : *base_mods_node
+  #    query: 'mods:accessCondition[@type="use and reproduction"]'
+  #  - plugin: callback
+  #    callable: iterator_to_array
+  #  - plugin: multiple_values
+  #  - plugin: dgi_migrate.subproperty
+  #    property: nodeValue
+  #  - plugin: entity_generate
+  #    bundle: rights_statements
+  #    bundle_key: vid
+  #    entity_type: taxonomy_term
+  #    value_key: name
+  #    ignore_case: *case_insensitive
   field_shelf_locator:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
@@ -1140,20 +1297,133 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  field_subject:
+  _subject_topic:
     - << : *base_mods_node
-      query: 'mods:subject/mods:topic'
+      query: 'mods:subject/mods:topic[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: subject
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: subject
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _subject_name_personal:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:name[@type="personal" or not(@type)][normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _given_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][1])'
+            method: evaluate
+        _family_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][1])'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_given_name'
+              - '@_family_name'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_person
+            stub_id: dgis_stub_terms_person
+          - plugin: skip_on_empty
+            method: row
+    - plugin: extract
+      index: [ 0, target_id]
+  _subject_name_corporate:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:name[@type="corporate"][normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
+          - plugin: skip_on_empty
+            method: row
+    - plugin: extract
+      index: [ 0, target_id]
+  field_subject:
+    - plugin: get
+      source:
+        - '@_subject_topic'
+        - '@_subject_name_personal'
+        - '@_subject_name_corporate'
+    - plugin: flatten
   field_sub_location:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
@@ -1180,18 +1450,20 @@ process:
       property: nodeValue
   field_temporal_subject:
     - << : *base_mods_node
-      query: 'mods:subject/mods:temporal'
+      query: 'mods:subject/mods:temporal[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: entity_generate
-      bundle: temporal
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: temporal
+        <<: *generic_term_after
+    - <<: *generic_term_extract
   field_title:
     - << : *base_mods_node
       query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
@@ -1200,6 +1472,7 @@ process:
     - plugin: multiple_values
     - plugin: dgi_standard_title_paragraph
       xpath: '@_mods_xpath'
+      max_length: 255
       validate: *validate
   field_use_and_reproduction:
     - << : *base_mods_node
@@ -1209,10 +1482,30 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
+  field_language:
+    - << : *base_mods_node
+      query: 'mods:language/mods:languageTerm[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: language
+        <<: *generic_term_after
+    - <<: *generic_term_extract
 migration_dependencies:
   required:
     - dgis_foxml_files
     - islandora_tags
+    - dgis_stub_nodes
+    - dgis_stub_terms_person
+    - dgis_stub_terms_corporate_body
+    - dgis_stub_terms_generic
 dependencies:
   enforced:
     module:
