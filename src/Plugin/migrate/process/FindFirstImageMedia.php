@@ -88,6 +88,11 @@ class FindFirstImageMedia extends ProcessPluginBase implements ContainerFactoryP
       ->condition('field_member_of', $value)
       ->execute();
 
+    if (!$nodes) {
+      // No children, nothing to find.
+      return;
+    }
+
     // Find all the image media belonging to the nodes that are members of the
     // current.
     // XXX: "Representative images" are passed through the image styles, so we
