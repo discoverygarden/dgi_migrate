@@ -1130,7 +1130,7 @@ process:
             property: nodeValue
         field_record_content_source:
           - << : *nested_mods_node
-            query: '.'
+            query: 'mods:recordContentSource'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
