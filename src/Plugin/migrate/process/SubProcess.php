@@ -184,11 +184,7 @@ class SubProcess extends ProcessPluginBase {
       $this->parentValueKey => $value,
     ]);
 
-    // XXX: The executable maintains some state RE: the row; let's try to avoid
-    // mangling it.
-    $executable_clone = clone $executable;
-
-    $executable_clone->processRow($new_row, $this->values);
+    $executable->processRow($new_row, $this->values);
 
     return $new_row->getDestination();
   }
