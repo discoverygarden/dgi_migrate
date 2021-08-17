@@ -1368,8 +1368,8 @@ process:
             stub_id: dgis_stub_terms_person
           - plugin: skip_on_empty
             method: row
-    - plugin: extract
-      index: [ target_id]
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
   _subject_name_corporate:
     - << : *base_mods_node
       query: 'mods:subject/mods:name[@type="corporate"][normalize-space()]'
@@ -1415,8 +1415,8 @@ process:
             stub_id: dgis_stub_terms_corporate_body
           - plugin: skip_on_empty
             method: row
-    - plugin: extract
-      index: [ target_id]
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
   field_subject:
     - plugin: get
       source:
