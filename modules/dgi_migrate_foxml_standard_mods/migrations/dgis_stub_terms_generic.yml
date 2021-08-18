@@ -42,12 +42,28 @@ process:
       source: auth_value_uri
       method: process
   _tid_auth:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+    - plugin: skip_on_empty
+      source: auth_source
+      method: process
     - << : *lookup_defaults
       conditions:
         - [vid, vid]
         - [field_authority_link.source, auth_source]
         - [field_authority_link.uri, auth_value_uri]
   _tid_name:
+    - plugin: skip_on_value
+      source: auth_value_uri
+      not_equals: true
+      value: ''
+      method: process
+    - plugin: skip_on_value
+      source: auth_source
+      not_equals: true
+      value: ''
+      method: process
     - << : *lookup_defaults
       conditions:
         - [vid, vid]
