@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\migrate\MigrateException;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
