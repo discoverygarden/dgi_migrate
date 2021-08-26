@@ -86,7 +86,7 @@ class ParagraphGenerate extends SubProcess {
 
     assert(!empty($this->configuration['type']));
     $this->paragraphType = $this->configuration['type'];
-    $this->validate = $this->configuration['valudate'] ?? FALSE;
+    $this->validate = $this->configuration['validate'] ?? FALSE;
   }
 
   /**
