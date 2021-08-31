@@ -4,5 +4,6 @@ type: module
 package: DGI
 core_version_requirement: ^8 || ^9
 dependencies:
+  - dgi_migrate:dgi_migrate
   - dgi_migrate:dgi_migrate_foxml_standard_mods
   - dgi_saxon_helper:dgi_saxon_helper_migrate
