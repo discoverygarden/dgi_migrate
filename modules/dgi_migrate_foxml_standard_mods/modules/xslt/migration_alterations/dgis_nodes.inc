@@ -23,24 +23,24 @@ function _dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations(
   $config = \Drupal::config(Settings::CONFIG);
 
   if ($config->get('xslt')) {
-    $xslt_path = Url::fromRoute('dgi_migrate_foxml_standard_mods_xslt.download', [], ['absolute' => TRUE]);
+    $xslt_path = Url::fromRoute('dgi_migrate_foxml_standard_mods_xslt.download', [], ['absolute' => TRUE])->toString();
     $proc['_mods_xpath'] = Yaml::parse(<<<EOI
-  - plugin: dgi_migrate.subindex
-    index: 'MODS'
-    source: '@_node_foxml_parsed'
-    missing_behavior: skip_process
-  - plugin: dgi_migrate.method
-    method: getUri
-  - plugin: callback
-    callable: file_get_contents
-  - plugin: dgi_saxon_helper_migrate.process
-    path: "$xslt_path"
-  - plugin: dgi_migrate.process.xml.domstring
-  - plugin: dgi_migrate.process.xml.xpath
-    namespaces:
-      mods: 'http://www.loc.gov/mods/v3'
-      xsi: 'http://www.w3.org/2001/XMLSchema-instance'
-      xlink: 'http://www.w3.org/1999/xlink'
+- plugin: dgi_migrate.subindex
+  index: 'MODS'
+  source: '@_node_foxml_parsed'
+  missing_behavior: skip_process
+- plugin: dgi_migrate.method
+  method: getUri
+- plugin: callback
+  callable: file_get_contents
+- plugin: dgi_saxon_helper_migrate.process
+  path: "$xslt_path"
+- plugin: dgi_migrate.process.xml.domstring
+- plugin: dgi_migrate.process.xml.xpath
+  namespaces:
+    mods: 'http://www.loc.gov/mods/v3'
+    xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+    xlink: 'http://www.w3.org/1999/xlink'
 EOI
     );
   }

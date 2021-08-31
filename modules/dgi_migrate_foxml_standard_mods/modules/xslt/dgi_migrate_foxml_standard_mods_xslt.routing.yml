@@ -1,6 +1,6 @@
 ---
 dgi_migrate_foxml_standard_mods_xslt.admin_settings_form:
-  path: '/admin/config/islandora/dgi/dgi_migrate_foxml_standard_mods_xslt'
+  path: '/admin/config/dgi_migrate_foxml_standard_mods_xslt'
   defaults:
     _form: '\Drupal\dgi_migrate_foxml_standard_mods_xslt\Form\Settings'
     _title: 'XSLT and Access'
