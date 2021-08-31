@@ -22,6 +22,11 @@ function _dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations(
 
   $config = \Drupal::config(Settings::CONFIG);
 
+  // XXX: This (dependency addition) does not appear to actually do anything,
+  // but is included for consistency. We _have_ implemented an event subscriber
+  // to clear the migration cache when our config changes.
+  $mig['dependencies']['config'][] = $config->getName();
+
   if ($config->get('xslt')) {
     $xslt_path = Url::fromRoute('dgi_migrate_foxml_standard_mods_xslt.download', [], ['absolute' => TRUE])->toString();
     $proc['_mods_xpath'] = Yaml::parse(<<<EOI
