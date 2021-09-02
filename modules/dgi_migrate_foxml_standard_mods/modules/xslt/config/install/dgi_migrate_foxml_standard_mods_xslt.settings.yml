@@ -1,0 +1,5 @@
+---
+xslt: null
+allowed_remotes:
+  - 127.0.0.1/8
+  - ::/128

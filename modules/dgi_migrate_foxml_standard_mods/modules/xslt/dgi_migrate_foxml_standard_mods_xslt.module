@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * General hook implementations.
+ */
+
+/**
+ * Implements hook_migration_plugins_alter().
+ */
+function dgi_migrate_foxml_standard_mods_xslt_migration_plugins_alter(array &$migrations) {
+  $map = [
+    'dgis_nodes' => [
+      'file' => ['inc', 'migration_alterations/dgis_nodes'],
+      'callable' => '_dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations',
+    ],
+  ];
+  $logger = \Drupal::logger('dgi_migrate_foxml_standard_mods_xslt');
+
+  foreach ($map as $id => $info) {
+    $logger->debug('Altering migration {0}.', [$id]);
+    \Drupal::moduleHandler()->loadInclude($info['module'] ?? 'dgi_migrate_foxml_standard_mods_xslt', ...$info['file']);
+
+    call_user_func_array($info['callable'], [&$migrations[$id]]);
+    $logger->info('Altered migration {0}.', [$id]);
+  }
+
+}
