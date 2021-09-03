@@ -1031,6 +1031,17 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: skip_on_empty
+            method: process
+          - plugin: entity_lookup
+            bundle_key: vid
+            bundle: part_type
+            value_key: name
+            entity_type: taxonomy_term
+            ignore_case: true
+          - plugin: skip_on_empty
+            method: row
+            message: "Failed to map the part 'type' attribute."
         field_start:
           - << : *nested_mods_node
             query: 'mods:extent/mods:start'
