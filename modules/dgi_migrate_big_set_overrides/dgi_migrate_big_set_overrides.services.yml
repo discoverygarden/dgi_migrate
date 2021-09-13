@@ -1,0 +1,8 @@
+services:
+  dgi_migrate_big_set_overrides.overrider:
+    class: Drupal\dgi_migrate_big_set_overrides\Config\Overrides
+    arguments:
+      - '@config.factory'
+    tags:
+      - name: config.factory.override
+        priority: 5
