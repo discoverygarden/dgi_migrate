@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * @file
+ * Misc (un)installation/update hooks.
+ */
+
+/**
+ * Fix broken IPv6 localhost spec.
+ *
+ * The address "::/128" is rather non-sensical (an address all of zeros), which
+ * is reserved as the "unspecified" address; something of a placeholder.
+ */
+function dgi_migrate_foxml_standard_mods_xslt_update_8101() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('dgi_migrate_foxml_standard_mods_xslt.settings');
+
+  $remotes = $config->get('allowed_remotes');
+
+  if (($index = array_search('::/128', $remotes)) !== FALSE) {
+    $remotes[$index] = '::1/128';
+    $config->set('allowed_remotes', $remotes);
+    $config->save(TRUE);
+  }
+
+}
