@@ -1737,7 +1737,5 @@ migration_dependencies:
 dependencies:
   enforced:
     module:
-      - dgi_migrate
-      - dgi_migrate_foxml_standard_mods
       - dgi_migrate_edtf_validator
       - dgi_migrate_paragraphs
