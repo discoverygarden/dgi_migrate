@@ -45,8 +45,8 @@ source:
             migration: dgis_stub_terms_generic
             stub_id: dgis_stub_terms_generic
       extract: &generic_term_extract
-        plugin: extract
-        index: [0, actual]
+        plugin: dgi_migrate.process.single_extract
+        index: [actual]
 destination:
   plugin: entity:node
   default_bundle: islandora_object
@@ -294,34 +294,34 @@ process:
     - plugin: str_replace
       search: ' '
       replace: ''
-    - plugin: explode
-      delimiter: ','
-    - plugin: single_value
     - plugin: dgi_migrate.sub_process
       process_values: true
       values:
+        _value:
+          - plugin: explode
+            delimiter: ','
+            source: parent_value
         _count:
+          - plugin: single_value
+            source: '@_value'
           - plugin: callback
             callable: count
-            source: parent_value
         lat:
           - plugin: skip_on_value
             not_equals: true
-            source: '@_count/0'
+            source: '@_count'
             value: 2
             method: process
-          - plugin: extract
-            source: parent_value
-            index: [ 0, 0 ]
+          - plugin: get
+            source: '@_value/0'
         lng:
           - plugin: skip_on_value
             not_equals: true
-            source: '@_count/0'
+            source: '@_count'
             value: 2
             method: process
-          - plugin: extract
-            source: parent_value
-            index: [ 0, 1 ]
+          - plugin: get
+            source: '@_value/1'
   field_edtf_date_created:
     - << : *base_mods_node
       query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
@@ -1248,6 +1248,17 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: skip_on_empty
+            method: process
+          - plugin: entity_lookup
+            bundle_key: vid
+            bundle: part_type
+            value_key: name
+            entity_type: taxonomy_term
+            ignore_case: true
+          - plugin: skip_on_empty
+            method: row
+            message: "Failed to map the part 'type' attribute."
         field_start:
           - << : *nested_mods_node
             query: 'mods:extent/mods:start'
@@ -1347,7 +1358,7 @@ process:
             property: nodeValue
         field_record_content_source:
           - << : *nested_mods_node
-            query: '.'
+            query: 'mods:recordContentSource'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1585,8 +1596,8 @@ process:
             stub_id: dgis_stub_terms_person
           - plugin: skip_on_empty
             method: row
-    - plugin: extract
-      index: [ 0, target_id]
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
   _subject_name_corporate:
     - << : *base_mods_node
       query: 'mods:subject/mods:name[@type="corporate"][normalize-space()]'
@@ -1632,8 +1643,8 @@ process:
             stub_id: dgis_stub_terms_corporate_body
           - plugin: skip_on_empty
             method: row
-    - plugin: extract
-      index: [ 0, target_id]
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
   field_subject:
     - plugin: get
       source:

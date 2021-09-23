@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\migrate\MigrateException;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
@@ -22,7 +23,10 @@ use Drupal\Component\Utility\Timer;
  */
 class MigrateBatchExecutable extends MigrateExecutable {
 
-  use DependencySerializationTrait;
+  use DependencySerializationTrait {
+    __sleep as traitSleep;
+    __wakeup as traitWakeup;
+  }
 
   // The name of our timer.
   const TIMER = 'dgi_migrate_iteration_timer';
@@ -65,6 +69,38 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://github.com/drush-ops/drush/blob/dbdb6733655231687d8ab68cdea6bf9fedbd0562/includes/batch.inc#L291-L298
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __sleep() {
+    $vars = $this->traitSleep();
+    $to_suppress = [
+      // XXX: Avoid serializing some things can't be natively serialized.
+      'source',
+    ];
+    foreach ($to_suppress as $value) {
+      $key = array_search($value, $vars);
+      if ($key !== FALSE) {
+        unset($vars[$key]);
+      }
+    }
+    // XXX: This unsets the protected sourcePlugin variable to avoid having
+    // it be serialized to the DB.
+    $this->migration->set('source', $this->migration->getSourceConfiguration());
+    return $vars;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __wakeup() {
+    $this->traitWakeup();
+    // XXX: Re-add the listeners because the services get re-initialized.
+    foreach ($this->listeners as $event => $listener) {
+      $this->getEventDispatcher()->addListener($event, $listener);
     }
   }
 

@@ -1,0 +1,14 @@
+---
+dgi_migrate_foxml_standard_mods_xslt.settings:
+  type: config_object
+  label: 'XSLT settings'
+  mapping:
+    xslt:
+      type: string
+      label: The XSLT to reference.
+      nullable: true
+    allowed_remotes:
+      type: sequence
+      label: Remote IPs/CIDR ranges allowed to access the XSLT.
+      sequence:
+        type: string

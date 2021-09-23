@@ -1,0 +1,6 @@
+---
+system.admin_config_dgi_migrate:
+  title: DGI Migrate
+  parent: system.admin_config
+  route_name: system.admin_config_dgi_migrate
+  weight: 100

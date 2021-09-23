@@ -1,0 +1,8 @@
+---
+system.admin_config_dgi_migrate:
+  path: '/admin/config/dgi_migrate'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'DGI Migrate'
+  requirements:
+    _permission: 'access administration pages'
