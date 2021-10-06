@@ -1,0 +1,66 @@
+---
+id: dspace_orig_file
+label: Create File entities from primary datastreams in DSpace export.
+migration_group: dspace_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: dgis_foxml_files
+  constants:
+    file_dest: 'repo-bin:/'
+destination:
+  plugin: entity:file
+  validate: true
+
+process:
+  _noded:
+    - plugin: migration_lookup
+      source: fid
+      migration: dspace_nodes
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+  _parsed_mets:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        mets: 'http://www.loc.gov/METS/'
+        mods: 'http://www.loc.gov/mods/v3'
+        xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+        xlink: 'http://www.w3.org/1999/xlink'
+        dim: 'http://www.dspace.org/xmlns/dspace/dim'
+
+  filemime:
+    - plugin: dgi_migrate.method
+      source: '@_parsed_mets'
+      method: query
+      arg: ['//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE']
+
+  _filename:
+    - plugin: dgi_migrate.method
+      source: '@_parsed_mets'
+      method: query
+      arg: ['//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE']
+
+  filename: '@_filename'
+
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+migration_dependencies:
+  required:
+    - dspace_nodes
+    - dgis_mets_files
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_dspace

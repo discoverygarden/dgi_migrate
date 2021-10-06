@@ -1,0 +1,57 @@
+---
+id: dspace_mets_files
+label: Create file entities from exported DSpace METS files
+migration_group: dspace_to_dgis
+source:
+  plugin: directory
+  track_changes: true
+  path: private://dspace
+  cache_count: true
+destination:
+  plugin: entity:file
+  validate: true
+process:
+  _uri: path
+  uri: '@_uri'
+  _validate:
+    - plugin: callback
+      callable: is_writable
+      source: '@uri'
+    - plugin: dgi_migrate.process.log
+      template: 'Should not be writable... is it? :value'
+      level: 4
+    - plugin: skip_on_value
+      value: true
+      method: row
+    - plugin: callback
+      callable: dirname
+      source: '@uri'
+    - plugin: callback
+      callable: is_writable
+    - plugin: dgi_migrate.process.log
+      template: 'Directory should not be writable... is it? :value'
+      level: 4
+    - plugin: skip_on_value
+      value: true
+      method: row
+  _parsed_mets:
+    - plugin: concat
+      source:
+        - 'zip://'
+        - '@_uri'
+        - '#mets.xml'
+
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+  filemime:
+    - plugin: default_value
+      default_value: application/xml
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_dspace

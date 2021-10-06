@@ -1,0 +1,82 @@
+---
+id: dspace_nodes
+label: Create nodes from DSpace METS file.
+migration_group: dspace_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: dspace_mets_files
+
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  validate: &validate true
+
+process:
+  _node_mets_parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        mets: 'http://www.loc.gov/METS/'
+        mods: 'http://www.loc.gov/mods/v3'
+        xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+        xlink: 'http://www.w3.org/1999/xlink'
+        dim: 'http://www.dspace.org/xmlns/dspace/dim'
+  title:
+    - plugin: dgi_migrate.method
+      source: '@_node_mets_parsed'
+      method: query
+      arg: ['//mets:mdWrap[@MDTYPE="MODS"]/mets:xmlData//mods:titleInfo/mods:title']
+    - plugin: default_value
+      default_value: Untitled
+  # Basing the model off of the mimetype.
+  _i8_model_uri:
+    - plugin: dgi_migrate.method
+      source: '@_node_mets_parsed'
+      method: query
+      arg: ['//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE']
+    - plugin: static_map
+      bypass: false
+      map:
+        'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
+        'application/pdf': 'https://schema.org/DigitalDocument'
+  field_model:
+    - plugin: entity_lookup
+      source: '@_i8_model_uri'
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      ignore_case: true
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to lookup the model taxonomy term.'
+  field_display_hints:
+    - plugin: dgi_migrate.process.static_map
+      source: '@_i8_model_uri'
+      bypass: true
+      map:
+        - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
+        - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+        - ['http://id.loc.gov/ontologies/bibframe/part', ['http://openseadragon.github.io']]
+    - plugin: flatten
+    - plugin: skip_on_empty
+      method: process
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_display
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  field_handle:
+    - plugin: dgi_migrate.method
+      source: '@_node_mets_parsed'
+      method: query
+      arg: ['//mets:dmdSec//dim:field[@mdschema="dc" and @element="identifier" and @qualifier="uri"]']

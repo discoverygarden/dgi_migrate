@@ -1,0 +1,12 @@
+id: dspace_to_dgis
+label: DSpace with MODS to DGI Standard
+description: Mapping from DSpace 5.5 from I7 on to DGI Standard I8 using a kinda comprehensive MODS mapping.
+source_type: Directory of DSpace AIP ZIP export files
+shared_configuration:
+  source:
+    shared:
+      default_uid: 1
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_dspace

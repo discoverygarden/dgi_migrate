@@ -1,0 +1,108 @@
+---
+id: dspace_orig_media
+label: Create Oringal File media entities from imported AIP ZIP export
+migration_group: dspace_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: dspace_mets_files
+destination:
+  plugin: entity:media
+  default_bundle: file
+
+process:
+  field_media_of:
+    - plugin: migration_lookup
+      migration: dspace_nodes
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+  _file_id:
+    - plugin: migration_lookup
+      migration: dspace_orig_file
+      source: fid
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+  _file:
+    plugin: dgi_migrate.load_entity
+    source: '@_file_id'
+    entity_type: entity:file
+  # XXX: Somewhat counter-intuitive, but it will just ignore those file field
+  # entries with which the target bundle does not deal.
+  field_media_audio_file: '@_file'
+  field_media_file: '@_file'
+  field_media_image/target_id: '@_file_id'
+  field_media_image/alt: '@name'
+  field_media_video_file: '@_file'
+
+  _parsed_mets:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        mets: 'http://www.loc.gov/METS/'
+        mods: 'http://www.loc.gov/mods/v3'
+        xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+        xlink: 'http://www.w3.org/1999/xlink'
+        dim: 'http://www.dspace.org/xmlns/dspace/dim'
+
+  bundle:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:sp_basic_image': 'image'
+        'info:fedora/islandora:sp_large_image_cmodel': 'image'
+        'info:fedora/ir:citationCModel': 'file'
+        'info:fedora/islandora:sp_pdf': 'file'
+        'info:fedora/islandora:sp_videoCModel': 'video'
+        'info:fedora/islandora:sp-audioCModel': 'audio'
+        'info:fedora/islandora:pageCModel': 'image'
+        'info:fedora/islandora:newspaperPageCModel': 'image'
+    - plugin: extract
+      index: [ 0 ]
+
+  # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
+  # our fork of islandora: https://github.com/Islandora/islandora/pull/829
+  #field_file_size:
+  #  - plugin: dgi_migrate.method
+  #    method: getSize
+  #    source: '@_file'
+  field_media_use:
+    - plugin: default_value
+      default_value: http://pcdm.org/use#OriginalFile
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_media_use
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+
+  field_mime_type:
+    - plugin: dgi_migrate.method
+      method: getMimeType
+      source: '@_file'
+  status:
+    - plugin: default_value
+      default_value: 1
+  uid:
+    - plugin: dgi_migrate.method
+      method: getOwnerId
+      source: '@_file'
+migration_dependencies:
+  required:
+    - dspace_nodes
+    - dspace_mets_files
+    - dspace_orig_file
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_dspace
