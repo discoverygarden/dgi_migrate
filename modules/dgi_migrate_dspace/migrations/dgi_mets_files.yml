@@ -34,13 +34,21 @@ process:
     - plugin: skip_on_value
       value: true
       method: row
+  _zip_scheme:
+    - plugin: default_value
+      default_value: zip://
+  _mets_fragment:
+    - plugin: default_value
+      default_value: '#mets.xml'
+    - plugin: callback
+      callable: var_dump
+      source: '@_zip_scheme'
   _parsed_mets:
     - plugin: concat
       source:
-        - 'zip://'
+        - '@_zip_scheme'
         - '@_uri'
-        - '#mets.xml'
-
+        - '@_mets_fragment'
   status:
     - plugin: default_value
       default_value: 1

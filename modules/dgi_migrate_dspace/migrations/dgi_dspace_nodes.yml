@@ -80,3 +80,8 @@ process:
       source: '@_node_mets_parsed'
       method: query
       arg: ['//mets:dmdSec//dim:field[@mdschema="dc" and @element="identifier" and @qualifier="uri"]']
+
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_dspace

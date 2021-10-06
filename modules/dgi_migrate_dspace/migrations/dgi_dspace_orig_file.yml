@@ -5,7 +5,7 @@ migration_group: dspace_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true
-  migration: dgis_foxml_files
+  migration: dspace_mets_files
   constants:
     file_dest: 'repo-bin:/'
 destination:
