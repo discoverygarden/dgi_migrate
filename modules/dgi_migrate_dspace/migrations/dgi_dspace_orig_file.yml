@@ -7,26 +7,38 @@ source:
   track_changes: true
   migration: dspace_mets_files
   constants:
-    file_dest: 'repo-bin:/'
+    file_dest: 'public:/'
+    hash: '#'
 destination:
   plugin: entity:file
   validate: true
 
 process:
-  _noded:
-    - plugin: migration_lookup
-      source: fid
-      migration: dspace_nodes
-      no_stub: true
-    - plugin: skip_on_empty
-      method: row
-  _parsed_mets:
+  _zip_scheme:
+    - plugin: default_value
+      default_value: zip://
+  _mets_fragment:
+    - plugin: default_value
+      default_value: '#mets.xml'
+
+  _dspace_zip_uri:
     - plugin: dgi_migrate.load_entity
       source: fid
       entity_type: entity:file
     - plugin: dgi_migrate.method
       method: getFileUri
-    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: callback
+      callable: drupal_realpath
+
+  _mets_content:
+    - plugin: concat
+      source:
+        - '@_zip_scheme'
+        - '@_dspace_zip_uri'
+        - '@_mets_fragment'
+    - plugin: callback
+      callable: file_get_contents
+    - plugin: dgi_migrate.process.xml.domstring
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         mets: 'http://www.loc.gov/METS/'
@@ -35,19 +47,74 @@ process:
         xlink: 'http://www.w3.org/1999/xlink'
         dim: 'http://www.dspace.org/xmlns/dspace/dim'
 
+  _mets_node:
+    - plugin: skip_on_empty
+      method: process
+      source: '@_mets_content'
+    - plugin: dgi_migrate.method
+      method: query
+      args:
+        - '//mets:mets[1]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
+
+  _noded:
+    - plugin: migration_lookup
+      source: fid
+      migration: dspace_nodes
+      no_stub: true
+    - plugin: skip_on_empty
+      method: row
+
   filemime:
-    - plugin: dgi_migrate.method
-      source: '@_parsed_mets'
-      method: query
-      arg: ['//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE']
+    - plugin: dgi_migrate.process.xml.context_query
+      source: '@_mets_node'
+      xpath: '@_mets_content'
+      method: evaluate
+      query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
+  _ext:
+    plugin: dgi_migrate.process.extension_from_mimetype
+    source: '@filemime'
 
-  _filename:
-    - plugin: dgi_migrate.method
-      source: '@_parsed_mets'
-      method: query
-      arg: ['//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE']
+  # This would include the extension.
+  filename:
+    - plugin: dgi_migrate.process.xml.context_query
+      source: '@_mets_node'
+      xpath: '@_mets_content'
+      method: evaluate
+      query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]//mets:FLocat/@xlink:href)'
 
-  filename: '@_filename'
+  _dest_uri:
+    - plugin: concat
+      source:
+        - constants/file_dest
+        - '@filename'
+      delimiter: '/'
+
+  _obj_ds:
+    - plugin: callback
+      callable: var_dump
+      source: '@_dest_uri'
+    - plugin: concat
+      source:
+        - '@_zip_scheme'
+        - '@_dspace_zip_uri'
+        - constants/hash
+        - '@filename'
+  uri:
+    - plugin: callback
+      callable: var_dump
+      source: '@_obj_ds'
+    - plugin: dgi_migrate.naive_file_copy
+      file_exists: rename
+      source:
+        - '@_obj_ds'
+        - '@_dest_uri'
+  filesize:
+    - plugin: callback
+      callable: filesize
+      source: '@uri'
 
   status:
     - plugin: default_value

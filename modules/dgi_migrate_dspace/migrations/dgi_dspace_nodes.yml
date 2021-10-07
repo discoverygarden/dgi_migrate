@@ -16,19 +16,10 @@ process:
   _zip_scheme:
     - plugin: default_value
       default_value: zip://
-    # _path:
-    #   - plugin: callback
-    #     callable: drupal_realpath
-    #     source: '@_uri'
+
   _mets_fragment:
     - plugin: default_value
       default_value: '#mets.xml'
-    # uri:
-    #   - plugin: concat
-    #     source:
-    #       - '@_zip_scheme'
-    #       - '@_path'
-    #       - '@_mets_fragment'
 
   _dspace_zip_uri:
     - plugin: dgi_migrate.load_entity
@@ -38,11 +29,6 @@ process:
       method: getFileUri
     - plugin: callback
       callable: drupal_realpath
-
-  # _testout:
-  #   - plugin: callback
-  #     callable: var_dump
-  #     source: '@_dspace_zip_uri'
 
   _mets_content:
     - plugin: concat
