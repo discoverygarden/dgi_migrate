@@ -12,7 +12,6 @@ destination:
   validate: true
 process:
   uri: path
-  # uri: '@_uri'
   _validate:
     - plugin: callback
       callable: is_writable
@@ -34,22 +33,6 @@ process:
     - plugin: skip_on_value
       value: true
       method: row
-  # _zip_scheme:
-  #   - plugin: default_value
-  #     default_value: zip:/
-  # _path:
-  #   - plugin: callback
-  #     callable: drupal_realpath
-  #     source: '@_uri'
-  # _mets_fragment:
-  #   - plugin: default_value
-  #     default_value: '#mets.xml'
-  # uri:
-  #   - plugin: concat
-  #     source:
-  #       - '@_zip_scheme'
-  #       - '@_path'
-  #       - '@_mets_fragment'
   status:
     - plugin: default_value
       default_value: 1
