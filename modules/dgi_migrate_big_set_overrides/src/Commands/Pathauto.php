@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate_big_set_overrides\Commands;
 
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\pathauto\PathautoGeneratorInterface;
 use Drush\Commands\DrushCommands;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
@@ -33,6 +34,13 @@ class Pathauto extends DrushCommands {
   protected $entityTypeManager;
 
   /**
+   * Entity type bundle info.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $entityTypeBundleInfo;
+
+  /**
    * Logger.
    *
    * @var \Psr\Log\LoggerInterface
@@ -46,12 +54,15 @@ class Pathauto extends DrushCommands {
    *   Service that generates aliases via pathauto.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger to which to log.
    */
-  public function __construct(PathautoGeneratorInterface $pathauto_generator, EntityTypeManagerInterface $entity_type_manager, LoggerInterface $logger) {
+  public function __construct(PathautoGeneratorInterface $pathauto_generator, EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, LoggerInterface $logger) {
     $this->pathautoGenerator = $pathauto_generator;
     $this->entityTypeManager = $entity_type_manager;
+    $this->entityTypeBundleInfo = $entity_type_bundle_info;
     $this->logger = $logger;
   }
 
@@ -70,7 +81,7 @@ class Pathauto extends DrushCommands {
     'bundle' => 'islandora_object',
   ]) {
 
-    $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo('node');
+    $bundles = $this->entityTypeBundleInfo->getBundleInfo('node');
     if (!isset($bundles[$options['bundle']])) {
       throw new \Exception("The provided 'bundle' ({$options['bundle']}) is not valid for nodes.");
     }

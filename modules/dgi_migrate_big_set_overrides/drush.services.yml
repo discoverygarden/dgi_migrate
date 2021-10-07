@@ -7,6 +7,7 @@ services:
     arguments:
       - '@pathauto.generator'
       - '@entity_type.manager'
+      - '@entity_type.bundle.info'
       - '@logger.channel.dgi_migrate_big_set_overrides.path_alias'
     tags:
       - name: drush.command
