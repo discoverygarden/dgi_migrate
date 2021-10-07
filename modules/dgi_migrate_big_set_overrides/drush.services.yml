@@ -1,9 +1,12 @@
 services:
+  logger.channel.dgi_migrate_big_set_overrides.path_alias:
+    parent: logger.channel_base
+    arguments: [ 'dgi_migrate_big_set_overrides.path_alias' ]
   dgi_migrate_big_set_overrides.enable_missing_path_aliases:
     class: \Drupal\dgi_migrate_big_set_overrides\Commands\Pathauto
     arguments:
       - '@pathauto.generator'
       - '@entity_type.manager'
-      - '@logger.channel.dgi_i8_helper.path_alias'
+      - '@logger.channel.dgi_migrate_big_set_overrides.path_alias'
     tags:
       - name: drush.command
