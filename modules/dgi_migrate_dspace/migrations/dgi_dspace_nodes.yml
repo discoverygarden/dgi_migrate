@@ -6,6 +6,53 @@ source:
   plugin: dgi_migrate.source.migration
   track_changes: true
   migration: dspace_mets_files
+  dsf_misc:
+    case_insensitive: &case_insensitive true
+    base_mods_node: &base_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      missing_behavior: skip_process
+      source: '@_mods_node'
+      xpath: '@_mets_xpath'
+    nested_mods_node: &nested_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      source: 'parent_value'
+      xpath: 'parent_row/dest/_mets_xpath'
+    generic_term:
+      after: &generic_term_after
+        _auth_value_uri:
+          - << : *nested_mods_node
+            query: 'string(@valueURI)'
+            method: evaluate
+          # - plugin: default_value
+          #   default_value: 'N/A'
+        _auth_source:
+          - << : *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
+          # - plugin: default_value
+          #   default_value: 'N/A'
+        _value:
+          - << : *nested_mods_node
+            query: 'normalize-space(.)'
+            method: evaluate
+          # - plugin: default_value
+          #   default_value: 'N/A'
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          # - plugin: migration_lookup
+          #   migration: dgis_stub_terms_generic
+          #   stub_id: dgis_stub_terms_generic
+      extract: &generic_term_extract
+        plugin: dgi_migrate.process.single_extract
+        index: [actual]
 
 destination:
   plugin: entity:node
@@ -30,15 +77,13 @@ process:
     - plugin: callback
       callable: drupal_realpath
 
-  _mets_content:
+  _mets_xpath:
     - plugin: concat
       source:
         - '@_zip_scheme'
         - '@_dspace_zip_uri'
         - '@_mets_fragment'
-    - plugin: callback
-      callable: file_get_contents
-    - plugin: dgi_migrate.process.xml.domstring
+    - plugin: dgi_migrate.process.xml.domfile
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         mets: 'http://www.loc.gov/METS/'
@@ -50,7 +95,7 @@ process:
   _mets_node:
     - plugin: skip_on_empty
       method: process
-      source: '@_mets_content'
+      source: '@_mets_xpath'
     - plugin: dgi_migrate.method
       method: query
       args:
@@ -59,10 +104,23 @@ process:
       callable: iterator_to_array
     - plugin: array_shift
 
+  _mods_node:
+    - plugin: skip_on_empty
+      method: process
+      source: '@_mets_xpath'
+    - plugin: dgi_migrate.method
+      method: query
+      args:
+        - '/mets:mets/mets:dmdSec/mets:mdWrap[@MDTYPE="MODS"]/mets:xmlData/mods:mods'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
+
+  ##### METADATA #####
   title:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'
-      xpath: '@_mets_content'
+      xpath: '@_mets_xpath'
       method: evaluate
       query: 'string(//mets:mdWrap[@MDTYPE="MODS"]/mets:xmlData//mods:titleInfo/mods:title)'
     - plugin: default_value
@@ -71,7 +129,7 @@ process:
   _i8_model_uri:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'
-      xpath: '@_mets_content'
+      xpath: '@_mets_xpath'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
     - plugin: static_map
@@ -90,6 +148,7 @@ process:
     - plugin: skip_on_empty
       method: row
       message: 'Failed to lookup the model taxonomy term.'
+
   field_resource_type:
     - plugin: default_value
       source: '@_resource_type'
@@ -99,31 +158,175 @@ process:
       bundle_key: vid
       entity_type: taxonomy_term
       value_key: name
-      ignore_case: &case_insensitive true
-  # field_display_hints:
-  #   - plugin: dgi_migrate.process.static_map
-  #     source: '@_i8_model_uri'
-  #     bypass: true
-  #     map:
-  #       - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
-  #       - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
-  #       - ['http://id.loc.gov/ontologies/bibframe/part', ['http://openseadragon.github.io']]
+      ignore_case: *case_insensitive
+  field_display_hints:
+    - plugin: dgi_migrate.process.static_map
+      source: '@_i8_model_uri'
+      bypass: true
+      map:
+        - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
+        - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+        - ['http://id.loc.gov/ontologies/bibframe/part', ['http://openseadragon.github.io']]
+    - plugin: flatten
+    - plugin: skip_on_empty
+      method: process
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_display
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+
+  field_handle:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="uri"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+
+  field_ark:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="ark"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_description:
+    - << : *base_mods_node
+      query: 'mods:abstract'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_edtf_date_issued:
+    - << : *base_mods_node
+      query: '//mods:originInfo/mods:dateIssued[@encoding="iso8601"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_digital_origin:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:digitalOrigin'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_doi:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="doi"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_electronic_locator:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_enumeration_and_chronology:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_extent:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:extent'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+
+  #### field_subject
+  _subject_topic:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:topic[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        field_subject:
+          - plugin: callback
+            callable: var_dump
+          - plugin: entity_generate
+            bundle: subject
+            bundle_key: vid
+            entity_type: taxonomy_term
+            value_key: name
+            ignore_case: *case_insensitive
+    #     _vid:
+    #       - plugin: default_value
+    #         default_value: subject
+    #     <<: *generic_term_after
+    # - <<: *generic_term_extract
+  # _field_subject:
+  #   - plugin: get
+  #     source:
+  #       - '@_subject_topic'
   #   - plugin: flatten
-  #   - plugin: skip_on_empty
-  #     method: process
-  #   - plugin: entity_lookup
-  #     bundle_key: vid
-  #     bundle: islandora_display
-  #     value_key: field_external_uri
-  #     entity_type: taxonomy_term
-  #     # XXX: migrate_plus's case comparison makes assumptions about the entity's
-  #     # "main" property... we want "uri", but it assumes "value".
-  #     ignore_case: true
-  # field_handle:
-  #   - plugin: dgi_migrate.method
-  #     source: '@_node_mets_parsed'
-  #     method: query
-  #     arg: ['//mets:dmdSec//dim:field[@mdschema="dc" and @element="identifier" and @qualifier="uri"]']
+  #   - plugin: callback
+  #     callable: var_dump
+  #   - plugin: multiple_values
+  #   - plugin: callback
+  #     callable: var_dump
+  #   - plugin: dgi_migrate.sub_process
+  #     process_values: true
+  #     values:
+  #       field_subject:
+  #         - plugin: callback
+  #           callable: var_dump
+  #         - plugin: entity_generate
+  #           bundle: subject
+  #           bundle_key: vid
+  #           entity_type: taxonomy_term
+  #           value_key: name
+  #           ignore_case: *case_insensitive
+    # - plugin: sub_process
+    #   source: _field_subject
+    #   process:
+    #     field_subject:
+    #       # - plugin: skip_on_empty
+    #       #   method: row
+    #       - plugin: callback
+    #         callable: var_dump
+    #       - plugin: entity_generate
+    #         bundle: subject
+    #         bundle_key: vid
+    #         entity_type: taxonomy_term
+    #         value_key: name
+    #         ignore_case: *case_insensitive
 
 dependencies:
   enforced:

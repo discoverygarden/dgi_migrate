@@ -93,9 +93,6 @@ process:
       delimiter: '/'
 
   _obj_ds:
-    - plugin: callback
-      callable: var_dump
-      source: '@_dest_uri'
     - plugin: concat
       source:
         - '@_zip_scheme'
@@ -103,9 +100,6 @@ process:
         - constants/hash
         - '@filename'
   uri:
-    - plugin: callback
-      callable: var_dump
-      source: '@_obj_ds'
     - plugin: dgi_migrate.naive_file_copy
       file_exists: rename
       source:
