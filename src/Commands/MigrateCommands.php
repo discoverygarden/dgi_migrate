@@ -5,6 +5,7 @@ namespace Drupal\dgi_migrate\Commands;
 use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate_tools\MigrateTools;
 
 /**
  * Migration command.
@@ -75,7 +76,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'limit' => self::REQ,
     'feedback' => self::REQ,
     'idlist' => self::REQ,
-    'idlist-delimiter' => self::DEFAULT_ID_LIST_DELIMITER,
+    'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
     'update' => FALSE,
     'force' => FALSE,
     'continue-on-failure' => FALSE,
@@ -227,7 +228,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'tag' => self::REQ,
     'feedback' => self::REQ,
     'idlist' => self::REQ,
-    'idlist-delimiter' => self::DEFAULT_ID_LIST_DELIMITER,
+    'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
     'skip-progress-bar' => FALSE,
     'continue-on-failure' => FALSE,
     'statuses' => self::REQ,
