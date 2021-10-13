@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\dgi_migrate_big_set_overrides\Commands;
+namespace Drupal\dgi_migrate_regenerate_pathauto_aliases\Commands;
 
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\pathauto\PathautoGeneratorInterface;
@@ -71,8 +71,8 @@ class Pathauto extends DrushCommands {
    *
    * @option bundle The "bundle" of the node type to derive.
    *
-   * @command dgi_migrate_big_set_overrides:enable-missing-path-aliases
-   * @aliases dmbso:empa
+   * @command dgi_migrate_regenerate_pathauto_aliases:enable-missing-path-aliases
+   * @aliases dmrpa:empa
    *
    * @validate-module-enabled dgi_i8_helper
    * @dgi-i8-helper-user-wrap

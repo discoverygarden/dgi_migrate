@@ -1,0 +1,8 @@
+name: 'DGI Migrate, regenerate Pathauto aliases'
+description: "Provides a way to regenerate Pathauto aliases that were initially disabled."
+type: module
+package: DGI
+core_version_requirement: ^8 || ^9
+dependencies:
+  - pathauto:pathauto
+  - dgi_i8_helper:dgi_i8_helper

@@ -1,0 +1,13 @@
+services:
+  logger.channel.dgi_migrate_regenerate_pathauto_aliases:
+    parent: logger.channel_base
+    arguments: ['dgi_migrate_regenerate_pathauto_aliases']
+  dgi_migrate_regenerate_pathauto_aliases:
+    class: \Drupal\dgi_migrate_regenerate_pathauto_aliases\Commands\Pathauto
+    arguments:
+      - '@pathauto.generator'
+      - '@entity_type.manager'
+      - '@entity_type.bundle.info'
+      - '@logger.channel.dgi_migrate_regenerate_pathauto_aliases'
+    tags:
+      - name: drush.command
