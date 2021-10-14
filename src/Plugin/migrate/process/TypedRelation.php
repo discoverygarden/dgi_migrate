@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
+namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\dgi_migrate\Plugin\migrate\process\SubProcess;
 use Drupal\migrate\MigrateExecutableInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Example:
  * @code
  * process:
- *   - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+ *   - plugin: dgi_migrate.typed_relation
  *     source: '@name_node'
  *     xpath: @_xpath_thing
  *     field_name: 'node.islandora_object.field_linked_agent'
@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @endcode
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate_foxml_standard_mods.typed_relation"
+ *   id = "dgi_migrate.typed_relation"
  * )
  */
 class TypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
