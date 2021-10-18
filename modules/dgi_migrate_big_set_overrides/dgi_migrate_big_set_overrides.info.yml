@@ -3,4 +3,3 @@ description: "Toggle off some things that take cause issues with resource constr
 type: module
 package: DGI
 core_version_requirement: ^8 || ^9
-dependencies: []
