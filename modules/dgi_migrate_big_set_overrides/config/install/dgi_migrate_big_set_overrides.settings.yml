@@ -1,0 +1,20 @@
+---
+overrides:
+  - config: context.context.repository_item_content_sync_helper_export
+    parents:
+      - disabled
+    value: true
+  - config: context.context.repository_item_media_content_sync_helper_export
+    parents:
+      - disabled
+    value: true
+  # XXX: Yes, is "respository", not "repository".
+  - config: pathauto.pattern.respository_title
+    parents:
+      - status
+    value: false
+  - config: search_api.index.default_solr_index
+    parents:
+      - options
+      - index_directly
+    value: false

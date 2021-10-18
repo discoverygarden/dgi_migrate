@@ -1,0 +1,5 @@
+---
+system.admin_config_dgi_migrate_foxml_standard_mods_xslt:
+  title: FOXML Migration, MODS XSLT
+  parent: system.admin_config_dgi_migrate
+  route_name: dgi_migrate_foxml_standard_mods_xslt.admin_settings_form
