@@ -73,9 +73,6 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-  # _ext:
-  #   plugin: dgi_migrate.process.extension_from_mimetype
-  #   source: '@filemime'
 
   # This would include the extension.
   filename:

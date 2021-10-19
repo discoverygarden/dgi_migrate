@@ -57,11 +57,9 @@ process:
   _zip_scheme:
     - plugin: default_value
       default_value: zip://
-
   _mets_fragment:
     - plugin: default_value
       default_value: '#mets.xml'
-
   _dspace_zip_uri:
     - plugin: dgi_migrate.load_entity
       source: fid
@@ -70,7 +68,6 @@ process:
       method: getFileUri
     - plugin: callback
       callable: drupal_realpath
-
   _mets_xpath:
     - plugin: concat
       source:
@@ -85,7 +82,6 @@ process:
         xsi: 'http://www.w3.org/2001/XMLSchema-instance'
         xlink: 'http://www.w3.org/1999/xlink'
         dim: 'http://www.dspace.org/xmlns/dspace/dim'
-
   _mets_node:
     - plugin: skip_on_empty
       method: process
@@ -97,7 +93,6 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: array_shift
-
   _mods_node:
     - plugin: skip_on_empty
       method: process
@@ -127,8 +122,6 @@ process:
       xpath: '@_mets_xpath'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-    # - plugin: default_value
-    #   default_value: '@_is_collection'
     - plugin: static_map
       bypass: false
       map:
@@ -146,7 +139,6 @@ process:
     - plugin: skip_on_empty
       method: row
       message: 'Failed to lookup the model taxonomy term.'
-
   _resource_type:
     - << : *base_mods_node
       query: 'mods:typeOfResource'
@@ -168,7 +160,6 @@ process:
       entity_type: taxonomy_term
       value_key: name
       ignore_case: *case_insensitive
-
   field_display_hints:
     - plugin: skip_on_value
       source: '@_i8_model_uri'
@@ -203,7 +194,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   field_description:
     - << : *base_mods_node
       query: 'mods:abstract'
@@ -214,7 +204,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   field_extent:
     - << : *base_mods_node
       query: 'mods:physicalDescription/mods:extent'
@@ -225,7 +214,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   field_use_and_reproduction:
     - << : *base_mods_node
       query: 'mods:accessCondition[@type="useAndReproduction"]'
@@ -236,7 +224,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   _genre:
     - << : *base_mods_node
       query: 'mods:genre'
@@ -257,7 +244,6 @@ process:
       entity_type: taxonomy_term
       value_key: name
       ignore_case: *case_insensitive
-
   field_local_identifier:
     - << : *base_mods_node
       query: 'mods:identifier[@type="local"]'
@@ -268,7 +254,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   _language:
     - << : *base_mods_node
       query: 'mods:language/mods:languageTerm'
@@ -289,7 +274,6 @@ process:
       entity_type: taxonomy_term
       value_key: name
       ignore_case: *case_insensitive
-
   field_note:
     - << : *base_mods_node
       query: 'mods:note[not(@type)]'
@@ -300,7 +284,6 @@ process:
       property: nodeValue
     - plugin: single_value
     - plugin: null_coalesce
-
   field_title:
     - << : *base_mods_node
       query: 'mods:titleInfo/mods:title'
@@ -326,7 +309,6 @@ process:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
             property: nodeValue
-
   field_note_paragraph:
     - << : *base_mods_node
       query: 'mods:note[@type]'
@@ -352,146 +334,6 @@ process:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
             property: nodeValue
-
-  field_origin_information:
-    - << : *base_mods_node
-      query: 'mods:originInfo'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_paragraph_generate
-      validate: *validate
-      type: origin_information
-      process_values: true
-      values:
-        _field_date_captured_single:
-          - << : *nested_mods_node
-            query: '..//mods:extension/mods:dateAccessioned'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_date_captured_start:
-          - << : *nested_mods_node
-            query: 'mods:dateCaptured[@point="start"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_date_captured_end:
-          - << : *nested_mods_node
-            query: 'mods:dateCaptured[@point="end"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        field_date_captured:
-          - plugin: dgi_migrate.process.assemble_date
-            single_date: '@_field_date_captured_single'
-            range_start: '@_field_date_captured_start'
-            range_end: '@_field_date_captured_end'
-            get_values: true
-          - plugin: dgi_migrate_edtf_validator
-            intervals: false
-            strict: true
-        _field_date_issued_single:
-          - << : *nested_mods_node
-            query: 'mods:dateIssued[not(@start)]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_date_issued_start:
-          - << : *nested_mods_node
-            query: '../mods:extension/mods:dateIssued[@point="start"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_date_issued_end:
-          - << : *nested_mods_node
-            query: '../mods:extension/mods:dateIssued[@point="end"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        field_date_issued:
-          - plugin: dgi_migrate.process.assemble_date
-            single_date: '@_field_date_issued_single'
-            range_start: '@_field_date_issued_start'
-            range_end: '@_field_date_issued_end'
-            get_values: true
-          - plugin: skip_on_empty
-            method: process
-          - plugin: dgi_migrate_edtf_validator
-            intervals: true
-            strict: true
-        _field_other_date_single:
-          - << : *nested_mods_node
-            query: 'mods:dateOther[not(@point)]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_other_date_start:
-          - << : *nested_mods_node
-            query: 'mods:dateOther[@point="start"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        _field_other_date_end:
-          - << : *nested_mods_node
-            query: 'mods:dateOther[@point="end"]'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
-        field_other_date:
-          - plugin: dgi_migrate.process.assemble_date
-            single_date: '@_field_other_date_single'
-            range_start: '@_field_other_date_start'
-            range_end: '@_field_other_date_end'
-            get_values: true
-          - plugin: dgi_migrate_edtf_validator
-            intervals: true
-            strict: true
-        field_publisher:
-          - << : *nested_mods_node
-            query: 'mods:publisher'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-
   field_related_item_paragraph:
     - << : *base_mods_node
       query: 'mods:relatedItem'
@@ -577,7 +419,87 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
-
+  # Date Accessioned.
+  _origin_info_date_accessioned:
+    - << : *base_mods_node
+      query: 'mods:extension/mods:dateAccessioned[not(@point)]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: skip_on_empty
+      method: process
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: origin_information
+      process_values: true
+      values:
+        field_date_captured:
+          - plugin: get
+            source: parent_value
+          - plugin: dgi_migrate_edtf_validator
+            intervals: false
+            strict: true
+        field_event_type:
+          - plugin: default_value
+            default_value: "dateAccessioned"
+  # Date Available.
+  _origin_info_date_available:
+    - << : *base_mods_node
+      query: 'mods:extension/mods:dateAvailable[not(@point)]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: skip_on_empty
+      method: process
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: origin_information
+      process_values: true
+      values:
+        field_date_issued:
+          - plugin: get
+            source: parent_value
+          - plugin: dgi_migrate_edtf_validator
+            intervals: false
+            strict: true
+        field_event_type:
+          - plugin: default_value
+            default_value: "dateAvailable"
+  # Date Issued.
+  _origin_info_date_issued:
+    - << : *base_mods_node
+      query: 'mods:originInfo/mods:dateIssued'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: skip_on_empty
+      method: process
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: origin_information
+      process_values: true
+      values:
+        field_date_issued:
+          - plugin: get
+            source: parent_value
+          - plugin: dgi_migrate_edtf_validator
+            intervals: false
+            strict: true
+        field_event_type:
+          - plugin: default_value
+            default_value: "dateIssued"
+  field_origin_information:
+    - plugin: merge
+      source:
+        - '@_origin_info_date_accessioned'
+        - '@_origin_info_date_available'
+        - '@_origin_info_date_issued'
   field_temporal:
     - << : *base_mods_node
       query: 'mods:subject/mods:temporal[normalize-space()]'
@@ -596,7 +518,6 @@ process:
       entity_type: taxonomy_term
       value_key: name
       ignore_case: *case_insensitive
-
   _subject_topic:
     - << : *base_mods_node
       query: 'mods:subject/mods:topic[normalize-space()]'
@@ -615,15 +536,11 @@ process:
       entity_type: taxonomy_term
       value_key: name
       ignore_case: *case_insensitive
-
   field_subject:
     - plugin: get
       source:
         - '@_subject_topic'
-        # - '@_subject_name_personal'
-        # - '@_subject_name_corporate'
     - plugin: flatten
-
   field_linked_agent:
     - << : *base_mods_node
       query: 'mods:name[not(@type)]'

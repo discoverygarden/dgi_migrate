@@ -237,7 +237,6 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
       }
       foreach ($xpath->query('mods:roleTerm[@type="text" or not(@type)][normalize-space()]', $role_node) as $text) {
         $content = $xpath->evaluate('normalize-space(.)', $text);
-        var_dump("\n$content");
 
         // XXX: Sometimes, there can be codes in "text"/untyped roleTerm.
         if (isset($this->mapping[$content])) {
@@ -259,7 +258,6 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
         }
       }
     }
-    var_dump($roles);
 
     return $roles;
   }
