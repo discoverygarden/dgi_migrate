@@ -20,7 +20,6 @@ process:
   _mets_fragment:
     - plugin: default_value
       default_value: '#mets.xml'
-
   _dspace_zip_uri:
     - plugin: dgi_migrate.load_entity
       source: fid
@@ -29,7 +28,6 @@ process:
       method: getFileUri
     - plugin: callback
       callable: drupal_realpath
-
   _mets_content:
     - plugin: concat
       source:
@@ -46,7 +44,6 @@ process:
         xsi: 'http://www.w3.org/2001/XMLSchema-instance'
         xlink: 'http://www.w3.org/1999/xlink'
         dim: 'http://www.dspace.org/xmlns/dspace/dim'
-
   _mets_node:
     - plugin: skip_on_empty
       method: process
@@ -58,7 +55,6 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: array_shift
-
   _noded:
     - plugin: migration_lookup
       source: fid
@@ -73,7 +69,8 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-
+    - plugin: skip_on_empty
+      method: row
   # This would include the extension.
   filename:
     - plugin: dgi_migrate.process.xml.context_query
@@ -81,14 +78,12 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]//mets:FLocat/@xlink:href)'
-
   _dest_uri:
     - plugin: concat
       source:
         - constants/file_dest
         - '@filename'
       delimiter: '/'
-
   _obj_ds:
     - plugin: concat
       source:

@@ -43,7 +43,6 @@ process:
   _mets_fragment:
     - plugin: default_value
       default_value: '#mets.xml'
-
   _dspace_zip_uri:
     - plugin: dgi_migrate.load_entity
       source: fid
@@ -52,7 +51,6 @@ process:
       method: getFileUri
     - plugin: callback
       callable: drupal_realpath
-
   _mets_content:
     - plugin: concat
       source:
@@ -69,7 +67,6 @@ process:
         xsi: 'http://www.w3.org/2001/XMLSchema-instance'
         xlink: 'http://www.w3.org/1999/xlink'
         dim: 'http://www.dspace.org/xmlns/dspace/dim'
-
   _mets_node:
     - plugin: skip_on_empty
       method: process
@@ -81,7 +78,6 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: array_shift
-
   # Basing the model off of the mimetype.
   _i8_model_uri:
     - plugin: dgi_migrate.process.xml.context_query
@@ -94,7 +90,6 @@ process:
       map:
         'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
         'application/pdf': 'https://schema.org/DigitalDocument'
-
   bundle:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'
@@ -106,7 +101,6 @@ process:
       map:
         'application/jpeg': 'image'
         'application/pdf': 'file'
-
   # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
   # our fork of islandora: https://github.com/Islandora/islandora/pull/829
   #field_file_size:
@@ -124,7 +118,6 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
-
   field_mime_type:
     - plugin: dgi_migrate.method
       method: getMimeType
