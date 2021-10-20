@@ -16,6 +16,8 @@ source:
       type: string
     display_form:
       type: string
+    affiliate_tid:
+      type: long
   dsf_misc:
     type: &type entity:taxonomy_term
     bundle: &bundle corporate_body
@@ -30,7 +32,7 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
-  overwrite_properties: []
+  overwrite_properties: [field_relationships]
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
@@ -74,6 +76,60 @@ process:
     - plugin: null_coalesce
     - plugin: skip_on_empty
       method: process
+
+  _original_relationships:
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - plugin: dgi_migrate.load_entity
+      type: *type
+    - plugin: dgi_migrate.subproperty
+      property: field_relationships
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: dgi_migrate.method
+      method: getValue
+
+  _affiliate_relationship:
+    - plugin: default_value
+      default_value: 'schema:memberOf'
+  _affiliation_relationship_exists:
+    # Can't exist if we _have_ nothing being added.
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    # Can't exist if we're adding a new term.
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - << : *lookup_defaults
+      conditions:
+        - [tid, '@tid']
+        - ['field_relationships.%delta.target_id', affiliation_tid]
+        - ['field_relationships.%delta.rel_type', '@_affiliate_relationship']
+  _new_relationship/0/target_id:
+    - plugin: skip_on_value
+      source: '@_affiliation_relationship_exists'
+      method: process
+      value: ''
+      not_equals: true
+    - plugin: get
+      source: affilation_tid
+  _new_relationship/0/rel_type:
+    - plugin: skip_on_value
+      source: '@_affiliation_relationship_exists'
+      method: process
+      value: ''
+      not_equals: true
+    - plugin: get
+      source: '@_affilate_relationship'
+
+  field_relationships:
+    - plugin: merge
+      source:
+        - '@_original_relationships'
+        - '@_new_relationship'
+
 dependencies:
   enforced:
     module:

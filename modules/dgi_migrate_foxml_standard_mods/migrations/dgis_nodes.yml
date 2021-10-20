@@ -764,6 +764,15 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
+        _affiliation:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
         target_id:
           - plugin: get
             source:
@@ -774,6 +783,7 @@ process:
               - '@_family_name'
               - '@_date_name'
               - '@_display_form'
+              - '@_affiliation'
           - plugin: flatten
           - plugin: migration_lookup
             migration: dgis_stub_terms_person
@@ -809,6 +819,15 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
+        _affiliation:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
         target_id:
           - plugin: get
             source:
@@ -817,6 +836,7 @@ process:
               - '@_untyped_names'
               - '@_date_name'
               - '@_display_form'
+              - '@_affiliation'
           - plugin: flatten
           - plugin: migration_lookup
             migration: dgis_stub_terms_corporate_body
@@ -1580,6 +1600,15 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
+        _affiliation:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
         target_id:
           - plugin: get
             source:
@@ -1590,6 +1619,7 @@ process:
               - '@_family_name'
               - '@_date_name'
               - '@_display_form'
+              - '@_affiliation'
           - plugin: flatten
           - plugin: migration_lookup
             migration: dgis_stub_terms_person
@@ -1629,6 +1659,15 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
+        _affiliation:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
         target_id:
           - plugin: get
             source:
@@ -1637,6 +1676,7 @@ process:
               - '@_untyped_names'
               - '@_date_name'
               - '@_display_form'
+              - '@_affiliation'
           - plugin: flatten
           - plugin: migration_lookup
             migration: dgis_stub_terms_corporate_body
@@ -1732,6 +1772,7 @@ migration_dependencies:
     - islandora_tags
     - dgis_stub_nodes
     - dgis_stub_terms_person
+    - dgis_stub_terms_affiliate
     - dgis_stub_terms_corporate_body
     - dgis_stub_terms_generic
 dependencies:
