@@ -36,7 +36,7 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
-  overwrite_properties: []
+  overwrite_properties: [field_relationships]
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
