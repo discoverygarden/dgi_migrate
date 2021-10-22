@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @endcode
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate_foxml_standard_mods.typed_relation"
+ *   id = "dgi_migrate.typed_relation"
  * )
  */
 class DgiTypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
