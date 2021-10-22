@@ -25,10 +25,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @endcode
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.typed_relation"
+ *   id = "dgi_migrate_foxml_standard_mods.typed_relation"
  * )
  */
-class TypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
+class DgiTypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
 
   /**
    * An associative array mapping codes to textual representations.
