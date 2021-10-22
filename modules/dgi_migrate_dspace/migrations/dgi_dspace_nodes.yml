@@ -115,19 +115,43 @@ process:
     - plugin: default_value
       default_value: Untitled
 
-  # Basing the model off of the mimetype.
-  _i8_model_uri:
+  _is_Collection:
+    - plugin: dgi_migrate.process.xml.context_query
+      missing_behavior: skip_process
+      source: '@_mets_node'
+      xpath: '@_mets_xpath'
+      query: 'mets:dmdSec[@ID="dmdSec_2"]/mets:mdWrap/mets:xmlData/dim:dim/@dspaceType'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+    - plugin: skip_on_value
+      method: process
+      value: ITEM
+  _is_Item:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'
       xpath: '@_mets_xpath'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
+    - plugin: skip_on_empty
+      method: process
+
+  # Basing the model off of the mimetype or Dspace type (COLLECTION OR ITEM).
+  _i8_model_uri:
+    - plugin: null_coalesce
+      source:
+        - '@_is_Collection'
+        - '@_is_Item'
     - plugin: static_map
       bypass: false
       map:
         'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
         'application/pdf': 'https://schema.org/DigitalDocument'
-        '': 'http://purl.org/dc/dcmitype/Collection'
+        'COLLECTION': 'http://purl.org/dc/dcmitype/Collection'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
