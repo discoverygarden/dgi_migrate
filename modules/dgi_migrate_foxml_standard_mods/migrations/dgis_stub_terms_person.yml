@@ -21,7 +21,7 @@ source:
     display_form:
       type: string
     affiliation_tid:
-      type: long
+      type: integer
   dsf_misc:
     type: &type entity:taxonomy_term
     bundle: &bundle person
