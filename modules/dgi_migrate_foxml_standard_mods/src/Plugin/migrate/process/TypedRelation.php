@@ -110,7 +110,16 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
       }
 
       list($entity_type, $bundle, $field_name) = explode('.', $configuration['field_name']);
-      $field_def = $entity_field_manager->getFieldDefinitions($entity_type, $bundle)[$field_name];
+      $defs = $entity_field_manager->getFieldDefinitions($entity_type, $bundle);
+
+      if (isset($defs[$field_name])) {
+        $field_def = $defs[$field_name];
+      }
+      else {
+        throw new \InvalidArgumentException(strtr('The specified field :field does not appear to exist.', [
+          ':field' => $field_name,
+        ]));
+      }
 
       if ($field_def->getType() !== 'typed_relation') {
         throw new \InvalidArgumentException(strtr('Field of type :type passed; :required required.', [
