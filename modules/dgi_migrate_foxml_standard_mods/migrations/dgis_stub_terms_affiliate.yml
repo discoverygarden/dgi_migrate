@@ -20,30 +20,22 @@ destination:
   validate: &validate false
   overwrite_properties: []
 process:
-  _affiliate_keys/0:
-    - plugin: default_value
-      default_value: ''
-  _affiliate_keys/1:
-    - plugin: default_value
-      default_value: ''
-  _affiliate_keys/2:
-    - plugin: get
-      source: untyped_name
-  _affiliate_keys/3:
-    - plugin: default_value
-      default_value: ''
-  _affiliate_keys/4:
-    - plugin: default_value
-      default_value: ''
-  _affiliate_keys/5:
+  _blank:
     - plugin: default_value
       default_value: ''
 
   tid:
     - plugin: migration_lookup
-      source: '@_affiliate_keys'
+      source:
+        - '@_blank'
+        - '@_blank'
+        - untyped_name
+        - '@_blank'
+        - '@_blank'
+        - '@_blank'
       migration: dgis_stub_terms_corporate_body
       stub_id: dgis_stub_terms_corporate_body
+
 dependencies:
   enforced:
     module:
