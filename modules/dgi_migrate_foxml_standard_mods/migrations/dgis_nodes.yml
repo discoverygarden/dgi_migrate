@@ -764,7 +764,7 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
-        _affiliation:
+        _affiliation_lookup:
           - << : *nested_mods_node
             query: 'normalize-space(mods:affiliation[normalize-space()])'
             method: evaluate
@@ -773,6 +773,10 @@ process:
           - plugin: migration_lookup
             migration: dgis_stub_terms_affiliate
             stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
         target_id:
           - plugin: get
             source:
@@ -819,7 +823,7 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
-        _affiliation:
+        _affiliation_lookup:
           - << : *nested_mods_node
             query: 'normalize-space(mods:affiliation[normalize-space()])'
             method: evaluate
@@ -828,6 +832,10 @@ process:
           - plugin: migration_lookup
             migration: dgis_stub_terms_affiliate
             stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
         target_id:
           - plugin: get
             source:
@@ -1600,7 +1608,7 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
-        _affiliation:
+        _affiliation_lookup:
           - << : *nested_mods_node
             query: 'normalize-space(mods:affiliation[normalize-space()])'
             method: evaluate
@@ -1609,6 +1617,10 @@ process:
           - plugin: migration_lookup
             migration: dgis_stub_terms_affiliate
             stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
         target_id:
           - plugin: get
             source:
@@ -1659,7 +1671,7 @@ process:
           - << : *nested_mods_node
             query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
             method: evaluate
-        _affiliation:
+        _affiliation_lookup:
           - << : *nested_mods_node
             query: 'normalize-space(mods:affiliation[normalize-space()])'
             method: evaluate
@@ -1668,6 +1680,10 @@ process:
           - plugin: migration_lookup
             migration: dgis_stub_terms_affiliate
             stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
         target_id:
           - plugin: get
             source:
