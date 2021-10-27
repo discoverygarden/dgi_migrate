@@ -7,7 +7,7 @@ source:
   track_changes: true
   migration: dspace_mets_files
   constants:
-    file_dest: 'public:/'
+    file_dest: 'repo-bin:/'
     hash: '#'
 destination:
   plugin: entity:file

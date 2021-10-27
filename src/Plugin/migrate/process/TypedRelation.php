@@ -2,7 +2,6 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
-use Drupal\dgi_migrate\Plugin\migrate\process\SubProcess;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
@@ -28,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "dgi_migrate.typed_relation"
  * )
  */
-class DgiTypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
+class TypedRelation extends SubProcess implements ContainerFactoryPluginInterface {
 
   /**
    * An associative array mapping codes to textual representations.
