@@ -2,7 +2,7 @@
 
 namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
-use Drupal\dgi_migrate\Plugin\migrate\process\DgiTypedRelation;
+use Drupal\dgi_migrate\Plugin\migrate\process\TypedRelation as UpstreamTypedRelation;
 
 /**
  * Map to a "typed_relation" field.
