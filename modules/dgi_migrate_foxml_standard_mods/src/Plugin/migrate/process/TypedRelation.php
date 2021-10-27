@@ -21,4 +21,4 @@ use Drupal\dgi_migrate\Plugin\migrate\process\TypedRelation as UpstreamTypedRela
  *   id = "dgi_migrate_foxml_standard_mods.typed_relation"
  * )
  */
-class TypedRelation extends DgiTypedRelation {}
+class TypedRelation extends UpstreamTypedRelation {}
