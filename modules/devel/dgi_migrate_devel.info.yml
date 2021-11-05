@@ -1,0 +1,9 @@
+name: DGI Migrate Devel Plugin(s)
+description: "Devel plugins."
+type: module
+package: DGI
+core_version_requirement: ^8 || ^9
+dependencies:
+  - drupal:migrate
+  - dgi_migrate:dgi_migrate
+  - drupal:devel
