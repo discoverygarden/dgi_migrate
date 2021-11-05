@@ -20,6 +20,8 @@ source:
       type: string
     display_form:
       type: string
+    affiliation_tid:
+      type: string
   dsf_misc:
     type: &type entity:taxonomy_term
     bundle: &bundle person
@@ -34,7 +36,7 @@ destination:
   # you would need separate migrations.
   #translations: true
   validate: &validate false
-  overwrite_properties: []
+  overwrite_properties: [field_relationships]
 process:
   name:
     - plugin: dgi_migrate.process.dc_name
@@ -115,6 +117,74 @@ process:
     - plugin: null_coalesce
     - plugin: skip_on_empty
       method: process
+
+  _original_relationships:
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - plugin: dgi_migrate.load_entity
+      entity_type: *type
+    - plugin: dgi_migrate.subproperty
+      property: field_relationships
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.method
+      method: getValue
+
+  _affilation_tid:
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    - plugin: callback
+      callable: intval
+
+  _affiliate_relationship:
+    - plugin: default_value
+      default_value: 'schema:memberOf'
+  _affiliation_relationship_exists:
+    # Can't exist if we _have_ nothing being added.
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    # Can't exist if we're adding a new term.
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - << : *lookup_defaults
+      conditions:
+        - [tid, '@tid']
+        - ['field_relationships.%delta.target_id', '@_affiliation_tid']
+        - ['field_relationships.%delta.rel_type', '@_affiliate_relationship']
+  _new_relationship/0/target_id:
+    # No term to create...
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    # ... Term already exists.
+    - plugin: skip_on_value
+      source: '@_affiliation_relationship_exists'
+      method: process
+      value: ''
+      not_equals: true
+    - plugin: get
+      source: '@_affilation_tid'
+  _new_relationship/0/rel_type:
+    - plugin: skip_on_empty
+      source: '@_new_relationship/0/target_id'
+      method: process
+    - plugin: get
+      source: '@_affiliate_relationship'
+
+  field_relationships:
+    - plugin: get
+      source:
+        - '@_original_relationships'
+        - '@_new_relationship'
+    - plugin: callback
+      callable: array_filter
+    - plugin: merge
+
 dependencies:
   enforced:
     module:
