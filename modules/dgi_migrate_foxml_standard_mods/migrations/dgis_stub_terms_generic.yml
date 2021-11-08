@@ -80,6 +80,7 @@ process:
     - plugin: null_coalesce
     - plugin: skip_on_empty
       method: process
+
 dependencies:
   enforced:
     module:
