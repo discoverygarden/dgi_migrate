@@ -27,7 +27,6 @@ class Realpath extends ProcessPluginBase {
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    \Drush\Drush::output()->writeln("testing {$value}");
     $uri = $this->configuration['uri'] ?? $value;
     $real_path = \Drupal::service('file_system')->realpath($uri);
     if (!$real_path) {
