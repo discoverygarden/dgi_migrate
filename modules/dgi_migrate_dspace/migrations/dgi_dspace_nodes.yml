@@ -66,8 +66,7 @@ process:
       entity_type: entity:file
     - plugin: dgi_migrate.method
       method: getFileUri
-    - plugin: callback
-      callable: drupal_realpath
+    - plugin: dgi_migrate.realpath
   _mets_xpath:
     - plugin: concat
       source:
