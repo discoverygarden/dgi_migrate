@@ -139,7 +139,8 @@ process:
     - plugin: skip_on_empty
       method: process
 
-  # Basing the model off of the mimetype or Dspace type (COLLECTION OR ITEM).
+  # Basing the model off of the mimetype or Dspace type (COLLECTION, COMMUNITY,
+  # OR ITEM).
   _i8_model_uri:
     - plugin: null_coalesce
       source:
@@ -151,6 +152,10 @@ process:
         'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
         'application/pdf': 'https://schema.org/DigitalDocument'
         'COLLECTION': 'http://purl.org/dc/dcmitype/Collection'
+        'COMMUNITY': 'http://purl.org/dc/dcmitype/Collection'
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to map the dspace type to an islandora model.'
   field_model:
     - plugin: entity_lookup
       source: '@_i8_model_uri'
@@ -398,6 +403,9 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: explode
+            limit: 0
+            delimiter: /
         field_title_plain:
           - << : *nested_mods_node
             query: '.'
@@ -464,6 +472,7 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: false
             strict: true
+            skip_on_fail: process
         field_event_type:
           - plugin: default_value
             default_value: "dateAccessioned"
@@ -489,6 +498,7 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: false
             strict: true
+            skip_on_fail: process
         field_event_type:
           - plugin: default_value
             default_value: "dateAvailable"
@@ -514,6 +524,7 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: false
             strict: true
+            skip_on_fail: process
         field_event_type:
           - plugin: default_value
             default_value: "dateIssued"
@@ -622,8 +633,7 @@ migration_dependencies:
   required:
     - dgis_mets_files
     - islandora_tags
-    - dspace_stub_terms_corporate_body
-    - dspace_stub_terms_corporate_body
+    - dspace_stub_terms_person
     - dspace_stub_terms_generic
 
 dependencies:

@@ -5,6 +5,7 @@ namespace Drupal\dgi_migrate_edtf_validator\Plugin\migrate\process;
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\controlled_access_terms\EDTFUtils;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateSkipProcessException;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
@@ -19,6 +20,8 @@ use Drupal\migrate\Row;
  *   defaults to TRUE.
  * - strict (optional): Boolean of whether this field is supporting calendar
  *   dates or not, defaults to FALSE.
+ * - skip_on_fail (optional): 'row' or 'process' can be skipped on fail,
+ *   defaults to 'row'.
  *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate_edtf_validator"
@@ -38,8 +41,16 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    $skip_on_fail = $this->configuration['skip_on_fail'] ?? 'row';
     $errors = EDTFUtils::validate($value, $this->configuration['intervals'], $this->configuration['sets'], $this->configuration['strict']);
-    if (!empty($errors)) {
+    if (!empty($errors) && $skip_on_fail === 'process') {
+      throw new MigrateSkipProcessException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
+        ':value' => $value,
+        ':property' => $destination_property,
+        ':errors' => implode(' ', $errors),
+      ]));
+    }
+    elseif (!empty($errors)) {
       throw new MigrateSkipRowException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
         ':value' => $value,
         ':property' => $destination_property,
