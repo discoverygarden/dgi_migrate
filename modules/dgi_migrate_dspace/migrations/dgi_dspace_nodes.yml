@@ -339,13 +339,13 @@ process:
             property: nodeValue
   field_note_paragraph:
     - << : *base_mods_node
-      query: 'mods:note[@type]'
+      query: 'mods:note'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
     - plugin: dgi_paragraph_generate
       validate: *validate
-      type: title
+      type: note
       process_values: true
       values:
         field_note_type:
