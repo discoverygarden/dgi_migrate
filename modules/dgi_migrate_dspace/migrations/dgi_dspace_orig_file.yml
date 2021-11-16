@@ -77,12 +77,23 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]//mets:FLocat/@xlink:href)'
+  _dest_dir:
+    - plugin: default_value
+      default_value: 'Y-m'
+    - plugin: callback
+      callable: date
   _dest_uri:
     - plugin: concat
       source:
         - constants/file_dest
+        - '@_dest_dir'
         - '@filename'
       delimiter: '/'
+    - plugin: urlencode
+    - plugin: dgi_migrate.process.log
+      template: 'Destination Full Path: :value'
+      level: 4
+    - plugin: file_is_accessible
   _obj_ds:
     - plugin: concat
       source:
