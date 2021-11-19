@@ -339,7 +339,7 @@ process:
             property: nodeValue
   field_note_paragraph:
     - << : *base_mods_node
-      query: 'mods:note'
+      query: 'mods:note[@type="sponsorship"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -349,15 +349,8 @@ process:
       process_values: true
       values:
         field_note_type:
-          - << : *nested_mods_node
-            query: '@type'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: single_value
-          - plugin: null_coalesce
+          - plugin: default_value
+            default_value: 'funding'
         field_note:
           - plugin: dgi_migrate.subproperty
             source: 'parent_value'
@@ -534,7 +527,7 @@ process:
         - '@_origin_info_date_accessioned'
         - '@_origin_info_date_available'
         - '@_origin_info_date_issued'
-  field_temporal:
+  field_temporal_subject:
     - << : *base_mods_node
       query: 'mods:subject/mods:temporal[normalize-space()]'
     - plugin: callback

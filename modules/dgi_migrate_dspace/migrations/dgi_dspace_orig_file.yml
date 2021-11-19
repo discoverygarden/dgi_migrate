@@ -90,9 +90,6 @@ process:
         - '@filename'
       delimiter: '/'
     - plugin: urlencode
-    - plugin: dgi_migrate.process.log
-      template: 'Destination Full Path: :value'
-      level: 4
     - plugin: file_is_accessible
   _obj_ds:
     - plugin: concat
