@@ -465,7 +465,6 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: false
             strict: true
-            skip_on_fail: process
         field_event_type:
           - plugin: default_value
             default_value: "dateAccessioned"
@@ -491,42 +490,120 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: false
             strict: true
-            skip_on_fail: process
         field_event_type:
           - plugin: default_value
             default_value: "dateAvailable"
-  # Date Issued.
-  _origin_info_date_issued:
+  _origin_info_from_mods:
     - << : *base_mods_node
-      query: 'mods:originInfo/mods:dateIssued'
+      query: 'mods:originInfo'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
-    - plugin: skip_on_empty
-      method: process
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
     - plugin: dgi_paragraph_generate
       validate: *validate
       type: origin_information
       process_values: true
       values:
+        _field_date_issued_single:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_issued_start:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_issued_end:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
         field_date_issued:
-          - plugin: get
-            source: parent_value
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_issued_single'
+            range_start: '@_field_date_issued_start'
+            range_end: '@_field_date_issued_end'
+            get_values: true
           - plugin: dgi_migrate_edtf_validator
-            intervals: false
+            intervals: true
             strict: true
-            skip_on_fail: process
-        field_event_type:
-          - plugin: default_value
-            default_value: "dateIssued"
+        _field_other_date_single:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_other_date_start:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_other_date_end:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_other_date:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_other_date_single'
+            range_start: '@_field_other_date_start'
+            range_end: '@_field_other_date_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: true
+        field_publisher:
+          - << : *nested_mods_node
+            query: 'mods:publisher'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
   field_origin_information:
     - plugin: merge
       source:
         - '@_origin_info_date_accessioned'
         - '@_origin_info_date_available'
-        - '@_origin_info_date_issued'
+        - '@_origin_info_from_mods'
+  field_table_of_contents:
+    - << : *base_mods_node
+      query: 'mods:tableOfContents'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
   field_temporal_subject:
     - << : *base_mods_node
       query: 'mods:subject/mods:temporal[normalize-space()]'
