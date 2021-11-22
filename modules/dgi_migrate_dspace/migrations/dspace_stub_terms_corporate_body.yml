@@ -1,7 +1,7 @@
 ---
 id: dspace_stub_terms_corporate_body
 label: Create stub corporate/organization terms.
-migration_group: foxml_to_dgis
+migration_group: dspace_to_dgis
 source:
   plugin: embedded_data
   data_rows: []
