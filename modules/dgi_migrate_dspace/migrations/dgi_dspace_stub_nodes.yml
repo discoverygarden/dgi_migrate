@@ -36,6 +36,15 @@ process:
       bundle: islandora_object
       value_key: field_handle
       source: handle
+  field_model:
+    - plugin: default_value
+      default_value: 'http://purl.org/dc/dcmitype/Collection'
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      ignore_case: true
 dependencies:
   enforced:
     module:

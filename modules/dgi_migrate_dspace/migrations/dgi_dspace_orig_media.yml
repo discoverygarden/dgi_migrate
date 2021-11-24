@@ -77,18 +77,6 @@ process:
     - plugin: callback
       callable: iterator_to_array
     - plugin: array_shift
-  # Basing the model off of the mimetype.
-  _i8_model_uri:
-    - plugin: dgi_migrate.process.xml.context_query
-      source: '@_mets_node'
-      xpath: '@_mets_content'
-      method: evaluate
-      query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-    - plugin: static_map
-      bypass: false
-      map:
-        'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
-        'application/pdf': 'https://schema.org/DigitalDocument'
   bundle:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'

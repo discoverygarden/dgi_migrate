@@ -105,6 +105,9 @@ process:
     - plugin: array_shift
 
   ##### METADATA #####
+  status:
+    - plugin: default_value
+      default_value: 1
   title:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_mets_node'
