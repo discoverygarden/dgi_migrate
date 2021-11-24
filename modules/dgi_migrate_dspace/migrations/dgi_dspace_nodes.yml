@@ -113,7 +113,51 @@ process:
       query: 'string(//mets:mdWrap[@MDTYPE="MODS"]/mets:xmlData//mods:titleInfo/mods:title)'
     - plugin: default_value
       default_value: Untitled
-
+  field_handle:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="uri"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  nid:
+    - plugin: migration_lookup
+      source: '@field_handle'
+      migration: dspace_stub_nodes
+  _parent_handle:
+    - plugin: dgi_migrate.process.xml.context_query
+      missing_behavior: skip_process
+      source: '@_mets_node'
+      xpath: '@_mets_xpath'
+      query: 'mets:structMap[@LABEL="Parent"]//mets:mptr[@LOCTYPE="HANDLE"]/@xlink:href'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  _handle_url:
+    - plugin: default_value
+      default_value: 'http://hdl.handle.net/'
+  field_member_of:
+    - plugin: concat
+      source:
+        - '@_handle_url'
+        - '@_parent_handle'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: explode
+      limit: 0
+      delimiter: ' '
+    - plugin: migration_lookup
+      migration: dspace_stub_nodes
+      stub_id: dspace_stub_nodes
   _is_Collection:
     - plugin: dgi_migrate.process.xml.context_query
       missing_behavior: skip_process
@@ -212,16 +256,6 @@ process:
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
 
-  field_handle:
-    - << : *base_mods_node
-      query: 'mods:identifier[@type="uri"]'
-    - plugin: callback
-      callable: iterator_to_array
-    - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: single_value
-    - plugin: null_coalesce
   field_description:
     - << : *base_mods_node
       query: 'mods:abstract'
@@ -705,6 +739,7 @@ migration_dependencies:
     - islandora_tags
     - dspace_stub_terms_person
     - dspace_stub_terms_generic
+    - dspace_stub_nodes
 
 dependencies:
   enforced:
