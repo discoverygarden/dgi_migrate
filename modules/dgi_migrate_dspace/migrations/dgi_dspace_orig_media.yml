@@ -88,12 +88,10 @@ process:
       map:
         'application/jpeg': 'image'
         'application/pdf': 'file'
-  # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
-  # our fork of islandora: https://github.com/Islandora/islandora/pull/829
-  #field_file_size:
-  #  - plugin: dgi_migrate.method
-  #    method: getSize
-  #    source: '@_file'
+  field_file_size:
+    - plugin: dgi_migrate.method
+      method: getSize
+      source: '@_file'
   field_media_use:
     - plugin: default_value
       default_value: http://pcdm.org/use#OriginalFile
