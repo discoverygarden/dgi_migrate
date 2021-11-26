@@ -119,7 +119,6 @@ process:
 migration_dependencies:
   required:
     - dspace_nodes
-    - dgis_mets_files
 dependencies:
   enforced:
     module:
