@@ -60,9 +60,7 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
-    foreach (['intervals', 'sets', 'strict'] as $key) {
-      $this->configuration[$key] = (isset($configuration[$key]) ? $configuration[$key] : $this->defaultConfiguration()[$key]);
-    }
+    $this->configuration = $configuration + $this->defaultConfiguration();
   }
 
   /**
