@@ -6,6 +6,10 @@ use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileSystem;
 
 /**
  * Wrapper for FileSystem::realpath.
@@ -34,7 +38,7 @@ class Realpath extends ProcessPluginBase implements ContainerFactoryPluginInterf
    * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, FileSystemInterface $file_system) {
-    parent::__construct($configuration, $plugin_id, array $plugin_definition);
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->fileSystem = $file_system;
   }
