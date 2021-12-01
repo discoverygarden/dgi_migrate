@@ -13,9 +13,9 @@ use Drupal\migrate\Row;
  * the member_of_existing_entity column.
  *
  * @MigrateProcessPlugin(
-  *   id = "dgi.entity_lookup",
-  *   handle_multiples = TRUE
-  * )
+ *   id = "dgi.entity_lookup",
+ *   handle_multiples = TRUE
+ * )
  */
 class EntityLookup extends Upstream {
 
@@ -38,8 +38,6 @@ class EntityLookup extends Upstream {
 
     // Assume a node id is being passed if it is numeric.
     $this->lookupValueKey = is_numeric($value) ? 'nid' : 'title';
-    \Drupal::logger('my_module')->notice("look up key {$this->lookupValueKey}");
-    \Drupal::logger('my_module')->notice("value {$value}");
 
     return $this->query($value);
   }
