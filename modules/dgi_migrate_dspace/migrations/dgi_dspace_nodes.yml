@@ -351,7 +351,7 @@ process:
     - plugin: null_coalesce
   field_title:
     - << : *base_mods_node
-      query: 'mods:titleInfo/mods:title'
+      query: 'mods:titleInfo'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -371,9 +371,15 @@ process:
           - plugin: single_value
           - plugin: null_coalesce
         field_title:
+          - << : *nested_mods_node
+            query: 'mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
-            source: 'parent_value'
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
   field_note_paragraph:
     - << : *base_mods_node
       query: 'mods:note[@type="sponsorship"]'
@@ -425,6 +431,8 @@ process:
           - plugin: skip_on_empty
             method: row
             message: "Encountered invalid relatedItem/@type attribute"
+        # This only occurs a few times. When it does, it's actually the title
+        # of the related item (and there is nothing else claiming that spot).
         _title_plain_part:
           - << : *nested_mods_node
             query: 'mods:part/mods:text'
@@ -433,10 +441,15 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-          - plugin: explode
-            limit: 0
-            delimiter: /
-        field_title_plain:
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+        # The MODS in the export is invalid, containing text in <relatedItem>,
+        # but it's the title, map it in.
+        _title_plain:
           - << : *nested_mods_node
             query: '.'
           - plugin: callback
@@ -449,9 +462,14 @@ process:
           - plugin: single_value
           - plugin: callback
             callable: array_filter
-          - plugin: get
-            source: '@_title_plain_part'
           - plugin: null_coalesce
+        field_title_plain:
+          - plugin: concat
+            source:
+              - '@_title_plain_part'
+              - '@_title_plain'
+          - plugin: callback
+            callable: trim
         field_url/uri:
           - << : *nested_mods_node
             query: 'mods:location/mods:url[normalize-space()]'
