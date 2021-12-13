@@ -431,25 +431,9 @@ process:
           - plugin: skip_on_empty
             method: row
             message: "Encountered invalid relatedItem/@type attribute"
-        # This only occurs a few times. When it does, it's actually the title
-        # of the related item (and there is nothing else claiming that spot).
-        _title_plain_part:
-          - << : *nested_mods_node
-            query: 'mods:part/mods:text'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
-          - plugin: callback
-            callable: trim
-          - plugin: single_value
-          - plugin: callback
-            callable: array_filter
-          - plugin: null_coalesce
         # The MODS in the export is invalid, containing text in <relatedItem>,
         # but it's the title, map it in.
-        _title_plain:
+        field_title_plain:
           - << : *nested_mods_node
             query: '.'
           - plugin: callback
@@ -463,11 +447,6 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
-        field_title_plain:
-          - plugin: concat
-            source:
-              - '@_title_plain_part'
-              - '@_title_plain'
           - plugin: callback
             callable: trim
         field_url/uri:
