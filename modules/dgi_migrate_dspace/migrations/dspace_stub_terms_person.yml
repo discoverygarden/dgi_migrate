@@ -1,0 +1,122 @@
+---
+id: dspace_stub_terms_person
+label: Create stub person terms.
+migration_group: dspace_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    auth_source:
+      type: string
+    auth_value_uri:
+      type: string
+    untyped_name:
+      type: string
+    given_name:
+      type: string
+    family_name:
+      type: string
+    date_name_part:
+      type: string
+    display_form:
+      type: string
+  dsf_misc:
+    type: &type entity:taxonomy_term
+    bundle: &bundle person
+    case_insensitive: &case_insensitive true
+    lookup_defaults: &lookup_defaults
+      plugin: dgi_migrate.process.entity_query
+      entity_type: *type
+destination:
+  plugin: *type
+  default_bundle: *bundle
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+  overwrite_properties: []
+process:
+  name:
+    - plugin: dgi_migrate.process.dc_name
+      map:
+        untyped: untyped_name
+        family: family_name
+        given: given_name
+        date: date_name_part
+        display_form: display_form
+  field_authority_link/source:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+    - plugin: default_value
+      source: auth_source
+      default_value: other
+  field_authority_link/uri:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+  field_person_preferred_name/given:
+    - plugin: default_value
+      source: given_name
+      default_value: '(none provided)'
+  field_person_preferred_name/family:
+    - plugin: default_value
+      source: family_name
+      default_value: '(none provided)'
+  _tid_auth:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [field_authority_link.source, auth_source]
+        - [field_authority_link.uri, auth_value_uri]
+  _tid_name_parts:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [field_person_preferred_name.given, given_name]
+        - [field_person_preferred_name.family, family_name]
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+  _tid_dc_name:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [name, '@name']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+        # XXX: Strictly, these would be invalid without the given and family
+        # names being populated, due to the field definition.
+        - field_person_preferred_name.given
+        - field_person_preferred_name.family
+  _tid_dc_name_with_others:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [name, '@name']
+        - [field_person_preferred_name.given, '@field_person_preferred_name/given']
+        - [field_person_preferred_name.family, '@field_person_preferred_name/family']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+  tid:
+    - plugin: get
+      source:
+        - '@_tid_auth'
+        - '@_tid_name_parts'
+        - '@_tid_dc_name'
+        - '@_tid_dc_name_with_others'
+    - plugin: flatten
+    - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_dspace
