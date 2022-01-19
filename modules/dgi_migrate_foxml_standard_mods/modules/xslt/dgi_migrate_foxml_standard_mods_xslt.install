@@ -24,3 +24,18 @@ function dgi_migrate_foxml_standard_mods_xslt_update_8101() {
   }
 
 }
+
+/**
+ * Change over to normalize storage of XSLT with Unix line-endings.
+ *
+ * Should allow it to be diff'd in config.
+ *
+ * @see https://www.drupal.org/project/drupal/issues/2844452#comment-14072348
+ */
+function dgi_migrate_foxml_standard_mods_xslt_update_9101() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('dgi_migrate_foxml_standard_mods_xslt.settings');
+
+  $config->set('xslt', str_replace("\r\n", "\n", $config->get('xslt')))
+    ->save(TRUE);
+}

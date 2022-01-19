@@ -220,7 +220,6 @@ process:
     - plugin: migration_lookup
       migration: dgis_stub_nodes
       stub_id: dgis_stub_nodes
-      no_stub: true
   _sequence_number:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_rels_ext_node'
@@ -672,7 +671,6 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: single_value
-    - plugin: null_coalesce
   field_note_location:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'

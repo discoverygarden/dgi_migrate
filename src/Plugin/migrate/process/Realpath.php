@@ -9,7 +9,6 @@ use Drupal\migrate\MigrateException;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\File\FileSystem;
 
 /**
  * Wrapper for FileSystem::realpath.

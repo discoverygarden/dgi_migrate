@@ -35,7 +35,7 @@ class Settings extends ConfigFormBase {
     $form['xslt'] = [
       '#type' => 'textarea',
       '#title' => $this->t('XSLT'),
-      '#default_value' => $config->get('xslt'),
+      '#default_value' => $this->denormalize($config->get('xslt')),
     ];
 
     $form['allowed_remotes'] = [
@@ -49,13 +49,39 @@ class Settings extends ConfigFormBase {
   }
 
   /**
+   * Convert from stored Unix line-endings to Windows for presentation.
+   *
+   * @param string $string
+   *   A string with Windows line-endings, as used by text areas.
+   *
+   * @return string
+   *   The string with Unix line-endings.
+   */
+  protected function denormalize(string $string) : string {
+    return str_replace("\n", "\r\n", $string);
+  }
+
+  /**
+   * Convert from text areas Windows line-endings to Unix.
+   *
+   * @param string $string
+   *   A string with Windows line-endings, as used by text areas.
+   *
+   * @return string
+   *   The string with Unix line-endings.
+   */
+  protected function normalize(string $string) : string {
+    return str_replace("\r\n", "\n", $string);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
     $config = $this->config(static::CONFIG);
 
-    $xslt = $form_state->getValue('xslt');
+    $xslt = $this->normalize($form_state->getValue('xslt'));
     $xslt_textfield_changed = $xslt !== $config->get('xslt');
     if ($xslt_textfield_changed) {
       if ($xslt) {
