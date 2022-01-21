@@ -42,7 +42,7 @@ process:
       default_value: 0
   filemime:
     - plugin: default_value
-      default_value: application/xml
+      default_value: application/zip
 dependencies:
   enforced:
     module:

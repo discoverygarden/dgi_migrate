@@ -13,6 +13,7 @@ use Drupal\migrate\Row;
  * Skips processing the current row when the EDTF date isn't valid.
  *
  * Available configuration keys:
+ * - ignore_empty (optional): Boolean to ignore empty values, defaults to TRUE.
  * - intervals (optional): Boolean of whether this field is supporting intervals
  *   or not, defaults to TRUE.
  * - sets (optional): Boolean of whether this field is supporting sets or not,
@@ -38,6 +39,9 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    if ($this->configuration['ignore_empty'] && empty($value)) {
+      return $value;
+    }
     $errors = EDTFUtils::validate($value, $this->configuration['intervals'], $this->configuration['sets'], $this->configuration['strict']);
     if (!empty($errors)) {
       throw new MigrateSkipRowException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
@@ -68,6 +72,7 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
    */
   public function defaultConfiguration() {
     return [
+      'ignore_empty' => TRUE,
       'intervals' => TRUE,
       'sets' => TRUE,
       'strict' => FALSE,

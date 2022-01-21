@@ -116,6 +116,9 @@ process:
       query: 'string(//mets:mdWrap[@MDTYPE="MODS"]/mets:xmlData//mods:titleInfo/mods:title)'
     - plugin: default_value
       default_value: Untitled
+    - plugin: substr
+      start: 0
+      length: 255
   field_handle:
     - << : *base_mods_node
       query: 'mods:identifier[@type="uri"]'
@@ -183,8 +186,8 @@ process:
       xpath: '@_mets_xpath'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-    - plugin: skip_on_empty
-      method: process
+    - plugin: default_value
+      default_value: UNKNOWN
 
   # Basing the model off of the mimetype or Dspace type (COLLECTION, COMMUNITY,
   # OR ITEM).
@@ -196,10 +199,52 @@ process:
     - plugin: static_map
       bypass: false
       map:
-        'application/jpeg': 'http://purl.org/coar/resource_type/c_c513'
+        'audio/aac': 'http://purl.org/coar/resource_type/c_18cc'
+        'application/msword': 'https://schema.org/DigitalDocument'
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'https://schema.org/DigitalDocument'
+        'image/gif': 'http://purl.org/coar/resource_type/c_c513'
+        'image/jp2': 'http://purl.org/coar/resource_type/c_c513'
+        'image/jpeg': 'http://purl.org/coar/resource_type/c_c513'
+        'image/jpg': 'http://purl.org/coar/resource_type/c_c513'
+        'image/pjpeg': 'http://purl.org/coar/resource_type/c_c513'
+        'text/jpg': 'http://purl.org/coar/resource_type/c_c513'
+        'audio/mpeg': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/mpeg3': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/x-mpeg': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/x-mpeg-3': 'http://purl.org/coar/resource_type/c_18cc'
+        'video/x-mpeg': 'http://purl.org/coar/resource_type/c_18cc'
+        'video/mp4': 'http://purl.org/coar/resource_type/c_12ce'
         'application/pdf': 'https://schema.org/DigitalDocument'
+        'image/png': 'http://purl.org/coar/resource_type/c_c513'
+        'application/vnd.openxmlformats-officedocument.presentationml.slideshow': 'https://schema.org/DigitalDocument'
+        'application/mspowerpoint': 'https://schema.org/DigitalDocument'
+        'application/powerpoint': 'https://schema.org/DigitalDocument'
+        'application/vnd.ms-powerpoint': 'https://schema.org/DigitalDocument'
+        'application/x-mspowerpoint': 'https://schema.org/DigitalDocument'
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'https://schema.org/DigitalDocument'
+        'application/rtf': 'https://schema.org/DigitalDocument'
+        'application/x-rtf': 'https://schema.org/DigitalDocument'
+        'text/richtext': 'https://schema.org/DigitalDocument'
+        'image/tif': 'http://purl.org/coar/resource_type/c_c513'
+        'image/tiff': 'http://purl.org/coar/resource_type/c_c513'
+        'image/x-tiff': 'http://purl.org/coar/resource_type/c_c513'
+        'text/plain': 'https://schema.org/DigitalDocument'
+        'text/html': 'https://schema.org/DigitalDocument'
+        'audio/vnd.wave': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/wav': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/wave': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/x-wav': 'http://purl.org/coar/resource_type/c_18cc'
+        'audio/x-wave': 'http://purl.org/coar/resource_type/c_18cc'
+        'application/excel': 'https://schema.org/DigitalDocument'
+        'application/vnd.ms-excel': 'https://schema.org/DigitalDocument'
+        'application/x-excel': 'https://schema.org/DigitalDocument'
+        'application/x-msexcel': 'https://schema.org/DigitalDocument'
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'https://schema.org/DigitalDocument'
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.template': 'https://schema.org/DigitalDocument'
+        'application/vnd.ms-xpsdocument': 'https://schema.org/DigitalDocument'
         'COLLECTION': 'http://purl.org/dc/dcmitype/Collection'
         'COMMUNITY': 'http://purl.org/dc/dcmitype/Collection'
+        'UNKNOWN': 'https://schema.org/DigitalDocument'
     - plugin: skip_on_empty
       method: row
       message: 'Failed to map the dspace type to an islandora model.'
@@ -242,7 +287,7 @@ process:
       value: 'http://purl.org/dc/dcmitype/Collection'
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
-      bypass: true
+      default_value: []
       map:
         - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
         - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
@@ -497,7 +542,7 @@ process:
           - plugin: get
             source: parent_value
           - plugin: dgi_migrate_edtf_validator
-            intervals: false
+            intervals: true
             strict: true
         field_event_type:
           - plugin: default_value
@@ -522,7 +567,7 @@ process:
           - plugin: get
             source: parent_value
           - plugin: dgi_migrate_edtf_validator
-            intervals: false
+            intervals: true
             strict: true
         field_event_type:
           - plugin: default_value
