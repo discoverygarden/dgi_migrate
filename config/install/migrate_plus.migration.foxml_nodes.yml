@@ -108,7 +108,7 @@ process:
   field_display_hints:
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
-      bypass: true
+      default_value: []
       map:
         - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
         - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
