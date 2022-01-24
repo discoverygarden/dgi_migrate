@@ -196,7 +196,7 @@ process:
       source:
         - '@_is_Collection'
         - '@_is_Item'
-    - plugin: static_map
+    - plugin: dgi_migrate.process.static_map
       bypass: false
       map:
         'audio/aac': 'http://purl.org/coar/resource_type/c_18cc'
@@ -207,12 +207,11 @@ process:
         'image/jpeg': 'http://purl.org/coar/resource_type/c_c513'
         'image/jpg': 'http://purl.org/coar/resource_type/c_c513'
         'image/pjpeg': 'http://purl.org/coar/resource_type/c_c513'
-        'text/jpg': 'http://purl.org/coar/resource_type/c_c513'
         'audio/mpeg': 'http://purl.org/coar/resource_type/c_18cc'
         'audio/mpeg3': 'http://purl.org/coar/resource_type/c_18cc'
         'audio/x-mpeg': 'http://purl.org/coar/resource_type/c_18cc'
         'audio/x-mpeg-3': 'http://purl.org/coar/resource_type/c_18cc'
-        'video/x-mpeg': 'http://purl.org/coar/resource_type/c_18cc'
+        'video/x-mpeg': 'http://purl.org/coar/resource_type/c_12ce'
         'video/mp4': 'http://purl.org/coar/resource_type/c_12ce'
         'application/pdf': 'https://schema.org/DigitalDocument'
         'image/png': 'http://purl.org/coar/resource_type/c_c513'

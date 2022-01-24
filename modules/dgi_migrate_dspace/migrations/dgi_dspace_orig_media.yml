@@ -85,7 +85,7 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-    - plugin: static_map
+    - plugin: dgi_migrate.process.static_map
       bypass: false
       map:
         'audio/aac': 'audio'
@@ -96,12 +96,11 @@ process:
         'image/jpeg': 'image'
         'image/jpg': 'image'
         'image/pjpeg': 'image'
-        'text/jpg': 'image'
         'audio/mpeg': 'audio'
         'audio/mpeg3': 'audio'
         'audio/x-mpeg': 'audio'
         'audio/x-mpeg-3': 'audio'
-        'video/x-mpeg': 'audio'
+        'video/x-mpeg': 'file'
         'video/mp4': 'video'
         'application/pdf': 'document'
         'image/png': 'image'
