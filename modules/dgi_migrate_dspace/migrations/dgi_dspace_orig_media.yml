@@ -88,48 +88,48 @@ process:
     - plugin: dgi_migrate.process.static_map
       bypass: false
       map:
-        'audio/aac': 'audio'
-        'application/msword': 'file'
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'file'
-        'image/gif': 'image'
-        'image/jp2': 'file'
-        'image/jpeg': 'image'
-        'image/jpg': 'image'
-        'image/pjpeg': 'image'
-        'audio/mpeg': 'audio'
-        'audio/mpeg3': 'audio'
-        'audio/x-mpeg': 'audio'
-        'audio/x-mpeg-3': 'audio'
-        'video/x-mpeg': 'file'
-        'video/mp4': 'video'
-        'application/pdf': 'document'
-        'image/png': 'image'
-        'application/vnd.openxmlformats-officedocument.presentationml.slideshow': 'file'
-        'application/mspowerpoint': 'file'
-        'application/powerpoint': 'file'
-        'application/vnd.ms-powerpoint': 'file'
-        'application/x-mspowerpoint': 'file'
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'file'
-        'application/rtf': 'file'
-        'application/x-rtf': 'file'
-        'text/richtext': 'file'
-        'image/tif': 'file'
-        'image/tiff': 'file'
-        'image/x-tiff': 'file'
-        'text/plain': 'document'
-        'text/html': 'document'
-        'audio/vnd.wave': 'audio'
-        'audio/wav': 'audio'
-        'audio/wave': 'audio'
-        'audio/x-wav': 'audio'
-        'audio/x-wave': 'audio'
-        'application/excel': 'file'
-        'application/vnd.ms-excel': 'file'
-        'application/x-excel': 'file'
-        'application/x-msexcel': 'file'
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'file'
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.template': 'file'
-        'application/vnd.ms-xpsdocument': 'file'
+        - ['audio/aac', 'audio']
+        - ['application/msword', 'file']
+        - ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'file']
+        - ['image/gif', 'image']
+        - ['image/jp2', 'file']
+        - ['image/jpeg', 'image']
+        - ['image/jpg', 'image']
+        - ['image/pjpeg', 'image']
+        - ['audio/mpeg', 'audio']
+        - ['audio/mpeg3', 'audio']
+        - ['audio/x-mpeg', 'audio']
+        - ['audio/x-mpeg-3', 'audio']
+        - ['video/x-mpeg', 'file']
+        - ['video/mp4', 'video']
+        - ['application/pdf', 'document']
+        - ['image/png', 'image']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.slideshow', 'file']
+        - ['application/mspowerpoint', 'file']
+        - ['application/powerpoint', 'file']
+        - ['application/vnd.ms-powerpoint', 'file']
+        - ['application/x-mspowerpoint', 'file']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'file']
+        - ['application/rtf', 'file']
+        - ['application/x-rtf', 'file']
+        - ['text/richtext', 'file']
+        - ['image/tif', 'file']
+        - ['image/tiff', 'file']
+        - ['image/x-tiff', 'file']
+        - ['text/plain', 'document']
+        - ['text/html', 'document']
+        - ['audio/vnd.wave', 'audio']
+        - ['audio/wav', 'audio']
+        - ['audio/wave', 'audio']
+        - ['audio/x-wav', 'audio']
+        - ['audio/x-wave', 'audio']
+        - ['application/excel', 'file']
+        - ['application/vnd.ms-excel', 'file']
+        - ['application/x-excel', 'file']
+        - ['application/x-msexcel', 'file']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'file']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.template', 'file']
+        - ['application/vnd.ms-xpsdocument', 'file']
   field_file_size:
     - plugin: dgi_migrate.method
       method: getSize

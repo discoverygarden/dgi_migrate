@@ -199,51 +199,51 @@ process:
     - plugin: dgi_migrate.process.static_map
       bypass: false
       map:
-        'audio/aac': 'http://purl.org/coar/resource_type/c_18cc'
-        'application/msword': 'https://schema.org/DigitalDocument'
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'https://schema.org/DigitalDocument'
-        'image/gif': 'http://purl.org/coar/resource_type/c_c513'
-        'image/jp2': 'http://purl.org/coar/resource_type/c_c513'
-        'image/jpeg': 'http://purl.org/coar/resource_type/c_c513'
-        'image/jpg': 'http://purl.org/coar/resource_type/c_c513'
-        'image/pjpeg': 'http://purl.org/coar/resource_type/c_c513'
-        'audio/mpeg': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/mpeg3': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/x-mpeg': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/x-mpeg-3': 'http://purl.org/coar/resource_type/c_18cc'
-        'video/x-mpeg': 'http://purl.org/coar/resource_type/c_12ce'
-        'video/mp4': 'http://purl.org/coar/resource_type/c_12ce'
-        'application/pdf': 'https://schema.org/DigitalDocument'
-        'image/png': 'http://purl.org/coar/resource_type/c_c513'
-        'application/vnd.openxmlformats-officedocument.presentationml.slideshow': 'https://schema.org/DigitalDocument'
-        'application/mspowerpoint': 'https://schema.org/DigitalDocument'
-        'application/powerpoint': 'https://schema.org/DigitalDocument'
-        'application/vnd.ms-powerpoint': 'https://schema.org/DigitalDocument'
-        'application/x-mspowerpoint': 'https://schema.org/DigitalDocument'
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'https://schema.org/DigitalDocument'
-        'application/rtf': 'https://schema.org/DigitalDocument'
-        'application/x-rtf': 'https://schema.org/DigitalDocument'
-        'text/richtext': 'https://schema.org/DigitalDocument'
-        'image/tif': 'http://purl.org/coar/resource_type/c_c513'
-        'image/tiff': 'http://purl.org/coar/resource_type/c_c513'
-        'image/x-tiff': 'http://purl.org/coar/resource_type/c_c513'
-        'text/plain': 'https://schema.org/DigitalDocument'
-        'text/html': 'https://schema.org/DigitalDocument'
-        'audio/vnd.wave': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/wav': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/wave': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/x-wav': 'http://purl.org/coar/resource_type/c_18cc'
-        'audio/x-wave': 'http://purl.org/coar/resource_type/c_18cc'
-        'application/excel': 'https://schema.org/DigitalDocument'
-        'application/vnd.ms-excel': 'https://schema.org/DigitalDocument'
-        'application/x-excel': 'https://schema.org/DigitalDocument'
-        'application/x-msexcel': 'https://schema.org/DigitalDocument'
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'https://schema.org/DigitalDocument'
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.template': 'https://schema.org/DigitalDocument'
-        'application/vnd.ms-xpsdocument': 'https://schema.org/DigitalDocument'
-        'COLLECTION': 'http://purl.org/dc/dcmitype/Collection'
-        'COMMUNITY': 'http://purl.org/dc/dcmitype/Collection'
-        'UNKNOWN': 'https://schema.org/DigitalDocument'
+        - ['audio/aac', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['application/msword', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'https://schema.org/DigitalDocument']
+        - ['image/gif', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/jp2', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/jpeg', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/jpg', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/pjpeg', 'http://purl.org/coar/resource_type/c_c513']
+        - ['audio/mpeg', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/mpeg3', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/x-mpeg', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/x-mpeg-3', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['video/x-mpeg', 'http://purl.org/coar/resource_type/c_12ce']
+        - ['video/mp4', 'http://purl.org/coar/resource_type/c_12ce']
+        - ['application/pdf', 'https://schema.org/DigitalDocument']
+        - ['image/png', 'http://purl.org/coar/resource_type/c_c513']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.slideshow', 'https://schema.org/DigitalDocument']
+        - ['application/mspowerpoint', 'https://schema.org/DigitalDocument']
+        - ['application/powerpoint', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.ms-powerpoint', 'https://schema.org/DigitalDocument']
+        - ['application/x-mspowerpoint', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'https://schema.org/DigitalDocument']
+        - ['application/rtf', 'https://schema.org/DigitalDocument']
+        - ['application/x-rtf', 'https://schema.org/DigitalDocument']
+        - ['text/richtext', 'https://schema.org/DigitalDocument']
+        - ['image/tif', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/tiff', 'http://purl.org/coar/resource_type/c_c513']
+        - ['image/x-tiff', 'http://purl.org/coar/resource_type/c_c513']
+        - ['text/plain', 'https://schema.org/DigitalDocument']
+        - ['text/html', 'https://schema.org/DigitalDocument']
+        - ['audio/vnd.wave', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/wav', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/wave', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/x-wav', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['audio/x-wave', 'http://purl.org/coar/resource_type/c_18cc']
+        - ['application/excel', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.ms-excel', 'https://schema.org/DigitalDocument']
+        - ['application/x-excel', 'https://schema.org/DigitalDocument']
+        - ['application/x-msexcel', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.template', 'https://schema.org/DigitalDocument']
+        - ['application/vnd.ms-xpsdocument', 'https://schema.org/DigitalDocument']
+        - ['COLLECTION', 'http://purl.org/dc/dcmitype/Collection']
+        - ['COMMUNITY', 'http://purl.org/dc/dcmitype/Collection']
+        - ['UNKNOWN', 'https://schema.org/DigitalDocument']
     - plugin: skip_on_empty
       method: row
       message: 'Failed to map the dspace type to an islandora model.'
