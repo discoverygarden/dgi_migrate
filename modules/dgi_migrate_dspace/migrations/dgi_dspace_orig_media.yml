@@ -32,10 +32,12 @@ process:
   # XXX: Somewhat counter-intuitive, but it will just ignore those file field
   # entries with which the target bundle does not deal.
   field_media_audio_file: '@_file'
+  field_media_document: '@_file'
   field_media_file: '@_file'
   field_media_image/target_id: '@_file_id'
   field_media_image/alt: '@name'
   field_media_video_file: '@_file'
+  field_original_name: '@name'
 
   _zip_scheme:
     - plugin: default_value
@@ -83,11 +85,51 @@ process:
       xpath: '@_mets_content'
       method: evaluate
       query: 'string(//mets:fileSec/mets:fileGrp[@USE="ORIGINAL"]/mets:file/@MIMETYPE)'
-    - plugin: static_map
+    - plugin: dgi_migrate.process.static_map
       bypass: false
       map:
-        'application/jpeg': 'image'
-        'application/pdf': 'file'
+        - ['audio/aac', 'audio']
+        - ['application/msword', 'file']
+        - ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'file']
+        - ['image/gif', 'image']
+        - ['image/jp2', 'file']
+        - ['image/jpeg', 'image']
+        - ['image/jpg', 'image']
+        - ['image/pjpeg', 'image']
+        - ['audio/mpeg', 'audio']
+        - ['audio/mpeg3', 'audio']
+        - ['audio/x-mpeg', 'audio']
+        - ['audio/x-mpeg-3', 'audio']
+        - ['video/x-mpeg', 'file']
+        - ['video/mp4', 'video']
+        - ['application/pdf', 'document']
+        - ['image/png', 'image']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.slideshow', 'file']
+        - ['application/mspowerpoint', 'file']
+        - ['application/powerpoint', 'file']
+        - ['application/vnd.ms-powerpoint', 'file']
+        - ['application/x-mspowerpoint', 'file']
+        - ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'file']
+        - ['application/rtf', 'file']
+        - ['application/x-rtf', 'file']
+        - ['text/richtext', 'file']
+        - ['image/tif', 'file']
+        - ['image/tiff', 'file']
+        - ['image/x-tiff', 'file']
+        - ['text/plain', 'document']
+        - ['text/html', 'document']
+        - ['audio/vnd.wave', 'audio']
+        - ['audio/wav', 'audio']
+        - ['audio/wave', 'audio']
+        - ['audio/x-wav', 'audio']
+        - ['audio/x-wave', 'audio']
+        - ['application/excel', 'file']
+        - ['application/vnd.ms-excel', 'file']
+        - ['application/x-excel', 'file']
+        - ['application/x-msexcel', 'file']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'file']
+        - ['application/vnd.openxmlformats-officedocument.spreadsheetml.template', 'file']
+        - ['application/vnd.ms-xpsdocument', 'file']
   field_file_size:
     - plugin: dgi_migrate.method
       method: getSize
