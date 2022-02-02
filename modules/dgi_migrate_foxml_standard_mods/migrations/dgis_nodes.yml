@@ -897,6 +897,9 @@ process:
             range_start: '@_field_copyright_date_start'
             range_end: '@_field_copyright_date_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         _field_date_captured_single:
           - << : *nested_mods_node
             query: 'mods:dateCaptured[not(@point)]'
@@ -933,6 +936,9 @@ process:
             range_start: '@_field_date_captured_start'
             range_end: '@_field_date_captured_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         _field_date_created_single:
           - << : *nested_mods_node
             query: 'mods:dateCreated[not(@point)]'
@@ -969,6 +975,9 @@ process:
             range_start: '@_field_date_created_start'
             range_end: '@_field_date_created_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         _field_date_issued_single:
           - << : *nested_mods_node
             query: 'mods:dateIssued[not(@point)]'
@@ -1005,6 +1014,9 @@ process:
             range_start: '@_field_date_issued_start'
             range_end: '@_field_date_issued_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         _field_date_modified_single:
           - << : *nested_mods_node
             query: 'mods:dateModified[not(@point)]'
@@ -1041,6 +1053,9 @@ process:
             range_start: '@_field_date_modified_start'
             range_end: '@_field_date_modified_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         _field_date_valid_single:
           - << : *nested_mods_node
             query: 'mods:dateValid[not(@point)]'
@@ -1077,6 +1092,9 @@ process:
             range_start: '@_field_date_valid_start'
             range_end: '@_field_date_valid_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -1145,6 +1163,9 @@ process:
             range_start: '@_field_other_date_start'
             range_end: '@_field_other_date_end'
             get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
@@ -1772,4 +1793,5 @@ migration_dependencies:
 dependencies:
   enforced:
     module:
+      - dgi_migrate_edtf_validator
       - dgi_migrate_paragraphs
