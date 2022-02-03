@@ -899,7 +899,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         _field_date_captured_single:
           - << : *nested_mods_node
             query: 'mods:dateCaptured[not(@point)]'
@@ -938,7 +938,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         _field_date_created_single:
           - << : *nested_mods_node
             query: 'mods:dateCreated[not(@point)]'
@@ -977,7 +977,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         _field_date_issued_single:
           - << : *nested_mods_node
             query: 'mods:dateIssued[not(@point)]'
@@ -1016,7 +1016,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         _field_date_modified_single:
           - << : *nested_mods_node
             query: 'mods:dateModified[not(@point)]'
@@ -1055,7 +1055,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         _field_date_valid_single:
           - << : *nested_mods_node
             query: 'mods:dateValid[not(@point)]'
@@ -1094,7 +1094,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -1165,7 +1165,7 @@ process:
             get_values: true
           - plugin: dgi_migrate_edtf_validator
             intervals: true
-            strict: true
+            strict: false
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
