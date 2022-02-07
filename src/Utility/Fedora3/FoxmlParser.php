@@ -145,8 +145,6 @@ class FoxmlParser extends AbstractParser {
       while (!feof($this->file)) {
         $this->chunk = fread($this->file, static::READ_SIZE);
         $result = xml_parse($this->parser, $this->chunk, feof($this->file));
-        // Error code "0" means incomplete parse, so we just need to feed it
-        // some more.
         if ($result === 0 || xml_get_error_code($this->parser) !== XML_ERROR_NONE) {
           throw new FoxmlParserException($this->parser);
         }
