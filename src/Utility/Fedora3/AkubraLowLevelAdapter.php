@@ -4,13 +4,30 @@ namespace Drupal\dgi_migrate\Utilty\Fedora3;
 
 class AkubraLowLevelAdapter implements LowLevelAdapterInterface {
 
+  /**
+   * The datastreamStore path.
+   *
+   * @var string
+   */
+  protected $basePath;
+
+  /**
+   * The pattern used in Akubra of hash content in the path.
+   *
+   * @var string
+   */
+  protected $pattern;
+
+  /**
+   * Constructor.
+   */
   public function __construct($base_path, $pattern = '##') {
     $this->basePath = $base_path;
     $this->pattern = $pattern;
   }
 
   /**
-   * 
+   * {@inheritdoc}
    */
   public function dereference($id) {
     // Structure like: "the:pid+DSID+DSID.0"
@@ -28,9 +45,11 @@ class AkubraLowLevelAdapter implements LowLevelAdapterInterface {
       $subbed[$pattern_offset] = $hash[$hash_offset++];
     }
 
-    $encoded = rawurlencode($full);
+    $encoded = strtr(rawurlencode($full), [
+      '_' => '%5F',
+    ]);
 
-    return "$base_path/$subbed/$encoded";
+    return "{$this->basePath}/$subbed/$encoded";
   }
 
 }

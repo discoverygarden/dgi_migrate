@@ -9,6 +9,7 @@ services:
     class: Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser
     arguments:
       - '@cache.dgi_migrate_parsed_foxml'
+      - '@dgi_migrate.foxml_parser.datastream_lowlevel_storage'
   cache.dgi_migrate_parsed_foxml:
     class: Drupal\Core\Cache\CacheBackendInterface
     tags:
@@ -20,3 +21,15 @@ services:
     class: Drupal\dgi_migrate\Routing\RouteSubscriber
     tags:
       - name: event_subscriber
+  dgi_migrate.foxml_parser.object_lowlevel_storage:
+    class: Drupal\dgi_migrate\Utility\Fedora3\ObjectLowLevelAdapterManager
+    tags:
+      - name: service_collector
+        tag: dgi_migrate.foxml_parser.object_lowlevel_storage
+        call: addAdapter
+  dgi_migrate.foxml_parser.datastream_lowlevel_storage:
+    class: Drupal\dgi_migrate\Utility\Fedora3\DatastreamLowLevelAdapterManager
+    tags:
+      - name: service_collector
+        tag: dgi_migrate.foxml_parser.datastream_lowlevel_storage
+        call: addAdapter

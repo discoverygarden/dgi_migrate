@@ -28,7 +28,7 @@ class ContentLocation extends AbstractParser {
       return $this->REF;
     }
     elseif ($this->TYPE === 'INTERNAL_ID') {
-      return $this->getFoxmlParser()->getLowLevelAdapter()->dereference($this->REF);
+      return $this->getFoxmlParser()->getDatastreamLowLevelAdapter()->dereference($this->REF);
     }
     else {
       throw new \Exception('Unhandled type.');

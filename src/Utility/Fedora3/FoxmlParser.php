@@ -54,6 +54,20 @@ class FoxmlParser extends AbstractParser {
    */
   protected $cache;
 
+  /**
+   * Datastream storage service.
+   *
+   * @var \Drupal\dgi_migrate\Utility\Fedora3\LowLevelAdapterInterface
+   */
+  protected $datastreamStorage;
+
+  /**
+   * Flag if datastream storage service is valid.
+   *
+   * @var bool|null
+   */
+  protected $validDatastreamStorage = NULL;
+
   const MAP = [
     DigitalObject::TAG => DigitalObject::class,
   ];
@@ -61,8 +75,12 @@ class FoxmlParser extends AbstractParser {
   /**
    * Constructor.
    */
-  public function __construct(CacheBackendInterface $cache) {
+  public function __construct(
+    CacheBackendInterface $cache,
+    LowLevelAdapterInterface $datastream_storage
+  ) {
     $this->cache = $cache;
+    $this->datastreamStorage = $datastream_storage;
   }
 
   /**
@@ -111,11 +129,15 @@ class FoxmlParser extends AbstractParser {
     }
   }
 
-  public function getLowLevelAdapter() {
-    if (!isset($this->lowLevelAdapter)) {
-      throw new \Exception('No low-level adapter configured.');
+  public function getDatastreamLowLevelAdapter() {
+    if (is_null($this->validDatastreamStorage)) {
+      $this->validDatastreamStorage = $this->datastreamStorage->valid();
     }
-    return $this->lowLevelAdapter;
+    if (!$this->validDatastreamStorage) {
+      throw new \Exception('Invalid low-level datastream storage adapter configuration.');
+    }
+
+    return $this->datastreamStorage;
   }
 
   /**
