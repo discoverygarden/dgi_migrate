@@ -10,3 +10,4 @@ dependencies:
   - islandora
   - migrate_directory
   - migrate_plus
+  - foxml

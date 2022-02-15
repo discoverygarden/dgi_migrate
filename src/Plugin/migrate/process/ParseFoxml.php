@@ -6,8 +6,8 @@ use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
-use Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser;
-use Drupal\dgi_migrate\Utility\Fedora3\Element\DigitalObject;
+use Drupal\foxml\Utility\Fedora3\FoxmlParser;
+use Drupal\foxml\Utility\Fedora3\Element\DigitalObject;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -23,7 +23,7 @@ class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInte
   /**
    * The parser to use.
    *
-   * @var \Drupal\dgi_migrate\Utility\Fedora3\FoxmlParser
+   * @var \Drupal\foxml\Utility\Fedora3\FoxmlParser
    */
   protected $parser;
 
@@ -44,7 +44,7 @@ class ParseFoxml extends ProcessPluginBase implements ContainerFactoryPluginInte
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('dgi_migrate.foxml_parser')
+      $container->get('foxml.parser')
     );
   }
 

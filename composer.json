@@ -6,6 +6,7 @@
       "iqb/substream": "dev-master",
       "drupal/migrate_directory": "^1",
       "drupal/migrate_plus": "^4.2",
-      "symfony/mime": "^5"
+      "symfony/mime": "^5",
+      "discoverygarden/foxml": "^1"
     }
 }
