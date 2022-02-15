@@ -72,6 +72,7 @@ process:
         'info:fedora/islandora:sp_videoCModel': 'video'
         'info:fedora/islandora:sp-audioCModel': 'audio'
         'info:fedora/islandora:pageCModel': 'image'
+        'info:fedora/islandora:newspaperPageCModel': 'image'
     - plugin: extract
       index: [ 0 ]
   # XXX: This should be uncommented when Islandora/islandora#829 is pulled into
@@ -82,8 +83,6 @@ process:
   #    source: '@_file'
   field_media_use:
     - plugin: default_value
-      # XXX: Not a perfect match, but seems to be closest, without rolling our
-      # own.
       default_value: http://pcdm.org/use#OriginalFile
     - plugin: entity_lookup
       bundle_key: vid

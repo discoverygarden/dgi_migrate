@@ -4,8 +4,9 @@
     "license": "GPL-3.0-only",
     "require": {
       "drupal/migrate_directory": "^1",
-      "drupal/migrate_plus": "^4.2",
-      "symfony/mime": "^5",
-      "discoverygarden/foxml": "^1"
+      "discoverygarden/foxml": "^1",
+      "drupal/migrate_plus": "^5.1",
+      "drupal/migrate_tools": "^5.0",
+      "symfony/mime": "^5"
     }
 }

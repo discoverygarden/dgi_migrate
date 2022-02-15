@@ -1,0 +1,8 @@
+---
+services:
+  dgi_migrate_foxml_standard_mods_xslt.config_subscriber:
+    class: '\Drupal\dgi_migrate_foxml_standard_mods_xslt\EventSubscriber\ConfigEventSubscriber'
+    arguments:
+      - '@plugin.manager.migration'
+    tags:
+      - name: event_subscriber

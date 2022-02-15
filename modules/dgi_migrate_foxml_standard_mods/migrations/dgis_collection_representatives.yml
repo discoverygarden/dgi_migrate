@@ -1,0 +1,57 @@
+---
+id: dgis_collection_representatives
+label: Map representatives for collections.
+migration_group: foxml_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: dgis_foxml_files
+  dsf_misc: {}
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate true
+  overwrite_properties:
+    - field_representative_image
+process:
+  _node_foxml_parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
+  _models:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: models
+    - plugin: skip_on_empty
+      method: row
+  nid:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: PID
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+  _i8_model_uri:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
+  field_representative_image/target_id:
+    - plugin: dgi_migrate.process.find_first_image_media
+      source: '@nid'
+migration_dependencies:
+  required:
+    - dgis_foxml_files
+    - dgis_nodes
+    - dgis_orig_media
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

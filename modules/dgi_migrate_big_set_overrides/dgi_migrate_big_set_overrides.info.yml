@@ -1,0 +1,5 @@
+name: 'DGI Migrate, big set overrides'
+description: "Toggle off some things that take cause issues with resource constraints, while running a migration/batch."
+type: module
+package: DGI
+core_version_requirement: ^8 || ^9

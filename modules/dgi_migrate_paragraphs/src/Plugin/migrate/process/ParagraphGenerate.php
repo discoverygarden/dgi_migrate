@@ -2,7 +2,7 @@
 
 namespace Drupal\dgi_migrate_paragraphs\Plugin\migrate\process;
 
-use Drupal\migrate\ProcessPluginBase;
+use Drupal\dgi_migrate\Plugin\migrate\process\SubProcess;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Row;
@@ -62,53 +62,47 @@ use Drupal\paragraphs\Entity\Paragraph;
  *   value received by the "dgi_paragraph_generate" plugin itself, to make it
  *   available to subprocessing. Defaults to "parent_value".
  */
-class ParagraphGenerate extends ProcessPluginBase {
+class ParagraphGenerate extends SubProcess {
+
+  /**
+   * The type of paragraph to generate.
+   *
+   * @var string
+   */
+  protected $paragraphType;
+
+  /**
+   * Flag, indicating if the paragraph generated should be validated.
+   *
+   * @var bool
+   */
+  protected $validate;
+
+  /**
+   * Constructor.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    assert(!empty($this->configuration['type']));
+    $this->paragraphType = $this->configuration['type'];
+    $this->validate = $this->configuration['validate'] ?? FALSE;
+  }
 
   /**
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    assert(!empty($this->configuration['type']));
-    assert(!empty($this->configuration['values']));
-
-    if ($this->configuration['process_values'] ?? FALSE) {
-      try {
-        $extra_values = $this->processValues($value, $migrate_executable, $row);
-      }
-      catch (MigrateSkipRowException $e) {
-        if ($this->configuration['propagate_skip'] ?? TRUE) {
-          throw new MigrateSkipRowException(strtr("Propagating skip from processing :property: \n:upstream", [
-            ':property' => $destination_property,
-            ':upstream' => $e,
-          ]));
-        }
-        else {
-          return NULL;
-        }
-      }
-      catch (\Exception $e) {
-        // Wrap exception with a bit of context.
-        throw new \Exception(strtr('Encountered exception when processing :property.', [
-          ':property' => $destination_property,
-        ]), 0, $e);
-      }
-    }
-    else {
-      $extra_values = $this->mapValues($migrate_executable, $row);
-    }
-
     $paragraph = Paragraph::create(
       [
-        'type' => $this->configuration['type'],
+        'type' => $this->paragraphType,
       ] +
-      $extra_values
+      parent::transform($value, $migrate_executable, $row, $destination_property)
     );
 
-    $validate = $this->configuration['validate'] ?? FALSE;
+    $paragraph->setValidationRequired($this->validate);
 
-    $paragraph->setValidationRequired($validate);
-
-    if ($validate) {
+    if ($this->validate) {
       try {
         $errors = $paragraph->validate();
       }
@@ -132,57 +126,6 @@ class ParagraphGenerate extends ProcessPluginBase {
       'target_id' => $paragraph->id(),
       'target_revision_id' => $paragraph->getRevisionId(),
     ];
-  }
-
-  /**
-   * Map requested fields.
-   *
-   * @param \Drupal\migrate\MigrateExecutableInterface $executable
-   *   The migration exectuable.
-   * @param \Drupal\migrate\Row $row
-   *   The row object being processed.
-   *
-   * @return array
-   *   An associative array with the mapped values.
-   */
-  protected function mapValues(MigrateExecutableInterface $executable, Row $row) {
-    $mapped = [];
-
-    foreach ($this->configuration['values'] as $key => $property) {
-      $mapped[$key] = $row->get($property);
-    }
-
-    return $mapped;
-  }
-
-  /**
-   * Process requested values.
-   *
-   * @param mixed $value
-   *   The source value for the plugin.
-   * @param \Drupal\migrate\MigrateExecutableInterface $executable
-   *   The migration exectuable.
-   * @param \Drupal\migrate\Row $row
-   *   The row object being processed.
-   *
-   * @return array
-   *   An associative array of processed configuration values.
-   */
-  protected function processValues($value, MigrateExecutableInterface $executable, Row $row) {
-    $parent_row_key = $this->configuration['parent_row_key'] ?? 'parent_row';
-    $parent_value_key = $this->configuration['parent_value_key'] ?? 'parent_value';
-
-    $new_row = new Row([
-      $parent_row_key => [
-        'source' => $row->getSource(),
-        'dest' => $row->getDestination(),
-      ],
-      $parent_value_key => $value,
-    ]);
-
-    $executable->processRow($new_row, $this->configuration['values']);
-
-    return $new_row->getDestination();
   }
 
 }

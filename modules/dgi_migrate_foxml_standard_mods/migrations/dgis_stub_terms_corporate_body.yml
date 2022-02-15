@@ -1,0 +1,151 @@
+---
+id: dgis_stub_terms_corporate_body
+label: Create stub corporate/organization terms.
+migration_group: foxml_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    auth_source:
+      type: string
+    auth_value_uri:
+      type: string
+    untyped_name:
+      type: string
+    date_name_part:
+      type: string
+    display_form:
+      type: string
+    affiliation_tid:
+      type: string
+  dsf_misc:
+    type: &type entity:taxonomy_term
+    bundle: &bundle corporate_body
+    case_insensitive: &case_insensitive true
+    lookup_defaults: &lookup_defaults
+      plugin: dgi_migrate.process.entity_query
+      entity_type: *type
+destination:
+  plugin: *type
+  default_bundle: *bundle
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+  overwrite_properties: [field_relationships]
+process:
+  name:
+    - plugin: dgi_migrate.process.dc_name
+      map:
+        untyped: untyped_name
+        date: date_name_part
+        display_form: display_form
+  field_authority_link/source:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+    - plugin: default_value
+      source: auth_source
+      default_value: other
+  field_authority_link/uri:
+    - plugin: skip_on_empty
+      source: auth_value_uri
+      method: process
+  _tid_auth:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [field_authority_link.source, auth_source]
+        - [field_authority_link.uri, auth_value_uri]
+  _tid_dc_name:
+    - << : *lookup_defaults
+      static_conditions:
+        - [vid, *bundle]
+      conditions:
+        - [name, '@name']
+      empty:
+        - field_authority_link.source
+        - field_authority_link.uri
+  tid:
+    - plugin: get
+      source:
+        - '@_tid_auth'
+        - '@_tid_dc_name'
+    - plugin: flatten
+    - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
+
+  _original_relationships:
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - plugin: dgi_migrate.load_entity
+      entity_type: *type
+    - plugin: dgi_migrate.subproperty
+      property: field_relationships
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.method
+      method: getValue
+
+  _affilation_tid:
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    - plugin: callback
+      callable: intval
+
+  _affiliate_relationship:
+    - plugin: default_value
+      default_value: 'schema:memberOf'
+  _affiliation_relationship_exists:
+    # Can't exist if we _have_ nothing being added.
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    # Can't exist if we're adding a new term.
+    - plugin: skip_on_empty
+      source: '@tid'
+      method: process
+    - << : *lookup_defaults
+      conditions:
+        - [tid, '@tid']
+        - ['field_relationships.%delta.target_id', '@_affiliation_tid']
+        - ['field_relationships.%delta.rel_type', '@_affiliate_relationship']
+  _new_relationship/0/target_id:
+    # No term to create...
+    - plugin: skip_on_empty
+      source: affiliation_tid
+      method: process
+    # ... Term already exists.
+    - plugin: skip_on_value
+      source: '@_affiliation_relationship_exists'
+      method: process
+      value: ''
+      not_equals: true
+    - plugin: get
+      source: '@_affilation_tid'
+  _new_relationship/0/rel_type:
+    - plugin: skip_on_empty
+      source: '@_new_relationship/0/target_id'
+      method: process
+    - plugin: get
+      source: '@_affiliate_relationship'
+
+  field_relationships:
+    - plugin: get
+      source:
+        - '@_original_relationships'
+        - '@_new_relationship'
+    - plugin: callback
+      callable: array_filter
+    - plugin: merge
+
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods

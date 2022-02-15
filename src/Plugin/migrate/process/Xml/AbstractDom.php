@@ -21,7 +21,9 @@ abstract class AbstractDom extends ProcessPluginBase {
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     if (!is_string($value)) {
-      throw new MigrateException('Input should be a string.');
+      throw new MigrateException(strtr('Input should be a string; got: !type', [
+        '!type' => gettype($value),
+      ]));
     }
 
     return $this->load($value, $migrate_executable, $row, $destination_property);

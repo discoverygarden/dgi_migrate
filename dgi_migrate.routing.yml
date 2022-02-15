@@ -1,0 +1,11 @@
+---
+system.admin_config_dgi_migrate:
+  path: '/admin/config/dgi_migrate'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'DGI Migrate'
+  requirements:
+    # XXX: The double-quotes here side-step their present sniff.
+    # @see https://www.drupal.org/project/coder/issues/2905364
+    # @see https://github.com/pfrenssen/coder/blob/7d5af4fa284d7c5634f9db870a44bb1604d1538f/coder_sniffer/DrupalPractice/Sniffs/Yaml/RoutingAccessSniff.php#L67-L70
+    _permission: "access administration pages"

@@ -1,0 +1,46 @@
+---
+id: dgis_stub_terms_affiliate
+label: Create stub affiliate corporate/organization terms.
+migration_group: foxml_to_dgis
+source:
+  plugin: embedded_data
+  data_rows: []
+  ids:
+    untyped_name:
+      type: string
+  dsf_misc:
+    type: &type entity:taxonomy_term
+    bundle: &bundle corporate_body
+destination:
+  plugin: *type
+  default_bundle: *bundle
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate false
+  overwrite_properties: []
+process:
+  _blank:
+    - plugin: default_value
+      default_value: ''
+
+  tid:
+    - plugin: migration_lookup
+      source:
+        - '@_blank'
+        - '@_blank'
+        - untyped_name
+        - '@_blank'
+        - '@_blank'
+        - '@_blank'
+      migration: dgis_stub_terms_corporate_body
+      stub_id: dgis_stub_terms_corporate_body
+
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate
+      - dgi_migrate_foxml_standard_mods
+migration_dependencies:
+  required:
+    - dgis_stub_terms_corporate_body

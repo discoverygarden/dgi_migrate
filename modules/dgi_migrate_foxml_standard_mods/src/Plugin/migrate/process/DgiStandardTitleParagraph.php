@@ -2,11 +2,14 @@
 
 namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
-use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipRowException;
+use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
+
+use Drupal\Component\Utility\Unicode;
 
 /**
  * Generate a Title paragraph.
@@ -30,44 +33,39 @@ use Drupal\paragraphs\Entity\Paragraph;
 class DgiStandardTitleParagraph extends ProcessPluginBase {
 
   /**
-   * The titleInfo node we're working with.
+   * Whether or not entities generated should be validated.
    *
-   * @var \DOMNode
+   * @var bool
    */
-  protected $node;
+  protected $validate = FALSE;
 
   /**
-   * Parsed bits of the title.
-   *
-   * Don't access this directly; rather, use $this->getTitleParts().
-   *
-   * @var array
+   * Constructor.
    */
-  protected $titleParts;
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->validate = $this->configuration['validate'] ?? $this->validate;
+    $this->maxLength = $this->configuration['max_length'] ?? FALSE;
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    assert($value instanceof \DOMNode);
-    $this->node = $value;
+  public function transform($node, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    $xpath = $row->get($this->configuration['xpath']);
 
-    $this->xpath = $row->get($this->configuration['xpath']);
-    assert($this->xpath instanceof \DOMXPath);
+    $parts = static::getTitleParts($xpath, $node);
 
-    $paragraph = Paragraph::create(
-      [
-        'type' => 'title',
-        'field_title' => $this->getTitle(),
-        'field_title_type' => $this->getTitleType(),
-      ]
-    );
+    $paragraph = Paragraph::create([
+      'type' => 'title',
+      'field_title' => $this->getTitle($parts, $migrate_executable),
+      'field_title_type' => $parts['@type'],
+    ]);
 
-    $validate = $this->configuration['validate'] ?? FALSE;
+    $paragraph->setValidationRequired($this->validate);
 
-    $paragraph->setValidationRequired($validate);
-
-    if ($validate) {
+    if ($this->validate) {
       try {
         $errors = $paragraph->validate();
       }
@@ -92,6 +90,7 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
     ];
   }
 
+  // Map of keys in which to store to relative xpaths to store.
   const MAP = [
     '@type' => '@type',
     'nonSort' => 'mods:nonSort[1]',
@@ -104,30 +103,38 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
   /**
    * Gets the parts of the title we need, as an array.
    *
+   * @param \DOMXPath $xpath
+   *   The XPath instance in which to query.
+   * @param \DOMNode $node
+   *   The node relative which to query.
+   *
    * @return array
    *   An array of parts we want from the node, keyed by their node name, with
    *   a single string as the value of each, or false-y if no value was parsed.
    *   The title type is keyed as '@type'.
    */
-  protected function getTitleParts() {
-    if (empty($this->titleParts)) {
-      foreach (static::MAP as $key => $query) {
-        $this->titleParts[$key] = $this->xpath->evaluate("string($query)", $this->node);
-      }
+  protected static function getTitleParts(\DOMXPath $xpath, \DOMNode $node) {
+    $parts = [];
+
+    foreach (static::MAP as $key => $query) {
+      $parts[$key] = $xpath->evaluate("string($query)", $node);
     }
 
-    return $this->titleParts;
+    return $parts;
   }
 
   /**
    * Gets a string to represent the title field.
    *
+   * @param string[] $title_parts
+   *   The parts to assemble into the title.
+   * @param \Drupal\migrate\MigrateExecutableInterface $migrate_executable
+   *   The migration executable, so we can log messages if necessary.
+   *
    * @return string
    *   The title string.
    */
-  protected function getTitle() {
-    $title_parts = $this->getTitleParts();
-
+  protected function getTitle(array $title_parts, MigrateExecutableInterface $migrate_executable) {
     $title = '';
     if (!empty($title_parts['nonSort'])) {
       $title .= "{$title_parts['nonSort']} ";
@@ -143,17 +150,21 @@ class DgiStandardTitleParagraph extends ProcessPluginBase {
       $title .= ". {$title_parts['partName']}";
     }
 
-    return $title;
-  }
-
-  /**
-   * Gets a string to represent the title type.
-   *
-   * @return string
-   *   The title type.
-   */
-  protected function getTitleType() {
-    return $this->getTitleParts()['@type'];
+    if ($this->maxLength < 1 || mb_strlen($title) <= $this->maxLength) {
+      return $title;
+    }
+    else {
+      $truncated = Unicode::truncate($title, $this->maxLength, TRUE, TRUE);
+      $migrate_executable->saveMessage(
+        strtr('Truncated ":title" to ":truncated" to fit within configured limit of :limit characters.', [
+          ':title' => $title,
+          ':truncated' => $truncated,
+          ':limit' => $this->maxLength,
+        ]),
+        MigrationInterface::MESSAGE_WARNING
+      );
+      return $truncated;
+    }
   }
 
 }

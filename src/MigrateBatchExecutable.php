@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\migrate\MigrateException;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
@@ -22,7 +23,10 @@ use Drupal\Component\Utility\Timer;
  */
 class MigrateBatchExecutable extends MigrateExecutable {
 
-  use DependencySerializationTrait;
+  use DependencySerializationTrait {
+    __sleep as traitSleep;
+    __wakeup as traitWakeup;
+  }
 
   // The name of our timer.
   const TIMER = 'dgi_migrate_iteration_timer';
@@ -38,9 +42,20 @@ class MigrateBatchExecutable extends MigrateExecutable {
   protected $queue;
 
   /**
+   * An array of statuses to filter.
+   *
+   * @var array
+   */
+  protected $idMapStatuses;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
+    $this->idMapStatuses = isset($options['statuses']) ?
+      StatusFilter::mapStatuses($options['statuses']) :
+      [];
+
     parent::__construct($migration, $message, $options);
 
     $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
@@ -54,6 +69,38 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://github.com/drush-ops/drush/blob/dbdb6733655231687d8ab68cdea6bf9fedbd0562/includes/batch.inc#L291-L298
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __sleep() {
+    $vars = $this->traitSleep();
+    $to_suppress = [
+      // XXX: Avoid serializing some things can't be natively serialized.
+      'source',
+    ];
+    foreach ($to_suppress as $value) {
+      $key = array_search($value, $vars);
+      if ($key !== FALSE) {
+        unset($vars[$key]);
+      }
+    }
+    // XXX: This unsets the protected sourcePlugin variable to avoid having
+    // it be serialized to the DB.
+    $this->migration->set('source', $this->migration->getSourceConfiguration());
+    return $vars;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __wakeup() {
+    $this->traitWakeup();
+    // XXX: Re-add the listeners because the services get re-initialized.
+    foreach ($this->listeners as $event => $listener) {
+      $this->getEventDispatcher()->addListener($event, $listener);
     }
   }
 
@@ -239,8 +286,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
     if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
       $return = $this->migration->getInterruptionResult();
       $this->migration->clearInterruptionResult();
-      return $return;
     }
+
+    return $return;
 
   }
 
@@ -258,83 +306,105 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $sandbox['total'] = $this->queue->numberOfItems();
       if ($sandbox['total'] === 0) {
         $context['message'] = $this->t('Queue empty.');
+        $context['finished'] = 1;
         return;
       }
     }
 
-    while (TRUE) {
-      $item = $this->queue->claimItem();
-      if (!$item) {
-        $context['message'] = $this->t('Queue exhausted.');
-        break;
-      }
-      $row = $item->data['row'];
-      if ($item->data['attempts']++ > 0) {
-        $sleep_time = 2 ** ($item->data['attempts'] - 1);
-        $context['message'] = $this->t('Attempt @attempt processing row (IDs: @ids) in migration @migration; sleeping @time seconds.', [
-          '@attempt' => $item->data['attempts'],
-          '@ids' => var_export($row->getSourceIdValues(), TRUE),
-          '@migration' => $this->migration->id(),
-          '@time' => $sleep_time,
-        ]);
-        sleep($sleep_time);
-      }
+    try {
+      $context['finished'] = $sandbox['current'] / $sandbox['total'];
+      while ($context['finished'] < 1) {
+        $item = $this->queue->claimItem();
+        if (!$item) {
+          // XXX: Exceptions for flow control... maybe not the best, but works
+          // for now... as such, let's allow it to pass translated messages.
+          // phpcs:ignore DrupalPractice.General.ExceptionT.ExceptionT
+          throw new MigrateBatchException($this->t('Queue exhausted.'), 1);
+        }
+        $row = $item->data['row'];
+        if ($item->data['attempts']++ > 0) {
+          $sleep_time = 2 ** ($item->data['attempts'] - 1);
+          $context['message'] = $this->t('Attempt @attempt processing row (IDs: @ids) in migration @migration; sleeping @time seconds.', [
+            '@attempt' => $item->data['attempts'],
+            '@ids' => var_export($row->getSourceIdValues(), TRUE),
+            '@migration' => $this->migration->id(),
+            '@time' => $sleep_time,
+          ]);
+          sleep($sleep_time);
+        }
 
-      try {
-        $status = $this->processRowFromQueue($row);
-        ++$sandbox['current'];
-        $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
-          '@migration' => $this->migration->id(),
-          '@current'   => $sandbox['current'],
-          '@ids'       => var_export($row->getSourceIdValues(), TRUE),
-          '@total'     => $sandbox['total'],
-        ]);
-        if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
-          $context['message'] = $this->t('Stopping "@migration" after @current of @total', [
-            '@migration' => $this->migration->id(),
-            '@current' => $sandbox['current'],
-            '@total' => $sandbox['total'],
-          ]);
-          $context['finished'] = 1;
-          break;
-        }
-        elseif ($status === MigrationInterface::RESULT_INCOMPLETE) {
-          // Force iteration, due to memory or time.
-          break;
-        }
-      }
-      catch (\Exception $e) {
-        if ($item->data['attempts'] < 3) {
-          // XXX: Not really making any progress, requeueing things, so don't
-          // increment 'current'.
-          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info:@n@ex', [
-            '@migration' => $this->migration->id(),
-            '@current'   => $sandbox['current'],
-            '@ids'       => var_export($row->getSourceIdValues(), TRUE),
-            '@total'     => $sandbox['total'],
-            '@ex'        => $e,
-            '@n'         => "\n",
-          ]);
-          $this->queue->createItem($item->data);
-        }
-        else {
+        try {
+          $status = $this->processRowFromQueue($row);
           ++$sandbox['current'];
-          $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info:@n@ex', [
+          $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
             '@migration' => $this->migration->id(),
             '@current'   => $sandbox['current'],
             '@ids'       => var_export($row->getSourceIdValues(), TRUE),
             '@total'     => $sandbox['total'],
-            '@ex'        => $e,
-            '@n'         => "\n",
           ]);
-          $this->getIdMap()->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_FAILED);
+          if ($this->migration->getStatus() == MigrationInterface::STATUS_STOPPING) {
+            // XXX: Exceptions for flow control... maybe not the best, but works
+            // for now... as such, let's allow it to pass translated messages.
+            // phpcs:ignore DrupalPractice.General.ExceptionT.ExceptionT
+            throw new MigrateBatchException($this->t('Stopping "@migration" after @current of @total', [
+              '@migration' => $this->migration->id(),
+              '@current' => $sandbox['current'],
+              '@total' => $sandbox['total'],
+            ]), 1);
+          }
+          elseif ($status === MigrationInterface::RESULT_INCOMPLETE) {
+            // Force iteration, due to memory or time.
+            // XXX: Don't want to pass a message here, as it would _always_ be
+            // shown if this was run via the web interface.
+            throw new MigrateBatchException();
+          }
         }
-      }
-      finally {
-        $context['finished'] = $context['finished'] ?? ($sandbox['current'] / $sandbox['total']);
-        $this->queue->deleteItem($item);
+        catch (MigrateBatchException $e) {
+          // Rethrow to avoid the general handling below.
+          throw $e;
+        }
+        catch (\Exception $e) {
+          if ($item->data['attempts'] < 3) {
+            // XXX: Not really making any progress, requeueing things, so don't
+            // increment 'current'.
+            $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info:@n@ex', [
+              '@migration' => $this->migration->id(),
+              '@current'   => $sandbox['current'],
+              '@ids'       => var_export($row->getSourceIdValues(), TRUE),
+              '@total'     => $sandbox['total'],
+              '@ex'        => $e,
+              '@n'         => "\n",
+            ]);
+            $this->queue->createItem($item->data);
+          }
+          else {
+            ++$sandbox['current'];
+            $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info:@n@ex', [
+              '@migration' => $this->migration->id(),
+              '@current'   => $sandbox['current'],
+              '@ids'       => var_export($row->getSourceIdValues(), TRUE),
+              '@total'     => $sandbox['total'],
+              '@ex'        => $e,
+              '@n'         => "\n",
+            ]);
+            $this->getIdMap()->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_FAILED);
+          }
+        }
+        finally {
+          $this->queue->deleteItem($item);
+        }
+
+        $context['finished'] = $sandbox['current'] / $sandbox['total'];
       }
     }
+    catch (MigrateBatchException $e) {
+      if ($msg = $e->getMessage()) {
+        $context['message'] = $msg;
+      }
+
+      $context['finished'] = $e->getFinished() ?? ($sandbox['current'] / $sandbox['total']);
+    }
+
   }
 
   /**
@@ -411,6 +481,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
    */
   protected static function isCli() {
     return PHP_SAPI === 'cli';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getIdMap() {
+    return new StatusFilter(parent::getIdMap(), $this->idMapStatuses);
   }
 
 }

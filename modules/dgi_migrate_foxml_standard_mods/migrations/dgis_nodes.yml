@@ -1,0 +1,1797 @@
+---
+id: dgis_nodes
+label: Create nodes from each FOXML File entity
+migration_group: foxml_to_dgis
+source:
+  plugin: dgi_migrate.source.migration
+  track_changes: true
+  migration: dgis_foxml_files
+  dsf_misc:
+    case_insensitive: &case_insensitive true
+    base_mods_node: &base_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      missing_behavior: skip_process
+      source: '@_mods_node'
+      xpath: '@_mods_xpath'
+    nested_mods_node: &nested_mods_node
+      plugin: dgi_migrate.process.xml.context_query
+      source: 'parent_value'
+      xpath: 'parent_row/dest/_mods_xpath'
+    generic_term:
+      after: &generic_term_after
+        _auth_value_uri:
+          - << : *nested_mods_node
+            query: 'string(@valueURI)'
+            method: evaluate
+        _auth_source:
+          - << : *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
+        _value:
+          - << : *nested_mods_node
+            query: 'normalize-space(.)'
+            method: evaluate
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+      extract: &generic_term_extract
+        plugin: dgi_migrate.process.single_extract
+        index: [actual]
+destination:
+  plugin: entity:node
+  default_bundle: islandora_object
+  # XXX: We're not really dealing with translations here. To do so, seems like
+  # you would need separate migrations.
+  #translations: true
+  validate: &validate true
+process:
+  _node_foxml_parsed:
+    - plugin: dgi_migrate.load_entity
+      source: fid
+      entity_type: entity:file
+    - plugin: dgi_migrate.method
+      method: getFileUri
+    - plugin: dgi_migrate.parse_foxml
+  _models:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: models
+    - plugin: skip_on_empty
+      method: row
+  title:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: label
+    - plugin: default_value
+      default_value: Untitled
+  created:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: createdDate
+    - plugin: callback
+      callable: strtotime
+  status:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: state
+    - plugin: static_map
+      map:
+        'Active': 1
+        'Inactive': 0
+        'Deleted': 0
+  uid:
+    - plugin: default_value
+      source: shared/default_uid
+      default_value: 0
+  field_pid:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: PID
+  nid:
+    - plugin: migration_lookup
+      source: '@field_pid'
+      migration: dgis_stub_nodes
+  _i8_model_uri:
+    - plugin: static_map
+      source: '@_models'
+      bypass: false
+      map:
+        'info:fedora/islandora:sp_basic_image': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/islandora:sp_large_image_cmodel': 'http://purl.org/coar/resource_type/c_c513'
+        'info:fedora/ir:citationCModel': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_pdf': 'https://schema.org/DigitalDocument'
+        'info:fedora/islandora:sp_videoCModel': 'http://purl.org/coar/resource_type/c_12ce'
+        'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
+        'info:fedora/islandora:sp-audioCModel': 'http://purl.org/coar/resource_type/c_18cc'
+        'info:fedora/islandora:binaryObjectCModel': 'http://purl.org/coar/resource_type/c_1843'
+        'info:fedora/islandora:pageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
+        'info:fedora/islandora:bookCModel': 'https://schema.org/Book'
+        'info:fedora/islandora:newspaperPageCModel': 'http://id.loc.gov/ontologies/bibframe/part'
+        'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
+        'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
+        'info:fedora/islandora:compoundCModel': 'http://vocab.getty.edu/aat/300242735'
+  field_model:
+    - plugin: entity_lookup
+      source: '@_i8_model_uri'
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to lookup the model taxonomy term.'
+  field_display_hints:
+    - plugin: dgi_migrate.process.static_map
+      source: '@_i8_model_uri'
+      default_value: []
+      map:
+        - ['https://schema.org/DigitalDocument', ['http://mozilla.github.io/pdf.js']]
+        - ['http://purl.org/coar/resource_type/c_c513', ['http://openseadragon.github.io']]
+        - ['http://id.loc.gov/ontologies/bibframe/part', ['http://openseadragon.github.io']]
+    - plugin: flatten
+    - plugin: skip_on_empty
+      method: process
+    - plugin: entity_lookup
+      bundle_key: vid
+      bundle: islandora_display
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      # XXX: migrate_plus's case comparison makes assumptions about the entity's
+      # "main" property... we want "uri", but it assumes "value".
+      ignore_case: true
+  _rels_ext_xpath:
+    - plugin: dgi_migrate.subindex
+      index: 'RELS-EXT'
+      source: '@_node_foxml_parsed'
+    - plugin: dgi_migrate.method
+      method: getUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+        fedora-relations-external: 'info:fedora/fedora-system:def/relations-external#'
+        fedora-model: 'info:fedora/fedora-system:def/model#'
+        islandora-rels-ext: 'http://islandora.ca/ontology/relsext#'
+        islandora-rels-int: 'http://islandora.ca/ontology/relsint#'
+  _rels_ext_node:
+    - plugin: dgi_migrate.method
+      source: '@_rels_ext_xpath'
+      method: query
+      args: ['/rdf:RDF/*[self::rdf:Description or self::rdf:description]']
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
+  _members:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: parents
+      args:
+        - [isMemberOf, isMemberOfCollection]
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: single_value
+    - plugin: callback
+      callable: array_unique
+  _constituents:
+    - plugin: dgi_migrate.method
+      source: '@_node_foxml_parsed'
+      method: parents
+      args:
+        - [isConstituentOf]
+    - plugin: multiple_values
+    - plugin: substr
+      start: 12
+    - plugin: single_value
+    - plugin: callback
+      callable: array_unique
+  _constituent_count:
+    - plugin: skip_on_empty
+      source: '@_constituents'
+      method: process
+    - plugin: single_value
+    - plugin: callback
+      callable: count
+    # XXX: Constrain to 0 or 1 constituent relationships... for now.
+    - plugin: static_map
+      bypass: false
+      map:
+        0: 0
+        1: 1
+  field_member_of:
+    - plugin: flatten
+      source:
+        - '@_members'
+        - '@_constituents'
+    - plugin: multiple_values
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
+  _sequence_number:
+    - plugin: dgi_migrate.process.xml.context_query
+      source: '@_rels_ext_node'
+      xpath: '@_rels_ext_xpath'
+      query: 'islandora-rels-ext:isSequenceNumber'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+  _constituent_sequence:
+    - plugin: skip_on_empty
+      source: '@_constituents'
+      method: process
+    - plugin: dgi_migrate_foxml_standard_mods.constituent_sequence
+      node: '@_rels_ext_node'
+      xpath: '@_rels_ext_xpath'
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to grab the constituent sequence numbers.'
+  field_weight:
+    - plugin: flatten
+      source:
+        - '@_sequence_number'
+        - '@_constituent_sequence'
+    - plugin: null_coalesce
+    - plugin: skip_on_empty
+      method: process
+  _mods_xpath:
+    - plugin: dgi_migrate.subindex
+      index: 'MODS'
+      source: '@_node_foxml_parsed'
+      missing_behavior: skip_process
+    - plugin: dgi_migrate.method
+      method: getUri
+    - plugin: dgi_migrate.process.xml.domfile
+    - plugin: dgi_migrate.process.xml.xpath
+      namespaces:
+        mods: 'http://www.loc.gov/mods/v3'
+        xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+        xlink: 'http://www.w3.org/1999/xlink'
+  _mods_node:
+    - plugin: skip_on_empty
+      method: process
+      source: '@_mods_xpath'
+    - plugin: dgi_migrate.method
+      method: query
+      args:
+        - '//mods:mods[1]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: array_shift
+  field_ark:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="ark"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_coordinates:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:cartographics/mods:coordinates'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: str_replace
+      search: ' '
+      replace: ''
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _value:
+          - plugin: explode
+            delimiter: ','
+            source: parent_value
+        _count:
+          - plugin: single_value
+            source: '@_value'
+          - plugin: callback
+            callable: count
+        lat:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count'
+            value: 2
+            method: process
+          - plugin: get
+            source: '@_value/0'
+        lng:
+          - plugin: skip_on_value
+            not_equals: true
+            source: '@_count'
+            value: 2
+            method: process
+          - plugin: get
+            source: '@_value/1'
+  field_edtf_date_created:
+    - << : *base_mods_node
+      query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_edtf_date_issued:
+    - << : *base_mods_node
+      query: 'mods:originInfo/mods:dateIssued[@keydate="yes"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_description:
+    - << : *base_mods_node
+      query: 'mods:abstract'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_digital_origin:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:digitalOrigin'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_doi:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="doi"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_electronic_locator:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_enumeration_and_chronology:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_extent:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:extent'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_faceted_subject:
+    - << : *base_mods_node
+      query: 'mods:subject'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: faceted_subject
+      process_values: true
+      values:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
+        field_authority_sources/0/uri:
+          - << : *nested_mods_node
+            query: 'string(@valueURI)'
+            method: evaluate
+        field_authority_sources/0/source:
+          # XXX: This "source" value does not appear to be saved if there is not
+          # an associated "uri" value.
+          - << : *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
+        field_genre_form_subdivision_:
+          - << : *nested_mods_node
+            query: 'mods:genre[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: genre
+              <<: *generic_term_after
+          - <<: *generic_term_extract
+        field_geographic_geographic_subd:
+          - << : *nested_mods_node
+            query: 'mods:geographic[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: geo_location
+              <<: *generic_term_after
+          - <<: *generic_term_extract
+        field_temporal_chronological_sub:
+          - << : *nested_mods_node
+            query: 'mods:temporal[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: temporal
+              <<: *generic_term_after
+          - <<: *generic_term_extract
+        field_topic_general_subdivision:
+          - << : *nested_mods_node
+            query: 'mods:topic[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: subject
+              <<: *generic_term_after
+          - <<: *generic_term_extract
+  field_form:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_genre:
+    - << : *base_mods_node
+      query: 'mods:genre[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: genre
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_geographic_subject:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:geographic[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: geo_location
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_handle:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="hdl"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_hierarchical_geographic_su:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:hierarchicalGeographic'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: hierarchical_geographic_subject
+      process_values: true
+      values:
+        field_area:
+          - << : *nested_mods_node
+            query: 'mods:area'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_city:
+          - << : *nested_mods_node
+            query: 'mods:city'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_city_section:
+          - << : *nested_mods_node
+            query: 'mods:citySection'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_continent:
+          - << : *nested_mods_node
+            query: 'mods:continent'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_country:
+          - << : *nested_mods_node
+            query: 'mods:country'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_county:
+          - << : *nested_mods_node
+            query: 'mods:county'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extraterrestrial_area:
+          - << : *nested_mods_node
+            query: 'mods:extraterrestrialArea'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_island:
+          - << : *nested_mods_node
+            query: 'mods:island'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_region:
+          - << : *nested_mods_node
+            query: 'mods:region'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_state:
+          - << : *nested_mods_node
+            query: 'mods:state'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_territory:
+          - << : *nested_mods_node
+            query: 'mods:territory'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_isbn:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="isbn"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_item_identifier:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_lcc_classification:
+    - << : *base_mods_node
+      query: 'mods:classification[@authority="lcc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_local_identifier:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="local"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+  field_note_location:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_note_paragraph:
+    - << : *base_mods_node
+      query: 'mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: note
+      process_values: true
+      values:
+        field_note_type:
+          - << : *nested_mods_node
+            query: '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_note:
+          - plugin: dgi_migrate.subproperty
+            source: 'parent_value'
+            property: nodeValue
+  field_note:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:note'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_oclc_number:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="oclc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_linked_agent:
+    - << : *base_mods_node
+      query: 'mods:name[@type="personal"]'
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_linked_agent
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _given_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][1])'
+            method: evaluate
+        _family_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][1])'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        _affiliation_lookup:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_given_name'
+              - '@_family_name'
+              - '@_date_name'
+              - '@_display_form'
+              - '@_affiliation'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_person
+            stub_id: dgis_stub_terms_person
+          - plugin: skip_on_empty
+            method: row
+  field_organizations:
+    - << : *base_mods_node
+      query: 'mods:name[@type="corporate"]'
+    - plugin: dgi_migrate_foxml_standard_mods.typed_relation
+      field_name: node.islandora_object.field_organizations
+      xpath: '@_mods_xpath'
+      default_role: 'relators:asn'
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        _affiliation_lookup:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+              - '@_affiliation'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
+          - plugin: skip_on_empty
+            method: row
+  field_origin_information:
+    - << : *base_mods_node
+      query: 'mods:originInfo'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: origin_information
+      process_values: true
+      values:
+        _field_copyright_date_single:
+          - << : *nested_mods_node
+            query: 'mods:copyrightDate[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_copyright_date_start:
+          - << : *nested_mods_node
+            query: 'mods:copyrightDate[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_copyright_date_end:
+          - << : *nested_mods_node
+            query: 'mods:copyrightDate[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_copyright_date:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_copyright_date_single'
+            range_start: '@_field_copyright_date_start'
+            range_end: '@_field_copyright_date_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        _field_date_captured_single:
+          - << : *nested_mods_node
+            query: 'mods:dateCaptured[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_captured_start:
+          - << : *nested_mods_node
+            query: 'mods:dateCaptured[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_captured_end:
+          - << : *nested_mods_node
+            query: 'mods:dateCaptured[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_date_captured:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_captured_single'
+            range_start: '@_field_date_captured_start'
+            range_end: '@_field_date_captured_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        _field_date_created_single:
+          - << : *nested_mods_node
+            query: 'mods:dateCreated[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_created_start:
+          - << : *nested_mods_node
+            query: 'mods:dateCreated[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_created_end:
+          - << : *nested_mods_node
+            query: 'mods:dateCreated[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_date_created:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_created_single'
+            range_start: '@_field_date_created_start'
+            range_end: '@_field_date_created_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        _field_date_issued_single:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_issued_start:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_issued_end:
+          - << : *nested_mods_node
+            query: 'mods:dateIssued[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_date_issued:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_issued_single'
+            range_start: '@_field_date_issued_start'
+            range_end: '@_field_date_issued_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        _field_date_modified_single:
+          - << : *nested_mods_node
+            query: 'mods:dateModified[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_modified_start:
+          - << : *nested_mods_node
+            query: 'mods:dateModified[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_modified_end:
+          - << : *nested_mods_node
+            query: 'mods:dateModified[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_date_modified:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_modified_single'
+            range_start: '@_field_date_modified_start'
+            range_end: '@_field_date_modified_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        _field_date_valid_single:
+          - << : *nested_mods_node
+            query: 'mods:dateValid[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_valid_start:
+          - << : *nested_mods_node
+            query: 'mods:dateValid[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_valid_end:
+          - << : *nested_mods_node
+            query: 'mods:dateValid[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_date_valid:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_valid_single'
+            range_start: '@_field_date_valid_start'
+            range_end: '@_field_date_valid_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        field_edition:
+          - << : *nested_mods_node
+            query: 'mods:edition'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_event_type:
+          - << : *nested_mods_node
+            query: '@eventType'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_frequency:
+          - << : *nested_mods_node
+            query: 'mods:frequency'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_issuance:
+          - << : *nested_mods_node
+            query: 'mods:issuance'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        _field_other_date_single:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[not(@point)]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_other_date_start:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_other_date_end:
+          - << : *nested_mods_node
+            query: 'mods:dateOther[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_other_date:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_other_date_single'
+            range_start: '@_field_other_date_start'
+            range_end: '@_field_other_date_end'
+            get_values: true
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+        field_place:
+          - << : *nested_mods_node
+            query: 'mods:place/mods:placeTerm[normalize-space()][1]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        field_publisher:
+          - << : *nested_mods_node
+            query: 'mods:publisher'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_part:
+    - << : *base_mods_node
+      query: 'mods:part'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: part
+      process_values: true
+      values:
+        field_additional_information:
+          - << : *nested_mods_node
+            query: 'mods:text'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_caption:
+          - << : *nested_mods_node
+            query: 'mods:detail/mods:caption'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_date:
+          - << : *nested_mods_node
+            query: 'mods:date'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_end:
+          - << : *nested_mods_node
+            query: 'mods:extent/mods:end'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extent:
+          - << : *nested_mods_node
+            query: 'mods:extent'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_extent_units:
+          - << : *nested_mods_node
+            query: 'mods:extent/@unit'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_list:
+          - << : *nested_mods_node
+            query: 'mods:extent/mods:list'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_number:
+          - << : *nested_mods_node
+            query: 'mods:detail/mods:number'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_part_order:
+          - << : *nested_mods_node
+            query: '@order'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_part_type:
+          - << : *nested_mods_node
+            query: '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: skip_on_empty
+            method: process
+          - plugin: entity_lookup
+            bundle_key: vid
+            bundle: part_type
+            value_key: name
+            entity_type: taxonomy_term
+            ignore_case: true
+          - plugin: skip_on_empty
+            method: row
+            message: "Failed to map the part 'type' attribute."
+        field_start:
+          - << : *nested_mods_node
+            query: 'mods:extent/mods:start'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_title:
+          - << : *nested_mods_node
+            query: 'mods:detail/mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_total:
+          - << : *nested_mods_node
+            query: 'mods:extent/mods:total'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_physical_form:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:form[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: physical_form
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_physical_location:
+    - << : *base_mods_node
+      query: '(mods:location/mods:physicalLocation[normalize-space()])[1]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_purl:
+    - << : *base_mods_node
+      query: 'mods:identifier[@type="purl"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_record_information:
+    - << : *base_mods_node
+      query: 'mods:recordInfo'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: record_information
+      process_values: true
+      values:
+        field_description_standard:
+          - << : *nested_mods_node
+            query: 'mods:descriptionStandard'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_recording_catalog_language:
+          - << : *nested_mods_node
+            query: 'mods:languageOfCataloging'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_change_date:
+          - << : *nested_mods_node
+            query: 'mods:recordChangeDate'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_content_source:
+          - << : *nested_mods_node
+            query: 'mods:recordContentSource'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_creation_date:
+          - << : *nested_mods_node
+            query: 'mods:recordCreationDate'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_identifier:
+          - << : *nested_mods_node
+            query: 'mods:recordIdentifier'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_information_note:
+          - << : *nested_mods_node
+            query: 'mods:recordInfoNote'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_record_origin:
+          - << : *nested_mods_node
+            query: 'mods:recordOrigin'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+  field_reformatting_quality:
+    - << : *base_mods_node
+      query: 'mods:physicalDescription/mods:reformattingQuality'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_related_item_paragraph:
+    - << : *base_mods_node
+      query: 'mods:relatedItem'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: related_item
+      process_values: true
+      values:
+        field_relationship_type:
+          - << : *nested_mods_node
+            query: '@type'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: entity_lookup
+            bundle: mods_relation_types
+            bundle_key: vid
+            entity_type: taxonomy_term
+            value_key: name
+          - plugin: skip_on_empty
+            method: row
+            message: "Encountered invalid relatedItem/@type attribute"
+        field_title_plain:
+          - << : *nested_mods_node
+            query: 'mods:titleInfo/mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+        field_url/uri:
+          - << : *nested_mods_node
+            query: 'mods:location/mods:url[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+        field_related_item_extent:
+          - << : *nested_mods_node
+            query: 'mods:physicalDescription/mods:extent[normalize-space()]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+  _resource_type:
+    - << : *base_mods_node
+      query: 'mods:typeOfResource'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+  field_resource_type:
+    - plugin: default_value
+      source: '@_resource_type'
+      default_value: Unspecified
+    - plugin: entity_generate
+      bundle: resource_types
+      bundle_key: vid
+      entity_type: taxonomy_term
+      value_key: name
+      ignore_case: *case_insensitive
+  field_restriction_on_access:
+    - << : *base_mods_node
+      query: 'mods:accessCondition[@type="restriction on access"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  # XXX: Was intended as outbound mapping, not inbound. Let's just comment for now.
+  #field_rights_statement:
+  #  - << : *base_mods_node
+  #    query: 'mods:accessCondition[@type="use and reproduction"]'
+  #  - plugin: callback
+  #    callable: iterator_to_array
+  #  - plugin: multiple_values
+  #  - plugin: dgi_migrate.subproperty
+  #    property: nodeValue
+  #  - plugin: entity_generate
+  #    bundle: rights_statements
+  #    bundle_key: vid
+  #    entity_type: taxonomy_term
+  #    value_key: name
+  #    ignore_case: *case_insensitive
+  field_shelf_locator:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  _subject_topic:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:topic[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: subject
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _subject_name_personal:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:name[@type="personal" or not(@type)][normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _given_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="given"][normalize-space()][1])'
+            method: evaluate
+        _family_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="family"][normalize-space()][1])'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        _affiliation_lookup:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_given_name'
+              - '@_family_name'
+              - '@_date_name'
+              - '@_display_form'
+              - '@_affiliation'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_person
+            stub_id: dgis_stub_terms_person
+          - plugin: skip_on_empty
+            method: row
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
+  _subject_name_corporate:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:name[@type="corporate"][normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        _affiliation_lookup:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
+        _affiliation:
+          - plugin: default_value
+            source: '@_affiliation_lookup'
+            default_value: ''
+        target_id:
+          - plugin: get
+            source:
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+              - '@_affiliation'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
+          - plugin: skip_on_empty
+            method: row
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
+  field_subject:
+    - plugin: get
+      source:
+        - '@_subject_topic'
+        - '@_subject_name_personal'
+        - '@_subject_name_corporate'
+    - plugin: flatten
+  field_sub_location:
+    - << : *base_mods_node
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_table_of_contents:
+    - << : *base_mods_node
+      query: 'mods:tableOfContents'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_target_audience:
+    - << : *base_mods_node
+      query: 'mods:targetAudience'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_temporal_subject:
+    - << : *base_mods_node
+      query: 'mods:subject/mods:temporal[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: temporal
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_title:
+    - << : *base_mods_node
+      query: 'mods:titleInfo[normalize-space(mods:nonSort | mods:title | mods:subTitle | mods:partNumber | mods:partName)]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_standard_title_paragraph
+      xpath: '@_mods_xpath'
+      max_length: 255
+      validate: *validate
+  field_use_and_reproduction:
+    - << : *base_mods_node
+      query: 'mods:accessCondition[@type="use and reproduction"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+  field_language:
+    - << : *base_mods_node
+      query: 'mods:language/mods:languageTerm[normalize-space()]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: language
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+migration_dependencies:
+  required:
+    - dgis_foxml_files
+    - islandora_tags
+    - dgis_stub_nodes
+    - dgis_stub_terms_person
+    - dgis_stub_terms_affiliate
+    - dgis_stub_terms_corporate_body
+    - dgis_stub_terms_generic
+dependencies:
+  enforced:
+    module:
+      - dgi_migrate_edtf_validator
+      - dgi_migrate_paragraphs
