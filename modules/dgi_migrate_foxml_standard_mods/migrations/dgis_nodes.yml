@@ -97,10 +97,6 @@ process:
     - plugin: dgi_migrate.subproperty
       source: '@_node_foxml_parsed'
       property: PID
-  nid:
-    - plugin: migration_lookup
-      source: '@field_pid'
-      migration: dgis_stub_nodes
   _i8_model_uri:
     - plugin: static_map
       source: '@_models'
@@ -1789,6 +1785,10 @@ process:
             default_value: language
         <<: *generic_term_after
     - <<: *generic_term_extract
+  nid:
+    - plugin: migration_lookup
+      source: '@field_pid'
+      migration: dgis_stub_nodes
 migration_dependencies:
   required:
     - dgis_foxml_files
