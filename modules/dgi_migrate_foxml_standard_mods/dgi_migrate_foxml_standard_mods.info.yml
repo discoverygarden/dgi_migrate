@@ -8,3 +8,4 @@ dependencies:
   - dgi_migrate:dgi_migrate
   - dgi_migrate:dgi_migrate_paragraphs
   - dgi_migrate:dgi_migrate_edtf_validator
+  - foxml:foxml

@@ -158,7 +158,11 @@ process:
       source: '@_node_foxml_parsed'
     - plugin: dgi_migrate.method
       method: getUri
-    - plugin: dgi_migrate.process.xml.domfile
+    # XXX: An issue in the passing off of paths/URIs to libxml prevents the use
+    # of "dgi_migrate.process.xml.domfile"
+    - plugin: callback
+      callable: file_get_contents
+    - plugin: dgi_migrate.process.xml.domstring
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
@@ -256,7 +260,11 @@ process:
       missing_behavior: skip_process
     - plugin: dgi_migrate.method
       method: getUri
-    - plugin: dgi_migrate.process.xml.domfile
+    # XXX: An issue in the passing off of paths/URIs to libxml prevents the use
+    # of "dgi_migrate.process.xml.domfile"
+    - plugin: callback
+      callable: file_get_contents
+    - plugin: dgi_migrate.process.xml.domstring
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         mods: 'http://www.loc.gov/mods/v3'
