@@ -21,7 +21,7 @@ process:
     - plugin: dgi_migrate.method
       method: getFileUri
       source: '@field_media_file'
-    - plugin: dgi_migrate.parse_foxml
+    - plugin: foxml.parse
   field_media_of:
     - plugin: migration_lookup
       migration: dgis_nodes
