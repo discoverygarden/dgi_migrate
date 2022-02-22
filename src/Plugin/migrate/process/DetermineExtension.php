@@ -52,7 +52,7 @@ class DetermineExtension extends ProcessPluginBase {
       "Falling back to the second part of the MIME-type for an extension.",
       MigrationInterface::MESSAGE_NOTICE
     );
-    list(, $ext) = explode('/', $value, 2);
+    [, $ext] = explode('/', $value, 2);
     return $ext;
   }
 
