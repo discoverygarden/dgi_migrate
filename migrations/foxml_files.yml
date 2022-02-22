@@ -31,7 +31,7 @@ process:
       value: true
       method: row
   _parsed:
-    plugin: dgi_migrate.parse_foxml
+    plugin: foxml.parse
     source: path
   created:
     - plugin: dgi_migrate.subproperty

@@ -18,7 +18,7 @@ process:
       entity_type: entity:file
     - plugin: dgi_migrate.method
       method: getFileUri
-    - plugin: dgi_migrate.parse_foxml
+    - plugin: foxml.parse
   _models:
     - plugin: dgi_migrate.method
       source: '@_parsed'
