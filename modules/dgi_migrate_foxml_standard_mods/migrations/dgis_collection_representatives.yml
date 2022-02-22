@@ -30,18 +30,19 @@ process:
       method: models
     - plugin: skip_on_empty
       method: row
-  nid:
-    - plugin: dgi_migrate.subproperty
-      source: '@_node_foxml_parsed'
-      property: PID
-    - plugin: migration_lookup
-      migration: dgis_stub_nodes
   _i8_model_uri:
     - plugin: static_map
       source: '@_models'
       bypass: false
       map:
         'info:fedora/islandora:collectionCModel': 'http://purl.org/dc/dcmitype/Collection'
+  nid:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: PID
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      no_stub: true
   field_representative_image/target_id:
     - plugin: dgi_migrate.process.find_first_image_media
       source: '@nid'

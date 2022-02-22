@@ -211,15 +211,6 @@ process:
       map:
         0: 0
         1: 1
-  field_member_of:
-    - plugin: flatten
-      source:
-        - '@_members'
-        - '@_constituents'
-    - plugin: multiple_values
-    - plugin: migration_lookup
-      migration: dgis_stub_nodes
-      stub_id: dgis_stub_nodes
   _sequence_number:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_rels_ext_node'
@@ -1789,6 +1780,15 @@ process:
     - plugin: migration_lookup
       source: '@field_pid'
       migration: dgis_stub_nodes
+  field_member_of:
+    - plugin: flatten
+      source:
+        - '@_members'
+        - '@_constituents'
+    - plugin: multiple_values
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
 migration_dependencies:
   required:
     - dgis_foxml_files
