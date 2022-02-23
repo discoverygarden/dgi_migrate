@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Implements module hooks.
+ */
+
+/**
+ * Implements hook_migration_plugins_alter().
+ */
+function dgi_migrate_migration_plugins_alter(&$definitions) {
+  foreach (array_keys($definitions) as $plugin_id) {
+    $definitions[$plugin_id]['idMap'] = ['plugin' => 'smart_sql'];
+  }
+}
