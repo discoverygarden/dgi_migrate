@@ -467,7 +467,7 @@ process:
                   default_value: temporal
               <<: *generic_term_after
           - <<: *generic_term_extract
-        field_topic_general_subdivision:
+        field_topic_general_subdivision_:
           - << : *nested_mods_node
             query: 'mods:topic[normalize-space()]'
           - plugin: callback
