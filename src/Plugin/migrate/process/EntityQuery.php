@@ -21,11 +21,11 @@ class EntityQuery extends AbstractEntityAccessor {
     $query = $this->storage->getQuery();
 
     foreach (($this->configuration['static_conditions'] ?? []) as $info) {
-      list($field, $descriptor) = $info;
+      [$field, $descriptor] = $info;
       $query->condition($field, $descriptor);
     }
     foreach (($this->configuration['conditions'] ?? []) as $info) {
-      list($field, $descriptor) = $info;
+      [$field, $descriptor] = $info;
       $query->condition($field, $row->get($descriptor));
     }
     foreach (($this->configuration['empty'] ?? []) as $field) {

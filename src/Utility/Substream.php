@@ -152,7 +152,7 @@ class Substream extends ReadOnlyStream {
    * {@inheritdoc}
    */
   public function stream_open($path, $mode, $options, &$opened_path) {
-    list($start, $length, $target) = $this->parsePath($path);
+    [$start, $length, $target] = $this->parsePath($path);
     $this->target = fopen($target, $mode);
     if (!$this->target) {
       // Failed to open the source stream.
@@ -251,7 +251,7 @@ class Substream extends ReadOnlyStream {
    * {@inheritdoc}
    */
   public function url_stat($path, $flags) {
-    list(, $length, $target) = $this->parsePath($path);
+    [, $length, $target] = $this->parsePath($path);
     $stat = [
       7 => (int) $length,
       'size' => (int) $length,
