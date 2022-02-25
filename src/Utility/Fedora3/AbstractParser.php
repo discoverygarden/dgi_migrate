@@ -165,7 +165,7 @@ abstract class AbstractParser implements ParserInterface {
     if ($this->map === NULL) {
       $this->map = array_combine(
         array_map(function ($key) {
-          list($prefix, $name) = explode(':', $key);
+          [$prefix, $name] = explode(':', $key);
           if ($prefix === 'foxml') {
             $key = "info:fedora/fedora-system:def/foxml#:{$name}";
           }
