@@ -7,6 +7,7 @@
       "discoverygarden/foxml": "^1",
       "drupal/migrate_plus": "^5.1",
       "drupal/migrate_tools": "^5.0",
+      "iqb/substream": "dev-master",
       "symfony/mime": "^5"
     }
 }

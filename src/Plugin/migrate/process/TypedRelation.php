@@ -108,7 +108,7 @@ class TypedRelation extends SubProcess implements ContainerFactoryPluginInterfac
         throw new \InvalidArgumentException('Missing the "field_name" argument.');
       }
 
-      list($entity_type, $bundle, $field_name) = explode('.', $configuration['field_name']);
+      [$entity_type, $bundle, $field_name] = explode('.', $configuration['field_name']);
       $field_def = $entity_field_manager->getFieldDefinitions($entity_type, $bundle)[$field_name];
 
       if ($field_def->getType() !== 'typed_relation') {

@@ -66,7 +66,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     if ($row->isStub()) {
       return NULL;
     }
-    list($source, $destination) = $value;
+    [$source, $destination] = $value;
 
     // Check if a writable directory exists, and if not try to create it.
     $dir = $this->getDirectory($destination);
