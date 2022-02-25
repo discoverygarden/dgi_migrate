@@ -2,12 +2,13 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
-// XXX: A number of things related to deprecations are specific to things on
-// drupal.org... so let's just suppress their stuff.
-// pbpcs:disable Drupal.Commenting.Deprecated.*
 use Drupal\foxml\Plugin\migrate\process\Parse;
 use Drupal\foxml\Utility\Fedora3\FoxmlParser;
 
+// XXX: A number of things related to deprecations are specific to things on
+// drupal.org... so let's just suppress their stuff.
+// phpcs:disable Drupal.Commenting.Deprecated.IncorrectTextLayout
+// phpcs:disable Drupal.Commenting.Deprecated.DeprecatedWrongSeeUrlFormat
 /**
  * Parse FOXML.
  *
