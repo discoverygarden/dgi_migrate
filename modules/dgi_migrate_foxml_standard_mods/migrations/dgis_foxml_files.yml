@@ -3,7 +3,7 @@ id: dgis_foxml_files
 label: Create File entities from exported FOXML
 migration_group: foxml_to_dgis
 source:
-  plugin: directory
+  plugin: foxml
   track_changes: true
   # XXX: WARNING: The target files should be made read-only, as rolling back
   # a migration will TRY TO DELETE THE FILES!
@@ -11,13 +11,12 @@ source:
   # validation of the URI in the destination may fail (presumably, naive URI
   # validation inside of Drupal, expecting HTTP-like URLs)... or may just
   # require a third slash to imply an empty "authority" component?
-  path: private://exports
   cache_counts: true
 destination:
   plugin: entity:file
   validate: true
 process:
-  uri: path
+  uri: uri
   _validate:
     # XXX: Initial safety business... try to avoid operating on files which are
     # writable, to avoid potentially deleting them on a rollback.
@@ -42,7 +41,7 @@ process:
       value: true
       method: row
   _parsed:
-    plugin: dgi_migrate.parse_foxml
+    plugin: foxml.parse
     source: path
   created:
     - plugin: dgi_migrate.subproperty

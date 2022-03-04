@@ -61,7 +61,7 @@ process:
       entity_type: entity:file
     - plugin: dgi_migrate.method
       method: getFileUri
-    - plugin: dgi_migrate.parse_foxml
+    - plugin: foxml.parse
   _models:
     - plugin: dgi_migrate.method
       source: '@_node_foxml_parsed'
@@ -97,10 +97,6 @@ process:
     - plugin: dgi_migrate.subproperty
       source: '@_node_foxml_parsed'
       property: PID
-  nid:
-    - plugin: migration_lookup
-      source: '@field_pid'
-      migration: dgis_stub_nodes
   _i8_model_uri:
     - plugin: static_map
       source: '@_models'
@@ -158,7 +154,11 @@ process:
       source: '@_node_foxml_parsed'
     - plugin: dgi_migrate.method
       method: getUri
-    - plugin: dgi_migrate.process.xml.domfile
+    # XXX: An issue in the passing off of paths/URIs to libxml prevents the use
+    # of "dgi_migrate.process.xml.domfile"
+    - plugin: callback
+      callable: file_get_contents
+    - plugin: dgi_migrate.process.xml.domstring
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
@@ -211,15 +211,6 @@ process:
       map:
         0: 0
         1: 1
-  field_member_of:
-    - plugin: flatten
-      source:
-        - '@_members'
-        - '@_constituents'
-    - plugin: multiple_values
-    - plugin: migration_lookup
-      migration: dgis_stub_nodes
-      stub_id: dgis_stub_nodes
   _sequence_number:
     - plugin: dgi_migrate.process.xml.context_query
       source: '@_rels_ext_node'
@@ -256,7 +247,11 @@ process:
       missing_behavior: skip_process
     - plugin: dgi_migrate.method
       method: getUri
-    - plugin: dgi_migrate.process.xml.domfile
+    # XXX: An issue in the passing off of paths/URIs to libxml prevents the use
+    # of "dgi_migrate.process.xml.domfile"
+    - plugin: callback
+      callable: file_get_contents
+    - plugin: dgi_migrate.process.xml.domstring
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         mods: 'http://www.loc.gov/mods/v3'
@@ -1781,6 +1776,19 @@ process:
             default_value: language
         <<: *generic_term_after
     - <<: *generic_term_extract
+  nid:
+    - plugin: migration_lookup
+      source: '@field_pid'
+      migration: dgis_stub_nodes
+  field_member_of:
+    - plugin: flatten
+      source:
+        - '@_members'
+        - '@_constituents'
+    - plugin: multiple_values
+    - plugin: migration_lookup
+      migration: dgis_stub_nodes
+      stub_id: dgis_stub_nodes
 migration_dependencies:
   required:
     - dgis_foxml_files

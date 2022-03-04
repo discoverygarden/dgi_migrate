@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Misc (un)installation and update hooks.
+ */
+
+/**
+ * Delete example migration entities migrated to live as plugins.
+ */
+function dgi_migrate_update_9201() {
+  $entities = [
+    'migrate_plus.migration.content_files',
+    'migrate_plus.migration.content_media',
+    'migrate_plus.migration.foxml_files',
+    'migrate_plus.migration.foxml_media',
+    'migrate_plus.migration.foxml_nodes',
+  ];
+
+  $config_factory = \Drupal::configFactory();
+  foreach ($entities as $entity) {
+    $config_factory->getEditable($entity)->delete();
+  }
+
+}
