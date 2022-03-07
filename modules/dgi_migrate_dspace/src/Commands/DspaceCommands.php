@@ -4,17 +4,39 @@ namespace Drupal\dgi_migrate_dspace\Commands;
 
 use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
 
-use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drush\Commands\DrushCommands;
 
+/**
+ * DSpace migration commands.
+ */
 class DspaceCommands extends DrushCommands {
 
+  /**
+   * Migration plugin manager service.
+   *
+   * @var \Drupal\migrate\Plugin\MigrationPluginManagerInterface
+   */
   protected MigrationPluginManagerInterface $migrationPluginManager;
+
+  /**
+   * Entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * Node storage service.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
   protected EntityStorageInterface $nodeStorage;
 
+  /**
+   * Constructor.
+   */
   public function __construct(
     MigrationPluginManagerInterface $migration_plugin_manager,
     EntityTypeManagerInterface $entity_type_manager
@@ -28,21 +50,28 @@ class DspaceCommands extends DrushCommands {
    * List the things.
    *
    * @command dgi_migrate_dspace:list
-   * @field-labels
-   *   nid: Node ID
-   *   handle: Handle URL
-   *   url: URL
-   * @default-fields handle,url
-   *
-   * @return \Consolidation\OutputFormatters\StructuredData\RowsOfFields
-   *   The data.
    */
-  public function doList() : RowsOfFields {
-    // XXX: There doesn't appear to be an "OutputFormatter" that operates on
-    // \Iterator or \Traversable instances, so... throw things into an array...
-    return new RowsOfFields(iterator_to_array($this->generateList()));
+  public function doList() : void {
+    // XXX: Drush's "OutputFormatter" do not appear to handle iterators, so
+    // dealing with arbitrary numbers of things gets dicey... elected to
+    // avoid using it here and just dump out CSV.
+    // Something of a header...
+    fputcsv(STDOUT, ['nid', 'handle', 'url']);
+    foreach ($this->generateList() as $row) {
+      // ... and then the rows...
+      fputcsv(STDOUT, $row);
+    }
   }
 
+  /**
+   * Generate the values to list.
+   *
+   * @return \Traversable
+   *   A generator of arrays with the keys:
+   *   - nid: Node IDs.
+   *   - handle: Handle URLs.
+   *   - url: Canonical URLs to the given node.
+   */
   protected function generateList() : \Traversable {
     $migration = $this->migrationPluginManager->createInstance('dspace_nodes');
 
@@ -51,7 +80,7 @@ class DspaceCommands extends DrushCommands {
     foreach ($id_map as $row) {
       $id = $row['destid1'];
       if (!$id) {
-        // No ID? Error'd row?
+        // No ID? Error'd/ignored row?
         continue;
       }
       $entity = $this->nodeStorage->load($id);
