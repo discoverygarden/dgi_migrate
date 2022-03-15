@@ -84,10 +84,15 @@ class DspaceCommands extends DrushCommands {
         continue;
       }
       $entity = $this->nodeStorage->load($id);
+      $url = $entity->toUrl('canonical')
+       ->setAbsolute(TRUE)
+       // XXX: Undocumented as of writing; however, has issue to fix.
+       // @see https://www.drupal.org/project/drupal/issues/3132334
+       ->setOption('path_processing', FALSE);
       $to_yield = [
         'nid' => $id,
         'handle' => $entity->get('field_handle')->getString(),
-        'url' => $entity->toUrl('canonical', ['absolute' => TRUE])->toString(),
+        'url' => $url->toString(),
       ];
       yield $to_yield;
     }
