@@ -38,7 +38,7 @@ class SmartSql extends Sql {
    *
    * @var bool
    */
-  protected boolean $manageOrphans;
+  protected bool $manageOrphans;
 
   /**
    * {@inheritdoc}
@@ -176,9 +176,11 @@ class SmartSql extends Sql {
    *   Array of destination key info.
    */
   protected function doManageOrphans(array &$result, array $destination_id_values) {
+    var_dump('--- managing ---');
     if ($result['rollback_action'] !== MigrateIdMapInterface::ROLLBACK_DELETE) {
       // If things are ::ROLLBACK_PRESERVE'd, we have no mechanism by which to
       // decide if we should take control, so... leave things intact.
+      var_dump('originally preserved', $destination_id_values);
       return;
     }
 
@@ -186,6 +188,7 @@ class SmartSql extends Sql {
     if (!($destination instanceof Entity)) {
       // Nothing to do, as this migration deals with something other than
       // entities? Or... at least does so without using the base class.
+      var_dump('non-entity migration', $destination_id_values);
       return;
     }
 
@@ -197,6 +200,7 @@ class SmartSql extends Sql {
 
     if (!$entity) {
       // Failed to load... deleted by something else?
+      var_dump('failed to load entity', $destination_id_values);
       return;
     }
 
@@ -207,8 +211,10 @@ class SmartSql extends Sql {
 
     if ($has_dependents) {
       // There's dependents, so keep the entity around.
+      var_dump('made preserved', $destination_id_values);
       $result['rollback_action'] = MigrateIdMapInterface::ROLLBACK_PRESERVE;
     }
+    var_dump('--- done managing ---');
   }
 
 }
