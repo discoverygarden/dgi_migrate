@@ -6,6 +6,7 @@ use Drupal\migrate\EntityFieldDefinitionTrait;
 use Drupal\migrate\Plugin\migrate\destination\Entity;
 use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\Plugin\MigrateIdMapInterface;
 
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -176,11 +177,20 @@ class SmartSql extends Sql {
    *   Array of destination key info.
    */
   protected function doManageOrphans(array &$result, array $destination_id_values) {
-    var_dump('--- managing ---');
-    if ($result['rollback_action'] !== MigrateIdMapInterface::ROLLBACK_DELETE) {
+    ddm('--- managing ---');
+    $log = function (string $message, array $other = []) use (&$result, $destination_id_values) {
+      ddm(
+        [
+          'ids' => $destination_id_values,
+          'result' => $result,
+        ] + $other,
+        $message
+      );
+    };
+    if ($result['rollback_action'] != MigrateIdMapInterface::ROLLBACK_DELETE) {
       // If things are ::ROLLBACK_PRESERVE'd, we have no mechanism by which to
       // decide if we should take control, so... leave things intact.
-      var_dump('originally preserved', $destination_id_values);
+      $log('originally preserved');
       return;
     }
 
@@ -188,7 +198,7 @@ class SmartSql extends Sql {
     if (!($destination instanceof Entity)) {
       // Nothing to do, as this migration deals with something other than
       // entities? Or... at least does so without using the base class.
-      var_dump('non-entity migration', $destination_id_values);
+      $log('non-entity migration');
       return;
     }
 
@@ -200,7 +210,7 @@ class SmartSql extends Sql {
 
     if (!$entity) {
       // Failed to load... deleted by something else?
-      var_dump('failed to load entity', $destination_id_values);
+      $log('failed to load entity');
       return;
     }
 
@@ -211,10 +221,14 @@ class SmartSql extends Sql {
 
     if ($has_dependents) {
       // There's dependents, so keep the entity around.
-      var_dump('made preserved', $destination_id_values);
       $result['rollback_action'] = MigrateIdMapInterface::ROLLBACK_PRESERVE;
+      $log('made preserved', [
+        'dependents' => $this->entityTypeManager
+          ->getHandler($id_type, 'entity_reference_integrity')
+          ->getDependentEntities($entity)
+      ]);
     }
-    var_dump('--- done managing ---');
+    ddm('--- done managing ---');
   }
 
 }
