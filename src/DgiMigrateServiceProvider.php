@@ -2,8 +2,6 @@
 
 namespace Drupal\dgi_migrate;
 
-use Drupal\dgi_migrate\MigrateStub;
-
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
 

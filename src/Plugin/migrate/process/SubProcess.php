@@ -57,6 +57,12 @@ use Drupal\migrate\Row;
  * - parent_value_key: A string representing a key under which to expose the
  *   value received by the "dgi_migrate.sub_process" plugin itself, to make it
  *   available to subprocessing. Defaults to "parent_value".
+ * - handle_multiple: Boolean indicating if we should handle an array of arrays
+ *   as input.
+ * - parent_index: The key added to the row representing the index in the parent
+ *   array. Only relevant when "handle_multiple" is TRUE.
+ * - output_key: A field from the row which will be used as the index in the
+ *   return array. Only relevant when "handle_multiple" is TRUE.
  */
 class SubProcess extends ProcessPluginBase {
 
@@ -107,6 +113,9 @@ class SubProcess extends ProcessPluginBase {
     $this->propagateSkip = $this->configuration['propagate_skip'] ?? TRUE;
     $this->parentRowKey = $this->configuration['parent_row_key'] ?? 'parent_row';
     $this->parentValueKey = $this->configuration['parent_value_key'] ?? 'parent_value';
+    $this->handleMultiple = $this->configuration['handle_multiple'] ?? FALSE;
+    $this->parentIndex = $this->configuration['parent_index'] ?? 'parent_index';
+    $this->outputKey = $this->configuration['output_key'] ?? $this->parentIndex;
   }
 
   /**
@@ -163,9 +172,9 @@ class SubProcess extends ProcessPluginBase {
   }
 
   /**
-   * Process requested values.
+   * Wrap multi-value handling.
    *
-   * @param mixed $value
+   * @param mixed $values
    *   The source value for the plugin.
    * @param \Drupal\migrate\MigrateExecutableInterface $executable
    *   The migration exectuable.
@@ -175,18 +184,62 @@ class SubProcess extends ProcessPluginBase {
    * @return array
    *   An associative array of processed configuration values.
    */
-  protected function doProcessValues($value, MigrateExecutableInterface $executable, Row $row) {
-    $new_row = new Row([
-      $this->parentRowKey => [
-        'source' => $row->getSource(),
-        'dest' => $row->getDestination(),
-      ],
-      $this->parentValueKey => $value,
-    ]);
+  protected function doProcessValues($values, MigrateExecutableInterface $executable, Row $row) {
+    $to_process = $this->handleMultiple ? $values : ['_programmatic' => $values];
 
-    $executable->processRow($new_row, $this->values);
+    $to_return = iterator_to_array($this->doProcess($to_process, $executable, $row));
 
-    return $new_row->getDestination();
+    return $this->handleMultiple ? $to_return : $to_return['_programmatic'];
+  }
+
+  /**
+   * Process requested values.
+   *
+   * @param mixed $values
+   *   The source value for the plugin.
+   * @param \Drupal\migrate\MigrateExecutableInterface $executable
+   *   The migration exectuable.
+   * @param \Drupal\migrate\Row $row
+   *   The row object being processed.
+   *
+   * @return array
+   *   An associative array of processed configuration values.
+   */
+  protected function doProcess($values, MigrateExecutableInterface $executable, Row $row) {
+    foreach ($values as $index => $value) {
+      $new_row = new Row([
+        $this->parentRowKey => [
+          'source' => $row->getSource(),
+          'dest' => $row->getDestination(),
+        ],
+        $this->parentValueKey => $value,
+        $this->parentIndex => $index,
+      ]);
+
+      $executable->processRow($new_row, $this->values);
+
+      yield $new_row->get($this->outputKey) => $new_row->getDestination();
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function multiple() {
+    return $this->handleMultiple;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginDefinition() {
+    return [
+      // XXX: Our "handle_multiple" config indicates that we both accept and
+      // pass-through multiple values... ::multiple() is only dealing with what
+      // we _output_... so to more dynamically indicate that we _accept_
+      // multiple, dynamically adjust the plugin definition that we provide.
+      'handle_multiples' => $this->handleMultiple,
+    ] + parent::getPluginDefinition();
   }
 
 }
