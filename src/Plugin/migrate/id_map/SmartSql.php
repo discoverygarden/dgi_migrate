@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\id_map;
 
 use Drupal\migrate\EntityFieldDefinitionTrait;
+use Drupal\migrate\MigrateException;
 use Drupal\migrate\Plugin\migrate\destination\Entity;
 use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -201,10 +202,15 @@ class SmartSql extends Sql {
       return;
     }
 
-    // Do the check.
-    $has_dependents = $this->entityTypeManager
-      ->getHandler($id_type, 'entity_reference_integrity')
-      ->hasDependents($entity);
+    if ($this->entityTypeManager->hasHandler($id_type, 'entity_reference_integrity')) {
+      // Do the check.
+      $has_dependents = $this->entityTypeManager
+        ->getHandler($id_type, 'entity_reference_integrity')
+        ->hasDependents($entity);
+    }
+    else {
+      throw new MigrateException("Type '{$id_type}' missing an 'entity_reference_integrity' handler, despite being told to manage orphans.");
+    }
 
     if ($has_dependents) {
       // There's dependents, so keep the entity around.
