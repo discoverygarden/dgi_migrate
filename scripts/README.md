@@ -8,13 +8,34 @@
 3. Edit `$LOG_DIR/.env` appropriately, at minimum:
     * Add a `URI` entry for the target site.
 
+### Tracking down drush
+
+For convenience, we use `drush` to find the path of the module under which the
+scripts are installed, but so need to know where `drush` is such that it can be
+called. There may not always be a nice way to do this... if on the `PATH`, you
+should be able to refer to it with something like:
+
+```bash
+DRUSH=$(which drush)
+```
+
+... however, if _not_ on the `PATH`, it might have to be explicitly provided in
+a manner much the same as it is calculated and used _inside_ of our scripts,
+with a reference relative to Drupal's root directory.
+
+```bash
+# Usual default location.
+DRUPAL_ROOT=/opt/www/drupal
+DRUSH="$DRUPAL_ROOT/vendor/bin/drush"
+```
+
 ## Import
 
 If additional parameters/options need to be passed to the `dgi-migrate:import`
 call, they can be added to the end of the command:
 
 ```bash
-sudo bash $(drush dd dgi_migrate)/scripts/migration.sh $LOG_DIR [...]
+sudo bash $($DRUSH dd dgi_migrate)/scripts/migration.sh $LOG_DIR
 ```
 
 ## Rollback
@@ -23,7 +44,7 @@ If additional parameters/options need to be passed to the `dgi-migrate:rollback`
 call, they can be added to the end of the command:
 
 ```bash
-sudo bash $(drush dd dgi_migrate)/scripts/rollback.sh $LOG_DIR [...]
+sudo bash $($DRUSH dd dgi_migrate)/scripts/rollback.sh $LOG_DIR
 ```
 
 ... of particular interest here might be the `--statuses` options, which can be:
