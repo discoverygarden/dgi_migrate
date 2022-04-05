@@ -1,9 +1,15 @@
 #!/bin/bash
 
+function wwwdo () {
+  sudo -u $WEB_USER -- ${@:1}
+}
+
 function get_op_number () {
-  local NUM_FILE="$LOG_DIR/RUNS"
-  if [ -f $NUM_FILE ]; then
-    if [ -r $NUM_FILE ]; then
+  local NUM=1
+  local NUM_FILE="$LOG_DIR/.RUNS"
+
+  if wwwdo test -f "$NUM_FILE"; then
+    if wwwdo test -r "$NUM_FILE"; then
       read NUM < $NUM_FILE;
     else
       echo "Unable to read $NUM_FILE.";
@@ -11,21 +17,18 @@ function get_op_number () {
     fi
 
     # Increment from the last run.
-    local NUM=$(($NUM + 1))
-  else
-    # Default to assuming this is the first run.
-    local NUM=1
+    NUM=$(($NUM + 1))
   fi
 
   # Write the current run number back.
-  if ! [ -w $NUM_FILE ]; then
+  if ( wwwdo test -f "$NUM_FILE" && ! wwwdo test -w "$NUM_FILE" ) || ! wwwdo test -w "$(dirname $NUM_FILE)"; then
     echo "Unable to write to $NUM_FILE.";
     exit 1;
   else
-    echo $NUM > $NUM_FILE;
+    echo $NUM | wwwdo tee $NUM_FILE > /dev/null
   fi
 
-  printf "%02d" $NUM
+  printf "%02d\n" $NUM
 }
 
 function init_vars () {
@@ -51,10 +54,13 @@ function init_vars () {
 
   # Initialize the log directory.
   if ! [ -d "$LOG_DIR" ]; then
+    echo "Log dir ($LOG_DIR) does not exist; creating it."
     mkdir -p "$LOG_DIR"
     sudo chown -R "$WEB_USER:$WEB_USER" "$LOG_DIR"
-  elif ! ( sudo -u $WEB_USER -- test -d "$LOG_DIR" && sudo -u $WEB_USER -- test -w "$LOG_DIR" ); then
+  elif ! ( wwwdo test -d "$LOG_DIR" && wwwdo test -w "$LOG_DIR" ); then
     echo "$USER must be able to write (logs) to the log directory ($LOG_DIR)."
     exit 1;
   fi
+
+  set -u
 }
