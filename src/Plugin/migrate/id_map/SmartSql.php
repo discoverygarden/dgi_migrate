@@ -135,8 +135,19 @@ class SmartSql extends Sql {
       ? NULL
       : parent::getRowByDestination($destination_id_values);
 
-    if ($result && $this->manageOrphans) {
-      $this->doManageOrphans($result, $destination_id_values);
+    if ($this->manageOrphans) {
+      if (!$result) {
+        // XXX: Rolling-back removes from the source of rows over which it is
+        // iterating, and so can attempt to load values from the row based on
+        // the destination IDs multiple times, despite the first occurrence
+        // wiping all the contents for the row... so if we have failed to load
+        // let's assume that the first would have handled deleting the entity
+        // if it was going to.
+        $result = ['rollback_action' => MigrateIdMapInterface::ROLLBACK_PRESERVE];
+      }
+      else {
+        $this->doManageOrphans($result, $destination_id_values);
+      }
     }
 
     $core_major_minor = implode(
