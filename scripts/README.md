@@ -51,3 +51,8 @@ sudo bash $($DRUSH dd dgi_migrate)/scripts/rollback.sh $LOG_DIR
 
 > An optional set of row statuses, comma-separated, to which to constrain the
 rollback. Valid states are: "imported", "needs_update", "ignored", and "failed".
+
+... to be able to rollback things that are in the `ignored` and `failed` states,
+fix up whatever was causing them to fail/be ignored, and then kick off the
+migration again is a very useful pattern of execution to iterate towards
+convergence.
