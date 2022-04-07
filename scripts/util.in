@@ -51,7 +51,7 @@ function init_vars () {
   declare -g DRUPAL_ROOT=${DRUPAL_ROOT:-/opt/www/drupal}
   declare -g DRUPAL_USER=${DRUPAL_USER:-1}
   declare -g DRUSH=${DRUSH:-"$DRUPAL_ROOT/vendor/bin/drush"}
-  declare -g MIGRATION_GROUP=${MIGRATION_GROUP:-foxml_to_nodes}
+  declare -g MIGRATION_GROUP=${MIGRATION_GROUP:?A MIGRATION_GROUP must be specified.}
   declare -g WEB_USER=${WEB_USER:-"www-data"}
   declare -g URI=${URI:?Missing URI}
   declare -g TIME=${TIME:-/usr/bin/time}
