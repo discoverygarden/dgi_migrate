@@ -63,7 +63,7 @@ function init_vars () {
     mkdir -p "$LOG_DIR"
     sudo chown -R "$WEB_USER:$WEB_USER" "$LOG_DIR"
   elif ! ( wwwdo test -d "$LOG_DIR" && wwwdo test -w "$LOG_DIR" ); then
-    echo "$USER must be able to write (logs) to the log directory ($LOG_DIR)."
+    echo "$WEB_USER must be able to write (logs) to the log directory ($LOG_DIR)."
     exit 1;
   fi
 
