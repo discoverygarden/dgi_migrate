@@ -1,0 +1,133 @@
+#!/bin/bash
+
+function wwwdo () {
+  sudo -u $WEB_USER -- ${@:1}
+}
+
+function get_op_number () {
+  local NUM=1
+  local NUM_FILE="$LOG_DIR/.RUNS"
+
+  if wwwdo test -f "$NUM_FILE"; then
+    if wwwdo test -r "$NUM_FILE"; then
+      read NUM < $NUM_FILE;
+    else
+      echo "Unable to read $NUM_FILE.";
+      exit 1;
+    fi
+
+    # Increment from the last run.
+    NUM=$(($NUM + 1))
+  fi
+
+  # Write the current run number back.
+  if ( wwwdo test -f "$NUM_FILE" && ! wwwdo test -w "$NUM_FILE" ) || ! wwwdo test -w "$(dirname $NUM_FILE)"; then
+    echo "Unable to write to $NUM_FILE.";
+    exit 1;
+  else
+    echo $NUM | wwwdo tee $NUM_FILE > /dev/null
+  fi
+
+  printf "%02d\n" $NUM
+}
+
+# Setup variables; further unbound things constitue an error.
+#
+# Positional args:
+# - 1: The directory under which to look for the ".env" file. Also the default
+#   LOG_DIR, if not otherwise provided in the .env file.
+function init_vars () {
+  CONFIG_DIR=${1:?Missing log dir.}
+  DOT_ENV="$CONFIG_DIR/.env"
+  if [ -f $DOT_ENV ] ; then
+    if [ -r $DOT_ENV ] ; then
+      . $DOT_ENV
+    else
+      echo ".env file ($DOT_ENV) exists but is not readable."
+      exit 1;
+    fi
+  fi
+
+  declare -g DRUPAL_ROOT=${DRUPAL_ROOT:-/opt/www/drupal}
+  declare -g DRUPAL_USER=${DRUPAL_USER:-1}
+  declare -g DRUSH=${DRUSH:-"$DRUPAL_ROOT/vendor/bin/drush"}
+  declare -g MIGRATION_GROUP=${MIGRATION_GROUP:?A MIGRATION_GROUP must be specified.}
+  declare -g WEB_USER=${WEB_USER:-"www-data"}
+  declare -g URI=${URI:?Missing URI}
+  declare -g TIME=${TIME:-/usr/bin/time}
+  declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
+
+  # Initialize the log directory.
+  if ! [ -d "$LOG_DIR" ]; then
+    echo "Log dir ($LOG_DIR) does not exist; creating it."
+    mkdir -p "$LOG_DIR"
+    sudo chown -R "$WEB_USER:$WEB_USER" "$LOG_DIR"
+  elif ! ( wwwdo test -d "$LOG_DIR" && wwwdo test -w "$LOG_DIR" ); then
+    echo "$WEB_USER must be able to write (logs) to the log directory ($LOG_DIR)."
+    exit 1;
+  fi
+
+  set -u
+}
+
+# Handle kicking off a migration.
+#
+# Positional args:
+#
+# - 1: The operation number.
+# - 2+: Additional arguments to pass to the dgi-migrate:import command.
+function do_migration () {
+  local NUM=${1}
+
+  local IMPORT_LOG="$LOG_DIR/$NUM-import.log"
+  local RUN_LOG="$LOG_DIR/$NUM-run.log"
+  local MESSAGES_DIR="$LOG_DIR/$NUM-messages"
+
+  {
+    set -x
+    # The base import
+    wwwdo $TIME --verbose $DRUSH dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}" |& wwwdo tee $IMPORT_LOG > /dev/null
+    wwwdo mkdir -p $MESSAGES_DIR
+    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP --field=id --format=string | \
+    while read NAME ; do
+      wwwdo $DRUSH migrate:messages --root=$DRUPAL_ROOT --uri=$URI --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
+    done
+    set +x
+  } |& wwwdo tee $RUN_LOG
+
+  cat <<EOF
+---
+Import command (operation $NUM) terminated; see log files in:
+- $IMPORT_LOG
+- $RUN_LOG
+and the JSON files representing the output messages in:
+- $MESSAGES_DIR
+EOF
+}
+
+# Handle kicking off the rollback of a migration.
+#
+# Positional args:
+#
+# - 1: The operation number.
+# - 2+: Additional arguments to pass to the dgi-migrate:rollback command.
+function do_rollback () {
+  local NUM=${1}
+
+  local ROLLBACK_LOG="$LOG_DIR/$NUM-rollback.log"
+  local RUN_LOG="$LOG_DIR/$NUM-run.log"
+
+  {
+    set -x
+    # The base rollback.
+    wwwdo $TIME --verbose $DRUSH dgi-migrate:rollback --root=$DRUPAL_ROOT --uri=$URI --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
+    set +x
+  } |& wwwdo tee $RUN_LOG
+
+  cat <<EOF
+---
+Rollback command (operation $NUM) terminated; see log files in:
+- $ROLLBACK_LOG
+- $RUN_LOG
+EOF
+}
