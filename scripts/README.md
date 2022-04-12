@@ -7,6 +7,7 @@
 2. Copy `env.sample` to `$LOG_DIR/.env`.
 3. Edit `$LOG_DIR/.env` appropriately, at minimum:
     * Add a `URI` entry for the target site.
+    * Add the `MIGRATION_GROUP` to be processed.
 
 ### Tracking down drush
 
