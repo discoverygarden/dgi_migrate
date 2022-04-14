@@ -85,6 +85,10 @@ function do_migration () {
 
   {
     set -x
+    # XXX: Paranoia; a cache rebuild _with_ the URI, to ensure that anything
+    # that makes use of the `--uri` to do things will have an appropriate one.
+    # (lookin' at you, dgi_migrate_foxml_standard_mods_xslt dealio)
+    wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
     # The base import
     wwwdo $TIME --verbose $DRUSH dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}" |& wwwdo tee $IMPORT_LOG > /dev/null
     wwwdo mkdir -p $MESSAGES_DIR
@@ -119,6 +123,10 @@ function do_rollback () {
 
   {
     set -x
+    # XXX: Paranoia; a cache rebuild _with_ the URI, to ensure that anything
+    # that makes use of the `--uri` to do things will have an appropriate one.
+    # (lookin' at you, things involving Fedora dealio)
+    wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
     # The base rollback.
     wwwdo $TIME --verbose $DRUSH dgi-migrate:rollback --root=$DRUPAL_ROOT --uri=$URI --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
     set +x
