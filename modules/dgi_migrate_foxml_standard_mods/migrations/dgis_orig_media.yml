@@ -69,6 +69,7 @@ process:
         'info:fedora/islandora:sp_large_image_cmodel': 'image'
         'info:fedora/ir:citationCModel': 'file'
         'info:fedora/islandora:sp_pdf': 'file'
+        'info:fedora/islandora:binaryObjectCModel': 'file'
         'info:fedora/islandora:sp_videoCModel': 'video'
         'info:fedora/islandora:sp-audioCModel': 'audio'
         'info:fedora/islandora:pageCModel': 'image'
