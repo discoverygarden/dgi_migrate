@@ -3,11 +3,15 @@
     "type": "drupal-module",
     "license": "GPL-3.0-only",
     "require": {
-      "drupal/migrate_directory": "^1",
       "discoverygarden/foxml": "^1",
+      "drupal/migrate_directory": "^1",
       "drupal/migrate_plus": "^5.1",
       "drupal/migrate_tools": "^5.0",
       "iqb/substream": "dev-master",
       "symfony/mime": "^5"
+    },
+    "suggest": {
+      "drupal/entity_reference_integrity": "Used to check things when a migration elects to 'manage_orphans'.",
+      "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields."
     }
 }
