@@ -7,6 +7,7 @@
       "drupal/migrate_directory": "^1",
       "drupal/migrate_plus": "^5.1",
       "drupal/migrate_tools": "^5.0",
+      "islandora/controlled_access_terms": "^2",
       "islandora/islandora": "^2",
       "iqb/substream": "dev-master",
       "symfony/mime": "^5"
