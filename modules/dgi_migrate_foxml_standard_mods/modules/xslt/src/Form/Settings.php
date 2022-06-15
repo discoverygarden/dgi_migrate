@@ -51,14 +51,14 @@ class Settings extends ConfigFormBase {
   /**
    * Convert from stored Unix line-endings to Windows for presentation.
    *
-   * @param string $string
+   * @param string|null $string $string
    *   A string with Windows line-endings, as used by text areas.
    *
    * @return string
    *   The string with Unix line-endings.
    */
-  protected function denormalize(string $string) : string {
-    return str_replace("\n", "\r\n", $string);
+  protected function denormalize(?string $string) : string {
+    return $string ? str_replace("\n", "\r\n", $string) : '';
   }
 
   /**
