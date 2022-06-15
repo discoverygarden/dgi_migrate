@@ -51,7 +51,7 @@ class Settings extends ConfigFormBase {
   /**
    * Convert from stored Unix line-endings to Windows for presentation.
    *
-   * @param string|null $string $string
+   * @param string|null $string
    *   A string with Windows line-endings, as used by text areas.
    *
    * @return string
