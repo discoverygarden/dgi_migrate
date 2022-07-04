@@ -28,7 +28,6 @@ function _dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations(
   $mig['dependencies']['config'][] = $config->getName();
 
   if ($config->get('xslt')) {
-    $xslt_path = Url::fromRoute('dgi_migrate_foxml_standard_mods_xslt.download', [], ['absolute' => TRUE])->toString();
     $proc['_mods_xpath'] = Yaml::parse(<<<EOI
 - plugin: dgi_migrate.subindex
   index: 'MODS'
@@ -38,8 +37,7 @@ function _dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations(
   method: getUri
 - plugin: callback
   callable: file_get_contents
-- plugin: dgi_saxon_helper_migrate.process
-  path: "$xslt_path"
+- plugin: dgi_migrate_foxml_standard_mods_xslt.process
 - plugin: dgi_migrate.process.xml.domstring
 - plugin: dgi_migrate.process.xml.xpath
   namespaces:
