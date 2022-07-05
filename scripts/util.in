@@ -89,8 +89,13 @@ function do_migration () {
     # that makes use of the `--uri` to do things will have an appropriate one.
     # (lookin' at you, dgi_migrate_foxml_standard_mods_xslt dealio)
     wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
+    # Dump status before run.
+    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
     # The base import
     wwwdo $TIME --verbose $DRUSH dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}" |& wwwdo tee $IMPORT_LOG > /dev/null
+    # Dump status after run.
+    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
+    # Dump messages after run, so they're not lost with a subsequent run.
     wwwdo mkdir -p $MESSAGES_DIR
     wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP --field=id --format=string | \
     while read NAME ; do
@@ -127,8 +132,12 @@ function do_rollback () {
     # that makes use of the `--uri` to do things will have an appropriate one.
     # (lookin' at you, things involving Fedora dealio)
     wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
+    # Dump status before rollback.
+    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
     # The base rollback.
     wwwdo $TIME --verbose $DRUSH dgi-migrate:rollback --root=$DRUPAL_ROOT --uri=$URI --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
+    # Dump status after rollback.
+    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
     set +x
   } |& wwwdo tee $RUN_LOG
 
