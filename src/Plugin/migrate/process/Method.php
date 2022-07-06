@@ -70,7 +70,7 @@ class Method extends ProcessPluginBase {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->method = $this->configuration['method'] ?? NULL;
-    $this->args = $this->configuration['arg'] ?? [];
+    $this->args = $this->configuration['args'] ?? [];
     if (!is_array($this->args)) {
       throw new MigrateException('Arguments must be provided as an array.');
     }
