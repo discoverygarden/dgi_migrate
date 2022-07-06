@@ -1253,20 +1253,12 @@ process:
             property: nodeValue
         field_part_order:
           - << : *nested_mods_node
-            query: '@order'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'string(@order)'
+            method: evaluate
         field_part_type:
           - << : *nested_mods_node
-            query: '@type'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'string(@type)'
+            method: evaluate
           - plugin: skip_on_empty
             method: process
           - plugin: dgi_migrate.required_entity_lookup
