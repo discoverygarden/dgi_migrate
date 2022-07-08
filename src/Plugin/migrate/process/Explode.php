@@ -3,7 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\Plugin\migrate\process\Explode;
+use Drupal\migrate\Plugin\migrate\process\Explode as UpstreamExplode;
 use Drupal\migrate\Row;
 
 /**
@@ -30,12 +30,12 @@ use Drupal\migrate\Row;
  *   item ['']. Defaults to TRUE.
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.process.explode_trim_filter"
+ *   id = "dgi_migrate.process.explode"
  * )
  *
  * @see: Drupal\migrate\Plugin\migrate\process\Explode.
  */
-class ExplodeTrimFilter extends Explode {
+class Explode extends UpstreamExplode {
 
   /**
    * {@inheritdoc}
@@ -43,11 +43,11 @@ class ExplodeTrimFilter extends Explode {
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $exploded = parent::transform($value, $migrate_executable, $row, $destination_property);
 
-    if (empty($this->configuration['trim']) || $this->configuration['trim']) {
+    if ($this->configuration['trim'] ?? TRUE) {
       $exploded = array_map('trim', $exploded);
     }
 
-    if (empty($this->configuration['filter']) || $this->configuration['filter']) {
+    if ($this->configuration['filter'] ?? TRUE) {
       $exploded = array_filter($exploded);
     }
 
