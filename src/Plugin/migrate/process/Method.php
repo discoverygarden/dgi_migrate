@@ -20,12 +20,62 @@ use Drupal\migrate\MigrateException;
  *       - alpha
  *       - bravo
  * @endcode
+ * @code
+ * process:
+ *   alpha:
+ *   - plugin: get
+ *     source: something
+ *   thing:
+ *   - plugin: dgi_migrate.method
+ *     source: '@some_object'
+ *     method: someMethod
+ *     dereference_args: true
+ *     args:
+ *       - "@alpha"
+ * @endcode
  *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.method"
  * )
  */
 class Method extends ProcessPluginBase {
+
+  /**
+   * The method of the object to target.
+   *
+   * May be null if the object itself is invokeable.
+   *
+   * @var string|null
+   */
+  protected ?string $method;
+
+  /**
+   * The arguments for the method call.
+   *
+   * @var array
+   */
+  protected array $args;
+
+  /**
+   * Flag to handle dereferencing $args from the row being processed.
+   *
+   * @var bool
+   */
+  protected bool $dereferenceArgs;
+
+  /**
+   * Constructor.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->method = $this->configuration['method'] ?? NULL;
+    $this->args = $this->configuration['args'] ?? [];
+    if (!is_array($this->args)) {
+      throw new MigrateException('Arguments must be provided as an array.');
+    }
+    $this->dereferenceArgs = $this->configuration['dereference_args'] ?? FALSE;
+  }
 
   /**
    * {@inheritdoc}
@@ -35,18 +85,24 @@ class Method extends ProcessPluginBase {
       $type = gettype($value);
       throw new MigrateException("Input should be an object. (Attempting to add value to {$destination_property} of type {$type})");
     }
-    $method = $this->configuration['method'];
 
-    if (isset($this->configuration['args'])) {
-      if (!is_array($this->configuration['args'])) {
-        throw new MigrateException('The arguments for the method should be in an array.');
-      }
-      return call_user_func_array([$value, $method], $this->configuration['args']);
-    }
-    else {
-      return call_user_func([$value, $method]);
+    // A singular object _can_ be callable, if it implements ::__invoke().
+    $callable = $this->method ? [$value, $this->method] : $value;
+
+    if (!is_callable($callable)) {
+      throw new MigrateException("The specified does not appear to be callable.");
     }
 
+    return call_user_func_array($callable, $this->getArgs($row));
+  }
+
+  /**
+   * Helper; handle the dereferencing, if necessary.
+   */
+  protected function getArgs(Row $row) {
+    return ($this->args && $this->dereferenceArgs) ?
+      $row->getMultiple($this->args) :
+      $this->args;
   }
 
 }

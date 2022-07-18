@@ -117,7 +117,7 @@ process:
         'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
         'info:fedora/islandora:compoundCModel': 'http://vocab.getty.edu/aat/300242735'
   field_model:
-    - plugin: entity_lookup
+    - plugin: dgi_migrate.required_entity_lookup
       source: '@_i8_model_uri'
       bundle_key: vid
       bundle: islandora_models
@@ -126,9 +126,6 @@ process:
       # XXX: migrate_plus's case comparison makes assumptions about the entity's
       # "main" property... we want "uri", but it assumes "value".
       ignore_case: true
-    - plugin: skip_on_empty
-      method: row
-      message: 'Failed to lookup the model taxonomy term.'
   field_display_hints:
     - plugin: dgi_migrate.process.static_map
       source: '@_i8_model_uri'
@@ -1256,31 +1253,20 @@ process:
             property: nodeValue
         field_part_order:
           - << : *nested_mods_node
-            query: '@order'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'string(@order)'
+            method: evaluate
         field_part_type:
           - << : *nested_mods_node
-            query: '@type'
-          - plugin: callback
-            callable: iterator_to_array
-          - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
+            query: 'string(@type)'
+            method: evaluate
           - plugin: skip_on_empty
             method: process
-          - plugin: entity_lookup
+          - plugin: dgi_migrate.required_entity_lookup
             bundle_key: vid
             bundle: part_type
             value_key: name
             entity_type: taxonomy_term
             ignore_case: true
-          - plugin: skip_on_empty
-            method: row
-            message: "Failed to map the part 'type' attribute."
         field_start:
           - << : *nested_mods_node
             query: 'mods:extent/mods:start'
@@ -1451,14 +1437,11 @@ process:
           - plugin: skip_on_empty
             method: process
           - plugin: multiple_values
-          - plugin: entity_lookup
+          - plugin: dgi_migrate.required_entity_lookup
             bundle: mods_relation_types
             bundle_key: vid
             entity_type: taxonomy_term
             value_key: name
-          - plugin: skip_on_empty
-            method: row
-            message: "Encountered invalid relatedItem/@type attribute"
         field_title_plain:
           - << : *nested_mods_node
             query: 'mods:titleInfo/mods:title'
