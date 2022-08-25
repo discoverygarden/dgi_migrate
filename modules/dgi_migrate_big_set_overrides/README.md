@@ -2,7 +2,9 @@
 
 ## Introduction
 
-A module that facilitates the process of migrations. Big Set Overrides is responsible for doing a few main things:
+A module that facilitates the process of migrations. In particular, Big Set Overrides was created to assist in extremely large migrations, which would typically see site slowdown and frequent failure. This module aims to reduce both of those. As such, it should only be enabled for the duration of a migration and is not recommended to be kept on otherwise.
+
+Big Set Overrides is responsible for doing a few main things:
 
  1. Disables the `repository_item_content_sync_helper_export` context so that `content_sync` doesn't export any nodes during the migration.
  2. Disables the `repository_item_media_content_sync_helper_export` context so that `content_sync` doesn't export any media during the migration.
