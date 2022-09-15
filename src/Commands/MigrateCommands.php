@@ -63,8 +63,8 @@ class MigrateCommands extends MigrateToolsCommands {
    * @usage migrate:batch-import beer_node_revision --idlist=1:2,2:3,3:5
    *   Import the node revision record with source IDs [1,2], [2,3], and [3,5]
    *
-   * @validate-module-enabled migrate_tools,dgi_migrate,dgi_i8_helper
-   * @dgi-i8-helper-user-wrap
+   * @validate-module-enabled migrate_tools,dgi_migrate,islandora_drush_utils
+   * @islandora-drush-utils-user-wrap
    *
    * @throws \Exception
    *   If there are not enough parameters to the command.
@@ -216,8 +216,8 @@ class MigrateCommands extends MigrateToolsCommands {
    * @usage dgi-migrate:rollback beer_user --idlist=5
    *   Rollback imported user record with source ID 5
    *
-   * @validate-module-enabled migrate_tools,dgi_i8_helper
-   * @dgi-i8-helper-user-wrap
+   * @validate-module-enabled migrate_tools,islandora_drush_utils
+   * @islandora-drush-utils-user-wrap
    *
    * @throws \Exception
    *   If there are not enough parameters to the command.

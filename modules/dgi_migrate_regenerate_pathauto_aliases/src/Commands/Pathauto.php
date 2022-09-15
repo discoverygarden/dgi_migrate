@@ -74,8 +74,8 @@ class Pathauto extends DrushCommands {
    * @command dgi_migrate_regenerate_pathauto_aliases:enable-missing-path-aliases
    * @aliases dmrpa:empa
    *
-   * @validate-module-enabled dgi_i8_helper
-   * @dgi-i8-helper-user-wrap
+   * @validate-module-enabled islandora_drush_utils
+   * @islandora-drush-utils-user-wrap
    */
   public function regenerate($options = [
     'bundle' => 'islandora_object',

@@ -11,3 +11,4 @@ dependencies:
   - migrate_directory:migrate_directory
   - migrate_plus:migrate_plus
   - foxml:foxml
+  - islandora_drush_utils:islandora_drush_utils
