@@ -61,6 +61,10 @@ class CrossDeepen extends ProcessPluginBase {
     $first_array = is_array($value[0]) ? $value[0] : [$value[0]];
     $second_array = is_array($value[1]) ? $value[1] : [$value[1]];
 
+    if (count($first_array) != count($second_array)) {
+      throw new MigrateException('Both arrays must be of the same length.');
+    }
+
     $modified_value = [];
     for ($index = 0; $index < count($first_array); ++$index) {
       $modified_value[] = [
