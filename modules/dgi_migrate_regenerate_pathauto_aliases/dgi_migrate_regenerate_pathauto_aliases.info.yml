@@ -5,4 +5,4 @@ package: DGI
 core_version_requirement: ^8 || ^9
 dependencies:
   - pathauto:pathauto
-  - dgi_i8_helper:dgi_i8_helper
+  - islandora_drush_utils:islandora_drush_utils
