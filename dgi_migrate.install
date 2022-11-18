@@ -5,6 +5,10 @@
  * Misc (un)installation and update hooks.
  */
 
+use Drupal\Core\Extension\ExtensionNameLengthException;
+use Drupal\Core\Extension\MissingDependencyException;
+use Drupal\Core\Utility\UpdateException;
+
 /**
  * Delete example migration entities migrated to live as plugins.
  */
