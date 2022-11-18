@@ -25,7 +25,7 @@ function dgi_migrate_update_9201() {
 }
 
 /**
- * Enable the module islandora_drush_utils module is enabled.
+ * Ensure the islandora_drush_utils module is enabled.
  */
 function dgi_migrate_update_9202() {
   $module_handler = \Drupal::moduleHandler();
