@@ -3,25 +3,25 @@
     "type": "drupal-module",
     "license": "GPL-3.0-only",
     "require": {
-      "discoverygarden/dgi_saxon_helper": "^1",
-      "discoverygarden/foxml": "^1",
-      "discoverygarden/islandora_drush_utils": "^1",
-      "drupal/migrate_directory": "^1",
-      "drupal/migrate_plus": "^5.1",
-      "drupal/migrate_tools": "^5.0",
-      "drupal/pathauto": "^1.8",
-      "drupal/paragraphs": "^1",
-      "drupal/imagemagick": "^3.2",
-      "islandora/controlled_access_terms": "^2",
-      "islandora/islandora": "^2",
-      "iqb/substream": "dev-master",
-      "symfony/mime": "^5"
+        "discoverygarden/dgi_saxon_helper": "^1",
+        "discoverygarden/foxml": "^1",
+        "discoverygarden/islandora_drush_utils": "^1",
+        "drupal/imagemagick": "^3.2",
+        "drupal/migrate_directory": "^1",
+        "drupal/migrate_plus": "^5.1",
+        "drupal/migrate_tools": "^5.0",
+        "drupal/paragraphs": "^1",
+        "drupal/pathauto": "^1.8",
+        "islandora/controlled_access_terms": "^2",
+        "islandora/islandora": "^2",
+        "iqb/substream": "dev-master",
+        "symfony/mime": "^5"
     },
     "require-dev": {
-      "drupal/devel": "^4"
+        "drupal/devel": "^4"
     },
     "suggest": {
-      "drupal/entity_reference_integrity": "Used to check things when a migration elects to 'manage_orphans'.",
-      "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields."
+        "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields.",
+        "drupal/entity_reference_integrity": "Used to check things when a migration elects to 'manage_orphans'."
     }
 }
