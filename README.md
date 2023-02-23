@@ -15,6 +15,19 @@ This module requires the following modules/libraries:
 * [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
 * [foxml](https://github.com/discoverygarden/foxml)
 
+## Included modules
+
+DGI Migrate has a suite of submodules to assist in the migration process.
+
+* [devel](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/devel/README.md)
+* [dgi_migrate_big_set_overrides](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_big_set_overrides/README.md)
+* [dgi_migrate_dspace](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_dspace/README.md)
+* [dgi_migrate_edtf_validator](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_edtf_validator/README.md)
+* [dgi_migrate_foxml_standard_mods](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_foxml_standard_mods/README.md)
+* [dgi_migrate_imagemagick_cleanup](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_imagemagick_cleanup/README.md)
+* [dgi_migrate_paragraphs](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_paragraphs/README.md)
+* [dgi_migrate_regenerate_pathauto_aliases](https://github.com/discoverygarden/dgi_migrate/blob/2.x/modules/dgi_migrate_regenerate_pathauto_aliases/README.md)
+
 ## Usage
 
 An improved migration import command `migrate:batch-import` is included.
