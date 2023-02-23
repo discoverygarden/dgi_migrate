@@ -2,7 +2,7 @@
 
 ## Introduction
 
-A module to facilitate I7 to I8 migraiton.
+A module to facilitate I7 to I8 migration.
 
 ## Requirements
 
@@ -12,6 +12,8 @@ This module requires the following modules/libraries:
 * [migrate_plus](https://www.drupal.org/project/migrate_plus)
 * [migrate_directory](https://www.drupal.org/project/migrate_directory)
 * [islandora](https://github.com/Islandora/islandora/tree/8.x-1.x)
+* [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
+* [foxml](https://github.com/discoverygarden/foxml)
 
 ## Usage
 
