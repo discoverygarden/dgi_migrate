@@ -1,19 +1,29 @@
 # DGI Migrate
 
+![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/auto_lint.yml/badge.svg)
+![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/auto-semver.yml/badge.svg)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 ## Introduction
+A module to facilitate I7 to Modern Islandora migration.
 
-A module to facilitate I7 to I8 migration.
+## Table of Contents
 
-## Requirements
+* [Features](#features)
+* [Included Modules](#included-modules)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Troubleshooting/Issues](#troubleshootingissues)
+* [Maintainers and Sponsors](#maintainers-and-sponsors)
+* [Development/Contribution](#developmentcontribution)
+* [License](#license)
 
-This module requires the following modules/libraries:
-
-* [migrate](https://www.drupal.org/project/migrate)
-* [migrate_plus](https://www.drupal.org/project/migrate_plus)
-* [migrate_directory](https://www.drupal.org/project/migrate_directory)
-* [islandora](https://github.com/Islandora/islandora/tree/8.x-1.x)
-* [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
-* [foxml](https://github.com/discoverygarden/foxml)
+## Features
+An improved migration import command `migrate:batch-import` is included.
+An example FOXML migration that can be used as a starting point is provided.
+It illustrates the usage of migrate plugins that have been created to
+facilitate FOXML and large data processing.
+* `dgi_migrate.process.xml.xpath` is limited to xpath 1.0.
 
 ## Included modules
 
@@ -28,13 +38,26 @@ DGI Migrate has a suite of submodules to assist in the migration process.
 * [dgi_migrate_paragraphs](https://github.com/discoverygarden/dgi_migrate/tree/2.x/modules/dgi_migrate_paragraphs/README.md)
 * [dgi_migrate_regenerate_pathauto_aliases](https://github.com/discoverygarden/dgi_migrate/blob/2.x/modules/dgi_migrate_regenerate_pathauto_aliases/README.md)
 
+
+## Requirements
+
+This module requires the following modules/libraries:
+* [migrate](https://www.drupal.org/project/migrate)
+* [migrate_plus](https://www.drupal.org/project/migrate_plus)
+* [migrate_directory](https://www.drupal.org/project/migrate_directory)
+* [islandora](https://github.com/Islandora/islandora/tree/8.x-1.x)
+* [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
+* [foxml](https://github.com/discoverygarden/foxml)
+
 ## Usage
 
-An improved migration import command `migrate:batch-import` is included.
-An example FOXML migration that can be used as a starting point is provided.
-It illustrates the usage of migrate plugins that have been created to
-facilitate FOXML and large data processesing.
-* `dgi_migrate.process.xml.xpath` is limited to xpath 1.0.
+```shell
+migrate:batch-import beer_node_revision --idlist=1:2,2:3,3:5
+```
+
+```shell
+dgi-migrate:rollback beer_user --idlist=5
+```
 
 ## Installation
 
@@ -60,17 +83,21 @@ the `php://filter` usage to Base64-decode the contents
     * hesitant to remove the assertions without having any other mechanism to
     * could instead roll some unit tests?
 
-## Maintainers/Sponsors
+## Maintainers and Sponsors
 
 Current maintainers:
 
 * [discoverygarden](http://www.discoverygarden.ca)
 
-## Development
+Sponsors:
+
+* [FLVC](Add link)
+
+## Development/Contribution
 
 If you would like to contribute to this module create an issue, pull request
 and or contact
-[discoverygarden](http://support.discoverygarden.ca).
+[discoverygarden](http://www.discoverygarden.ca).
 
 ## License
 
