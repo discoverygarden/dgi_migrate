@@ -44,7 +44,7 @@ When writing a migration, simply use the `dgi_migrate_edtf_validator` plugin.
 ## Troubleshooting/Issues
 
 Having problems or solved a problem? Contact
-[discoverygarden](http://www.discoverygarden.ca).
+[discoverygarden](http://support.discoverygarden.ca).
 
 ## Maintainers and Sponsors
 
@@ -57,9 +57,9 @@ Sponsors:
 
 ## Development/Contribution
 
-If you would like to contribute to this module create an issue, pull request
-and or contact
-[discoverygarden](http://www.discoverygarden.ca).
+If you would like to contribute to this module, please check out github's helpful
+[Documentation for Developers](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) to create an issue or pull request and/or
+contact [discoverygarden](http://support.discoverygarden.ca).
 
 ## License
 
