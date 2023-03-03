@@ -11,6 +11,7 @@ A module to facilitate I7 to Modern Islandora migration.
 
 * [Features](#features)
 * [Included Modules](#included-modules)
+* [Requirements](#requirements)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Troubleshooting/Issues](#troubleshootingissues)
@@ -24,6 +25,8 @@ An example FOXML migration that can be used as a starting point is provided.
 It illustrates the usage of migrate plugins that have been created to
 facilitate FOXML and large data processing.
 * `dgi_migrate.process.xml.xpath` is limited to xpath 1.0.
+
+Some migration helper scripts are also included. Refer to the [readme]() for more details.
 
 ## Included modules
 
@@ -49,21 +52,21 @@ This module requires the following modules/libraries:
 * [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
 * [foxml](https://github.com/discoverygarden/foxml)
 
-## Usage
-
-```shell
-migrate:batch-import beer_node_revision --idlist=1:2,2:3,3:5
-```
-
-```shell
-dgi-migrate:rollback beer_user --idlist=5
-```
-
 ## Installation
 
 Install as usual, see
 [this](https://drupal.org/documentation/install/modules-themes/modules-8) for
 further information.
+
+## Usage
+
+```shell
+migrate:batch-import beer_node_revision --idlist=1:2,2:3,3:5 --user=islandora
+```
+
+```shell
+dgi-migrate:rollback beer_user --idlist=5 --user=islandora
+```
 
 ## Troubleshooting/Issues
 

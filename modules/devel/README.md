@@ -2,7 +2,17 @@
 
 ## Introduction
 
-A migration plugin that allows the use of the `ddm` plugin in migrations without any deprecation or usage warnings.
+A migrate process plugin that allows the use of the `ddm` plugin in migrations without any deprecation or usage warnings.
+
+## Table of Contents
+
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Troubleshooting/Issues](#troubleshootingissues)
+* [Maintainers and Sponsors](#maintainers-and-sponsors)
+* [Development/Contribution](#developmentcontribution)
+* [License](#license)
 
 ## Requirements
 
@@ -12,32 +22,36 @@ This module requires the following modules/libraries:
 * [dgi_migrate](https://github.com/discoverygarden/dgi_migrate)
 * [devel](https://www.drupal.org/project/devel)
 
-## Usage
-
-When writing a migration, simply use the `dgi_migrate_devel.ddm` plugin.
-
 ## Installation
 
 Install as usual, see
 [this](https://drupal.org/documentation/install/modules-themes/modules-8) for
 further information.
 
+## Usage
+
+When writing a migration, use the `dgi_migrate_devel.ddm` plugin.
+
 ## Troubleshooting/Issues
 
 Having problems or solved a problem? Contact
 [discoverygarden](http://support.discoverygarden.ca).
 
-## Maintainers/Sponsors
+## Maintainers and Sponsors
 
 Current maintainers:
 
 * [discoverygarden](http://www.discoverygarden.ca)
 
-## Development
+Sponsors:
+
+* [FLVC]()
+
+## Development/Contribution
 
 If you would like to contribute to this module create an issue, pull request
 and or contact
-[discoverygarden](http://support.discoverygarden.ca).
+[discoverygarden](http://www.discoverygarden.ca).
 
 ## License
 
