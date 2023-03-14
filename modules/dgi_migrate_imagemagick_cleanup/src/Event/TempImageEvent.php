@@ -2,7 +2,7 @@
 
 namespace Drupal\dgi_migrate_imagemagick_cleanup\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Drupal\Component\EventDispatcher\Event;
 
 /**
  * Temp image event description.

@@ -18,3 +18,7 @@ overrides:
       - options
       - index_directly
     value: false
+  - config: rest_oai_pmh.settings
+    parents:
+      - cache_technique
+    value: 'conservative_cache'
