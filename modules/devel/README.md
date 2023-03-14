@@ -45,7 +45,7 @@ Current maintainers:
 
 Sponsors:
 
-* [FLVC]()
+* [FLVC](https://www.flvc.org)
 
 ## Development/Contribution
 

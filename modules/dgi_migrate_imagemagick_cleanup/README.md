@@ -42,6 +42,9 @@ Current maintainers:
 
 * [discoverygarden](http://www.discoverygarden.ca)
 
+Sponsors:
+* [FLVC](https://www.flvc.org)
+
 ## Development/Contribution
 
 If you would like to contribute to this module, please check out github's helpful

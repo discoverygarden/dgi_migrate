@@ -53,7 +53,7 @@ Current maintainers:
 * [discoverygarden](http://www.discoverygarden.ca)
 
 Sponsors:
-* [FLVC]()
+* [FLVC](https://www.flvc.org)
 
 ## Development/Contribution
 
