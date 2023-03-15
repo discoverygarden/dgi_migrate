@@ -26,7 +26,7 @@ It illustrates the usage of migrate plugins that have been created to
 facilitate FOXML and large data processing.
 * `dgi_migrate.process.xml.xpath` is limited to xpath 1.0.
 
-Some migration helper scripts are also included. Refer to the [readme]() for more details.
+Some migration helper scripts are also included. Refer to the [readme](https://github.com/discoverygarden/dgi_migrate/blob/main/scripts/README.md) for more details.
 
 ## Included modules
 
@@ -48,6 +48,7 @@ This module requires the following modules/libraries:
 * [migrate](https://www.drupal.org/project/migrate)
 * [migrate_plus](https://www.drupal.org/project/migrate_plus)
 * [migrate_directory](https://www.drupal.org/project/migrate_directory)
+    > NOTE: For better performance and memory optimisation, it is advised to use the module with [this patch](https://www.drupal.org/project/migrate_directory/issues/3344946)
 * [islandora](https://github.com/Islandora/islandora/tree/8.x-1.x)
 * [islandora_drush_utils](https://github.com/discoverygarden/islandora_drush_utils)
 * [foxml](https://github.com/discoverygarden/foxml)
