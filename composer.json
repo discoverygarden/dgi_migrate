@@ -1,7 +1,7 @@
 {
     "name": "discoverygarden/dgi_migrate",
     "type": "drupal-module",
-    "license": "GPL-3.0-only",
+    "license": "GPL-3.0-or-later",
     "require": {
         "discoverygarden/dgi_saxon_helper": "^1",
         "discoverygarden/foxml": "^1",
