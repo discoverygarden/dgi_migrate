@@ -89,7 +89,7 @@ the `php://filter` usage to Base64-decode the contents
     * could instead roll some unit tests?
 
 ## Resources
-DGI migrate enhances drupal's core migration framework and provides plugins
+DGI migrate enhances Drupal's core migration framework and provides plugins
 to facilitate migration of legacy Islandora data to Modern Islandora. For more details regarding
 Drupal's migrate API and workflow, refer to these documents:
 
