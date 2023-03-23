@@ -1,7 +1,7 @@
 # DGI Migrate
 
-![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/auto_lint.yml/badge.svg)
-![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/auto-semver.yml/badge.svg)
+![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/lint.yml/badge.svg)
+![](https://github.com/discoverygarden/dgi_migrate/actions/workflows/semver.yml/badge.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Introduction
@@ -14,6 +14,7 @@ A module to facilitate I7 to Modern Islandora migration.
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Usage](#usage)
+* [Resources](#resources)
 * [Troubleshooting/Issues](#troubleshootingissues)
 * [Maintainers and Sponsors](#maintainers-and-sponsors)
 * [Development/Contribution](#developmentcontribution)
@@ -86,6 +87,16 @@ potentially lead to issues, especially with larger datastreams, exacerbated by
 the `php://filter` usage to Base64-decode the contents
     * hesitant to remove the assertions without having any other mechanism to
     * could instead roll some unit tests?
+
+## Resources
+DGI migrate enhances Drupal's core migration framework and provides plugins
+to facilitate migration of legacy Islandora data to Modern Islandora. For more details regarding
+Drupal's migrate API and workflow, refer to these documents:
+
+* [Migrate API Overview](https://www.drupal.org/docs/drupal-apis/migrate-api/migrate-api-overview)
+* [Drush Migrate Commands](https://drushcommands.com/drush-8x/migrate/)
+* [Drupal Migration Tutorial](https://understanddrupal.com/courses/31-days-of-migrations/)
+
 
 ## Maintainers and Sponsors
 
