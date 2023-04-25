@@ -394,7 +394,7 @@ class MigrateCommands extends MigrateToolsCommands {
         [[$executable, 'processBatch'], []],
       ],
     ];
-    drush_op('batch_set', [$batch]);
+    drush_op('batch_set', $batch);
     drush_op('drush_backend_batch_process');
     drush_op(function () {
       // XXX: Need to reset the batch status before setting and processing
@@ -423,5 +423,5 @@ class MigrateCommands extends MigrateToolsCommands {
     $executable = $this->getExecutable($migration_id, $options);
     drush_op([$executable, 'teardownMigration']);
   }
-  
+
 }
