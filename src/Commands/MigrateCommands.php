@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate\Commands;
 
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -13,6 +14,8 @@ use Drupal\migrate_tools\MigrateTools;
  * Migration command.
  */
 class MigrateCommands extends MigrateToolsCommands {
+
+  use StringTranslationTrait;
 
   /**
    * Perform one or more migration processes.
@@ -310,16 +313,15 @@ class MigrateCommands extends MigrateToolsCommands {
     'tag' => self::REQ,
     'format' => 'csv',
   ]) {
-    $migrations = $this->migrationsList('', $options);
 
     $generate_order = function () use ($options) {
       $migration_groups = $this->migrationsList('', $options);
 
       $graph = [];
-      foreach ($migration_groups as $group => $migrations) {
+      foreach ($migration_groups as $migrations) {
         foreach ($migrations as $migration) {
           $graph[$migration->id()]['edges'] = [];
-          foreach ($migration->getMigrationDependencies() as $type => $dependencies) {
+          foreach ($migration->getMigrationDependencies() as $dependencies) {
             foreach ($dependencies as $dependency) {
               $graph[$dependency]['edges'][$migration->id()] = 1;
             }
@@ -341,8 +343,21 @@ class MigrateCommands extends MigrateToolsCommands {
     return new RowsOfFields(iterator_to_array($generate_order()));
   }
 
+  /**
+   * Helper; build out a migration executable.
+   *
+   * @param string $migration_id
+   *   The ID of the migration for which to obtain an executable.
+   * @param array $options
+   *   An associative array of options to pass when building the executable.
+   *
+   * @return \Drupal\dgi_migrate\MigrateBatchExecutable
+   *   The built executable.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   */
   protected function getExecutable(string $migration_id, array $options = []) : MigrateBatchExecutable {
-    /** @var MigrationInterface $migration */
+    /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
     $migration = $this->migrationPluginManager->createInstance($migration_id);
     return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
   }
@@ -387,7 +402,7 @@ class MigrateCommands extends MigrateToolsCommands {
     $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.
     $batch = [
-      'title' => t('Running migration: @migration', [
+      'title' => $this->t('Running migration: @migration', [
         '@migration' => $migration_id,
       ]),
       'operations' => [

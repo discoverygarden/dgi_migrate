@@ -344,7 +344,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $get_current = function () use (&$sandbox, $queue) {
       return $sandbox['total'] - $queue->numberOfItems();
     };
-    $update_finished = function () use (&$context, &$sandbox, $queue, $get_current) {
+    $update_finished = function () use (&$context, &$sandbox, $get_current) {
       $context['finished'] = $get_current() / $sandbox['total'];
     };
     try {
