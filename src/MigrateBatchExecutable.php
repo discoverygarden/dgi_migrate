@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\Core\Queue\QueueInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
@@ -57,9 +58,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       [];
 
     parent::__construct($migration, $message, $options);
-
-    $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
-    $this->queue = \Drupal::queue($queue_name, TRUE);
+    $this->getQueue();
 
     if (static::isCli()) {
       // XXX: CLI Execution, most likely via drush. Let's adjust our memory
@@ -70,6 +69,18 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
     }
+  }
+
+  public function getQueueName() : string {
+    return "dgi_migrate__batch_queue__{$this->migration->id()}";
+  }
+
+  protected function getQueue() : QueueInterface {
+    if (!isset($this->queue)) {
+      $this->queue = \Drupal::queue($this->getQueueName(), TRUE);
+    }
+
+    return $this->queue;
   }
 
   /**
@@ -135,10 +146,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
    * Batch finished callback.
    */
   public function finishBatch($success, $results, $ops, $interval) {
+    $this->teardownMigration();
+  }
+
+  public function teardownMigration() {
     $this->queue->deleteQueue();
     $this->getEventDispatcher()->dispatch(MigrateEvents::POST_IMPORT, new MigrateImportEvent($this->migration, $this->message));
     $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
-
   }
 
   /**
