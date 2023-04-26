@@ -5,6 +5,8 @@
  * Implements module hooks.
  */
 
+use Drupal\dgi_migrate\Plugin\migrate\process\LockingMigrationLookup;
+
 /**
  * Implements hook_migration_plugins_alter().
  */
@@ -14,4 +16,20 @@ function dgi_migrate_migration_plugins_alter(&$definitions) {
       $definitions[$plugin_id]['idMap']['plugin'] = 'smart_sql';
     }
   }
+}
+
+/**
+ * Implements hook_migrate_TYPE_info_alter() for "process" plugins.
+ */
+function dgi_migrate_migrate_process_info_alter(&$definitions) {
+  $definitions['dgi_migrate_original_migration_lookup'] =
+    [
+      'provider' => 'dgi_migrate',
+      'id' => 'dgi_migrate_original_migration_lookup',
+    ] +
+    $definitions['migration_lookup'];
+
+  $lookup =& $definitions['migration_lookup'];
+  $lookup['class'] = LockingMigrationLookup::class;
+  $lookup['provider'] = 'dgi_migrate';
 }

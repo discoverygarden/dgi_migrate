@@ -420,7 +420,7 @@ class MigrateCommands extends MigrateToolsCommands {
   }
 
   /**
-   * Process enqueued entities for a given migration.
+   * Finalize/tear down a migration.
    *
    * @command dgi-migrate:finish-enqueued-process
    *
