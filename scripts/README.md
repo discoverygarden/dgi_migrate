@@ -99,6 +99,8 @@ The primary means of encountering race conditions has also been adjusted to atte
 
 Our `migration.sh` script should handle setting the `DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING` variable to the string `TRUE`, which will enable the given locking behaviour.
 
+NOTE: For small sets being migrated, it is likely that the overhead of multiprocessing may out weight the benefits. Initial guesstimate is around a-handful-of-tens to hundreds of items where multiprocessing might become advantageous.
+
 ### Rollback
 
 If additional parameters/options need to be passed to the `dgi-migrate:rollback`
