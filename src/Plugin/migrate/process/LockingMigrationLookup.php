@@ -15,10 +15,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Override upstream `migration_lookup` plugin, with some additional locking.
- *
- * Ideally, could avoid locking by default... require setting an environment
- * variables (and checking for it), to avoid locking in single-threaded
- * contexts?
  */
 class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcessInterface, ContainerFactoryPluginInterface {
 
@@ -75,11 +71,27 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected Connection $database;
 
   /**
+   * Toggle; do locking, or allow pass-through to wrapped plugin.
+   *
+   * @var bool
+   */
+  protected bool $doLocking;
+
+  /**
    * The migration being executed.
    *
    * @var \Drupal\migrate\Plugin\MigrationInterface
    */
   protected MigrationInterface $migration;
+
+  /**
+   * Constructor.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->doLocking = getenv('DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING') === 'TRUE';
+  }
 
   /**
    * List the migrations referenced by the current plugin.
@@ -214,6 +226,12 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
         $this->migration->getIdMap()->saveMessage($row->getSourceIdValues(), "$destination_property: $message", $level);
       }
     };
+
+    if (!$this->doLocking) {
+      $log("Bypassing locking.");
+      return $this->parent->transform($value, $migrate_executable, $row, $destination_property);
+    }
+
     $transaction = $this->database->startTransaction();
     try {
       // Acquire locks for all referenced migrations.

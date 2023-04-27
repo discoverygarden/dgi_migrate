@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function wwwdo () {
-  sudo -u $WEB_USER -- ${@:1}
+  sudo -u $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
 }
 
 function wwwdrush () {
@@ -39,7 +39,7 @@ function get_op_number () {
   printf "%02d\n" $NUM
 }
 
-# Setup variables; further unbound things constitue an error.
+# Setup variables; further unbound things constitute an error.
 #
 # Positional args:
 # - 1: The directory under which to look for the ".env" file. Also the default
@@ -74,6 +74,12 @@ function init_vars () {
   elif ! ( wwwdo test -d "$LOG_DIR" && wwwdo test -w "$LOG_DIR" ); then
     echo "$WEB_USER must be able to write (logs) to the log directory ($LOG_DIR)."
     exit 1;
+  fi
+
+  if [ $PROCESSES -gt 1 ]; then
+    export DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING="TRUE"
+  else
+    export DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING="FALSE"
   fi
 
   set -u
@@ -171,7 +177,7 @@ EOF
 
   if [ $PROCESSES -gt 1 ]; then
     cat <<EOF
-Multiprocesed logs should be in:
+Multiprocessed logs should be in:
 - $PROCESS_LOG_DIR
 EOF
   fi

@@ -86,6 +86,19 @@ $ tail -n 23 /tmp/asdf/14-import.log
 	Exit status: 0
 ```
 
+#### Multiprocessing
+
+The default processing will be single-threaded; however, we have built out mechanisms to allow for migrations to be multiprocessed. This mechanism will be activated by `PROCESSES` in the `.env` having a value greater than `1`. When greater than `1`, our migration processing will:
+
+1. Populate a queue in one command, initializing the migration (change the "migration state" to "running")
+2. Spawn `PROCESSES` processes to process the queue
+3. ... wait for the spawned processes to exit (ideally, having finished processing)
+4. And finally tear-down the queue, and finalize the migration (set the "migration state" back to "idle").
+
+The primary means of encountering race conditions has also been adjusted to attempt to serialize lookup/creation, which is to say, in generating entities via `migration_lookup` stubbing.
+
+Our `migration.sh` script should handle setting the `DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING` variable to the string `TRUE`, which will enable the given locking behaviour.
+
 ### Rollback
 
 If additional parameters/options need to be passed to the `dgi-migrate:rollback`
