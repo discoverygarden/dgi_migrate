@@ -101,6 +101,11 @@ Our `migration.sh` script should handle setting the `DGI_MIGRATE__DO_MIGRATION_L
 
 NOTE: For small sets being migrated, it is likely that the overhead of multiprocessing may out weight the benefits. Initial guesstimate is around a-handful-of-tens to hundreds of items where multiprocessing might become advantageous.
 
+NOTE: In terms of establishing the `PROCESSES` quantity, there are environmental considerations:
+* Multiprocessing is just to optimize CPU usage; for example, to avoid having CPUs sit unnecessarily idle when there's work to be done.
+* Is Crayfish on the same machine? Are derivatives enabled? There can be additional load from Crayfish acquiring files from Drupal, or if on the same machine, from the derivatives proper being run.
+* Is the site being used by others? If so, it is probably a good idea to play nice and to try to avoid saturating the CPUs, perhaps going so far as to `nice` the migration execution. If not, we could target a slight bit of oversaturation, with the expectation that there will be some background I/O overhead on read/write operations that might leave some CPU cycles otherwise unoccupied.
+
 ### Rollback
 
 If additional parameters/options need to be passed to the `dgi-migrate:rollback`
