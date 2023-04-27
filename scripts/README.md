@@ -88,7 +88,7 @@ $ tail -n 23 /tmp/asdf/14-import.log
 
 #### Multiprocessing
 
-The default processing will be single-threaded; however, we have built out mechanisms to allow for migrations to be multiprocessed. This mechanism will be activated by `PROCESSES` in the `.env` having a value greater than `1`. When greater than `1`, our migration processing will:
+The default processing will be single-threaded; however, we have built out mechanisms to allow for migrations to be multiprocessed. This mechanism will be activated by `PROCESSES` in the `.env` having a value greater than `1`. When greater than `1`, for each migration being executed our migration processing will:
 
 1. Populate a queue in one command, initializing the migration (change the "migration state" to "running")
 2. Spawn `PROCESSES` processes to process the queue
