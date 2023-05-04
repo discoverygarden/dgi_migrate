@@ -14,23 +14,25 @@ trait MissingBehaviorTrait {
   /**
    * The configured missing behavior.
    *
-   * @var string|null
+   * @var string
    */
-  protected $missingBehavior = NULL;
+  protected string $missingBehavior;
 
   /**
    * The class to which $missingBehavior maps in ::getMissingClassMap().
    *
    * @var string
    */
-  protected $missingClass = NULL;
+  protected string $missingClass;
 
   /**
    * A bit of initialization.
    *
    * Grab our config and lookup the exception to use.
+   *
+   * @throws \Drupal\migrate\MigrateException
    */
-  protected function missingBehaviorInit() {
+  protected function missingBehaviorInit() : void {
     $this->missingBehavior = $this->configuration[static::getMissingConfigKey()] ?? $this->getDefaultMissingBehavior();
 
     // XXX: More just for validation, to check that the class exists.
@@ -43,7 +45,7 @@ trait MissingBehaviorTrait {
    * @return string
    *   One of the keys returned by ::getMissingClassMap().
    */
-  protected function getDefaultMissingBehavior() {
+  protected function getDefaultMissingBehavior() : string {
     return 'abort';
   }
 
@@ -56,7 +58,7 @@ trait MissingBehaviorTrait {
    * @return string
    *   The key used to hold what missing behavior should be employed.
    */
-  final protected static function getMissingConfigKey() {
+  final protected static function getMissingConfigKey() : string {
     return 'missing_behavior';
   }
 
@@ -69,7 +71,7 @@ trait MissingBehaviorTrait {
    * @throws \Drupal\migrate\MigrateException
    *   If the indicated behavior does not appear to be valid.
    */
-  protected function getMissingClass() {
+  protected function getMissingClass() : string {
     if (!isset($this->missingClass)) {
       if (!isset(static::getMissingClassMap()[$this->missingBehavior])) {
         throw new MigrateException(strtr('Unrecognized "missing_behavior" :input; expecting one of: :valid', [
@@ -88,8 +90,11 @@ trait MissingBehaviorTrait {
    *
    * @return \Exception
    *   The appropriate exception.
+   *
+   * @throws \Drupal\migrate\MigrateException
+   *   Propagating from ::getMissingClasse().
    */
-  protected function getMissingException($message) {
+  protected function getMissingException($message) : \Exception {
     $class = $this->getMissingClass();
     return new $class($message);
   }
@@ -100,7 +105,7 @@ trait MissingBehaviorTrait {
    * @return array
    *   An associative array mapping machine names to exception class names.
    */
-  protected static function getMissingClassMap() {
+  protected static function getMissingClassMap() : array {
     return [
       'abort' => MigrateException::class,
       'skip_process' => MigrateSkipProcessException::class,

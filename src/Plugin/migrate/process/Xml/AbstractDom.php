@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 
+use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
@@ -15,6 +16,16 @@ use Drupal\migrate\MigrateException;
  * )
  */
 abstract class AbstractDom extends ProcessPluginBase {
+
+  use MissingBehaviorTrait;
+
+  /**
+   * Constructor.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->missingBehaviorInit();
+  }
 
   /**
    * {@inheritdoc}

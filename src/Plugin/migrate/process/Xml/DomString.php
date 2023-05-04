@@ -4,7 +4,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
-use Drupal\migrate\MigrateException;
 
 /**
  * Parses X(HT)ML into a DOMDocument instance.
@@ -22,7 +21,7 @@ class DomString extends AbstractDom {
     $dom = new \DOMDocument();
 
     if (!$dom->loadXML($value)) {
-      throw new MigrateException('Failed to parse XML.');
+      throw $this->getMissingException('Failed to parse XML from string.');
     }
 
     return $dom;
