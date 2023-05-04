@@ -111,7 +111,6 @@ migration_dependencies:
   required:
     - dgis_nodes
     - dgis_foxml_files
-    - dgis_extracted_text_media
 dependencies:
   enforced:
     module:
