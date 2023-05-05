@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\Core\Queue\QueueInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
@@ -57,9 +58,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       [];
 
     parent::__construct($migration, $message, $options);
-
-    $queue_name = "dgi_migrate__batch_queue__{$migration->id()}";
-    $this->queue = \Drupal::queue($queue_name, TRUE);
+    $this->getQueue();
 
     if (static::isCli()) {
       // XXX: CLI Execution, most likely via drush. Let's adjust our memory
@@ -70,6 +69,30 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
     }
+  }
+
+  /**
+   * Helper; build out the name of the queue.
+   *
+   * @return string
+   *   The name of the queue.
+   */
+  public function getQueueName() : string {
+    return "dgi_migrate__batch_queue__{$this->migration->id()}";
+  }
+
+  /**
+   * Lazy-load the queue.
+   *
+   * @return \Drupal\Core\Queue\QueueInterface
+   *   The queue implementation to use.
+   */
+  protected function getQueue() : QueueInterface {
+    if (!isset($this->queue)) {
+      $this->queue = \Drupal::queue($this->getQueueName(), TRUE);
+    }
+
+    return $this->queue;
   }
 
   /**
@@ -135,10 +158,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
    * Batch finished callback.
    */
   public function finishBatch($success, $results, $ops, $interval) {
-    $this->queue->deleteQueue();
+    $this->teardownMigration();
+  }
+
+  /**
+   * Helper; signal the cleanup and signal we are done.
+   */
+  public function teardownMigration() {
+    $this->getQueue()->deleteQueue();
     $this->getEventDispatcher()->dispatch(MigrateEvents::POST_IMPORT, new MigrateImportEvent($this->migration, $this->message));
     $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
-
   }
 
   /**
@@ -197,9 +226,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
 
     // XXX: Nuke it, just in case.
-    $this->queue->deleteQueue();
+    $queue = $this->getQueue();
+    $queue->deleteQueue();
     foreach ($source as $row) {
-      $this->queue->createItem([
+      $queue->createItem([
         'row' => $row,
         'attempts' => 0,
       ]);
@@ -302,7 +332,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $sandbox =& $context['sandbox'];
 
     if (!isset($sandbox['total'])) {
-      $sandbox['current'] = 0;
       $sandbox['total'] = $this->queue->numberOfItems();
       if ($sandbox['total'] === 0) {
         $context['message'] = $this->t('Queue empty.');
@@ -311,10 +340,17 @@ class MigrateBatchExecutable extends MigrateExecutable {
       }
     }
 
+    $queue = $this->getQueue();
+    $get_current = function () use (&$sandbox, $queue) {
+      return $sandbox['total'] - $queue->numberOfItems();
+    };
+    $update_finished = function () use (&$context, &$sandbox, $get_current) {
+      $context['finished'] = $get_current() / $sandbox['total'];
+    };
     try {
-      $context['finished'] = $sandbox['current'] / $sandbox['total'];
+      $update_finished();
       while ($context['finished'] < 1) {
-        $item = $this->queue->claimItem();
+        $item = $queue->claimItem();
         if (!$item) {
           // XXX: Exceptions for flow control... maybe not the best, but works
           // for now... as such, let's allow it to pass translated messages.
@@ -335,10 +371,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
 
         try {
           $status = $this->processRowFromQueue($row);
-          ++$sandbox['current'];
           $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
             '@migration' => $this->migration->id(),
-            '@current'   => $sandbox['current'],
+            '@current'   => $get_current(),
             '@ids'       => var_export($row->getSourceIdValues(), TRUE),
             '@total'     => $sandbox['total'],
           ]);
@@ -348,7 +383,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
             // phpcs:ignore DrupalPractice.General.ExceptionT.ExceptionT
             throw new MigrateBatchException($this->t('Stopping "@migration" after @current of @total', [
               '@migration' => $this->migration->id(),
-              '@current' => $sandbox['current'],
+              '@current' => $get_current(),
               '@total' => $sandbox['total'],
             ]), 1);
           }
@@ -369,7 +404,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
             // increment 'current'.
             $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info:@n@ex', [
               '@migration' => $this->migration->id(),
-              '@current'   => $sandbox['current'],
+              '@current'   => $get_current(),
               '@ids'       => var_export($row->getSourceIdValues(), TRUE),
               '@total'     => $sandbox['total'],
               '@ex'        => $e,
@@ -378,7 +413,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
             $this->queue->createItem($item->data);
           }
           else {
-            ++$sandbox['current'];
             $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info:@n@ex', [
               '@migration' => $this->migration->id(),
               '@current'   => $sandbox['current'],
@@ -391,10 +425,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
           }
         }
         finally {
-          $this->queue->deleteItem($item);
+          $queue->deleteItem($item);
         }
 
-        $context['finished'] = $sandbox['current'] / $sandbox['total'];
+        $update_finished();
       }
     }
     catch (MigrateBatchException $e) {
@@ -402,7 +436,12 @@ class MigrateBatchExecutable extends MigrateExecutable {
         $context['message'] = $msg;
       }
 
-      $context['finished'] = $e->getFinished() ?? ($sandbox['current'] / $sandbox['total']);
+      if ($e->getFinished() !== NULL) {
+        $context['finished'] = $e->getFinished();
+      }
+      else {
+        $update_finished();
+      }
     }
 
   }

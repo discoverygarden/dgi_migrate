@@ -2,6 +2,9 @@
 
 namespace Drupal\dgi_migrate\Commands;
 
+use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
+use Drupal\Component\Graph\Graph;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -11,6 +14,8 @@ use Drupal\migrate_tools\MigrateTools;
  * Migration command.
  */
 class MigrateCommands extends MigrateToolsCommands {
+
+  use StringTranslationTrait;
 
   /**
    * Perform one or more migration processes.
@@ -286,6 +291,152 @@ class MigrateCommands extends MigrateToolsCommands {
         throw new \Exception($error_message);
       }
     }
+  }
+
+  /**
+   * List migrations and dependencies, in an executable order.
+   *
+   * @command dgi-migrate:list-migrations
+   *
+   * @option all Process all migrations.
+   * @option group A comma-separated list of migration groups to import.
+   * @option tag Name of the migration tag to import.
+   *
+   * @field-labels
+   *   id: Migration IDs
+   *   weight: Weight of the migration
+   * @default-fields id,weight
+   */
+  public function listMigrations(array $options = [
+    'all' => FALSE,
+    'group' => self::REQ,
+    'tag' => self::REQ,
+    'format' => 'csv',
+  ]) {
+
+    $generate_order = function () use ($options) {
+      $migration_groups = $this->migrationsList('', $options);
+
+      $graph = [];
+      foreach ($migration_groups as $migrations) {
+        foreach ($migrations as $migration) {
+          $graph[$migration->id()]['edges'] = [];
+          foreach ($migration->getMigrationDependencies() as $dependencies) {
+            foreach ($dependencies as $dependency) {
+              $graph[$dependency]['edges'][$migration->id()] = 1;
+            }
+          }
+        }
+      }
+
+      $graph_instance = new Graph($graph);
+      $graph = $graph_instance->searchAndSort();
+
+      foreach ($graph as $vertex => $info) {
+        yield [
+          'id' => $vertex,
+          'weight' => $info['weight'],
+        ];
+      }
+    };
+
+    return new RowsOfFields(iterator_to_array($generate_order()));
+  }
+
+  /**
+   * Helper; build out a migration executable.
+   *
+   * @param string $migration_id
+   *   The ID of the migration for which to obtain an executable.
+   * @param array $options
+   *   An associative array of options to pass when building the executable.
+   *
+   * @return \Drupal\dgi_migrate\MigrateBatchExecutable
+   *   The built executable.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   */
+  protected function getExecutable(string $migration_id, array $options = []) : MigrateBatchExecutable {
+    /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
+    $migration = $this->migrationPluginManager->createInstance($migration_id);
+    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
+  }
+
+  /**
+   * Enqueue all entities for a given migration.
+   *
+   * @command dgi-migrate:enqueue
+   *
+   * @option update  In addition to processing unprocessed items from the
+   *   source, update previously-imported items with the current data
+   * @option sync Sync source and destination. Delete destination records that
+   *   do not exist in the source.
+   *
+   * @islandora-drush-utils-user-wrap
+   */
+  public function enqueueMigration(string $migration_id, array $options = [
+    'update' => FALSE,
+    'sync' => FALSE,
+  ]) : void {
+    $executable = $this->getExecutable($migration_id, $options);
+    // drush_op() provides --simulate support.
+    drush_op([$executable, 'prepareBatch']);
+  }
+
+  /**
+   * Process enqueued entities for a given migration.
+   *
+   * @command dgi-migrate:enqueued-process
+   *
+   * @option update  In addition to processing unprocessed items from the
+   *   source, update previously-imported items with the current data
+   * @option sync Sync source and destination. Delete destination records that
+   *   do not exist in the source.
+   *
+   * @islandora-drush-utils-user-wrap
+   */
+  public function processEnqueuedMigration(string $migration_id, array $options = [
+    'update' => FALSE,
+    'sync' => FALSE,
+  ]) : void {
+    $executable = $this->getExecutable($migration_id, $options);
+    // drush_op() provides --simulate support.
+    $batch = [
+      'title' => $this->t('Running migration: @migration', [
+        '@migration' => $migration_id,
+      ]),
+      'operations' => [
+        [[$executable, 'processBatch'], []],
+      ],
+    ];
+    drush_op('batch_set', $batch);
+    drush_op('drush_backend_batch_process');
+    drush_op(function () {
+      // XXX: Need to reset the batch status before setting and processing
+      // another...
+      $batch =& batch_get();
+      $batch = [];
+    });
+  }
+
+  /**
+   * Finalize/tear down a migration.
+   *
+   * @command dgi-migrate:finish-enqueued-process
+   *
+   * @option update  In addition to processing unprocessed items from the
+   *   source, update previously-imported items with the current data
+   * @option sync Sync source and destination. Delete destination records that
+   *   do not exist in the source.
+   *
+   * @islandora-drush-utils-user-wrap
+   */
+  public function finishEnqueuedMigration(string $migration_id, array $options = [
+    'update' => FALSE,
+    'sync' => FALSE,
+  ]) {
+    $executable = $this->getExecutable($migration_id, $options);
+    drush_op([$executable, 'teardownMigration']);
   }
 
 }

@@ -1,7 +1,15 @@
 #!/bin/bash
 
 function wwwdo () {
-  sudo -u $WEB_USER -- ${@:1}
+  sudo -u $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
+}
+
+function wwwdrush () {
+  wwwdo $DRUSH "--root=$DRUPAL_ROOT" "--uri=$URI" ${@:1}
+}
+
+function timedwwwdrush () {
+  wwwdo $TIME --verbose $DRUSH "--root=$DRUPAL_ROOT" "--uri=$URI" ${@:1}
 }
 
 function get_op_number () {
@@ -31,7 +39,7 @@ function get_op_number () {
   printf "%02d\n" $NUM
 }
 
-# Setup variables; further unbound things constitue an error.
+# Setup variables; further unbound things constitute an error.
 #
 # Positional args:
 # - 1: The directory under which to look for the ".env" file. Also the default
@@ -56,6 +64,7 @@ function init_vars () {
   declare -g URI=${URI:?Missing URI}
   declare -g TIME=${TIME:-/usr/bin/time}
   declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
+  declare -g PROCESSES=${PROCESSES:-1}
 
   # Initialize the log directory.
   if ! [ -d "$LOG_DIR" ]; then
@@ -67,7 +76,53 @@ function init_vars () {
     exit 1;
   fi
 
+  if [ $PROCESSES -gt 1 ]; then
+    export DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING="TRUE"
+  else
+    export DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING="FALSE"
+  fi
+
   set -u
+}
+
+# Kick off a migration in a single process.
+#
+# Positional args:
+#
+# - 1: The operation number.
+# - 2+: Additional arguments to pass to the dgi-migrate:import command.
+function do_migration_single_process() {
+  # The base import
+  timedwwwdrush dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}"
+}
+
+# Kick off a migration in multiple processes.
+#
+# Positional args:
+#
+# - 1: The operation number.
+# - 2+: Additional arguments to pass to the migrate commands... only really expecting "--update"
+function do_migration_multi_process() {
+  local NUM=${1}
+
+  local PROCESS_LOG_DIR="$LOG_DIR/$NUM-multiprocess-logs"
+
+  wwwdo mkdir -p $PROCESS_LOG_DIR
+
+  echo "Listing migrations..."
+  timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
+    | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
+      echo "Enqueuing items for $MIGRATION_ID"
+      timedwwwdrush dgi-migrate:enqueue --user=$DRUPAL_USER $MIGRATION_ID "${@:2}"
+      echo "Starting $PROCESSES processes to process $MIGRATION_ID."
+      for i in $(seq 1 $PROCESSES); do
+        echo "Starting $i/$PROCESSES to process $MIGRATION_ID."
+        timedwwwdrush dgi-migrate:enqueued-process --user=$DRUPAL_USER $MIGRATION_ID "${@:2}" &> $PROCESS_LOG_DIR/$MIGRATION_ID.$i.log &
+      done
+      echo "Waiting for processes to exit..."
+      wait
+      timedwwwdrush dgi-migrate:finish-enqueued-process --user=1 $MIGRATION_ID "${@:2}"
+    done
 }
 
 # Handle kicking off a migration.
@@ -82,24 +137,31 @@ function do_migration () {
   local IMPORT_LOG="$LOG_DIR/$NUM-import.log"
   local RUN_LOG="$LOG_DIR/$NUM-run.log"
   local MESSAGES_DIR="$LOG_DIR/$NUM-messages"
+  local PROCESS_LOG_DIR="$LOG_DIR/$NUM-multiprocess-logs"
 
   {
     set -x
     # XXX: Paranoia; a cache rebuild _with_ the URI, to ensure that anything
     # that makes use of the `--uri` to do things will have an appropriate one.
     # (lookin' at you, dgi_migrate_foxml_standard_mods_xslt dealio)
-    wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
+    wwwdrush cache:rebuild
     # Dump status before run.
-    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
-    # The base import
-    wwwdo $TIME --verbose $DRUSH dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}" |& wwwdo tee $IMPORT_LOG > /dev/null
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    {
+      # Do the import, one way or another.
+      if [ $PROCESSES -eq 1 ]; then
+        do_migration_single_process "$@"
+      else
+        do_migration_multi_process "$@"
+      fi
+    } |& wwwdo tee $IMPORT_LOG > /dev/null
     # Dump status after run.
-    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
     # Dump messages after run, so they're not lost with a subsequent run.
     wwwdo mkdir -p $MESSAGES_DIR
-    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP --field=id --format=string | \
+    wwwdrush migrate:status --group=$MIGRATION_GROUP --field=id --format=string | \
     while read NAME ; do
-      wwwdo $DRUSH migrate:messages --root=$DRUPAL_ROOT --uri=$URI --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
+      wwwdrush migrate:messages --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
     done
     set +x
   } |& wwwdo tee $RUN_LOG
@@ -112,6 +174,13 @@ Import command (operation $NUM) terminated; see log files in:
 and the JSON files representing the output messages in:
 - $MESSAGES_DIR
 EOF
+
+  if [ $PROCESSES -gt 1 ]; then
+    cat <<EOF
+Multiprocessed logs should be in:
+- $PROCESS_LOG_DIR
+EOF
+  fi
 }
 
 # Handle kicking off the rollback of a migration.
@@ -131,13 +200,13 @@ function do_rollback () {
     # XXX: Paranoia; a cache rebuild _with_ the URI, to ensure that anything
     # that makes use of the `--uri` to do things will have an appropriate one.
     # (lookin' at you, things involving Fedora dealio)
-    wwwdo $DRUSH cache:rebuild "--root=$DRUPAL_ROOT" "--uri=$URI"
+    wwwdrush cache:rebuild
     # Dump status before rollback.
-    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
     # The base rollback.
-    wwwdo $TIME --verbose $DRUSH dgi-migrate:rollback --root=$DRUPAL_ROOT --uri=$URI --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
+    timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
     # Dump status after rollback.
-    wwwdo $DRUSH migrate:status --root=$DRUPAL_ROOT --uri=$URI --group=$MIGRATION_GROUP
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
     set +x
   } |& wwwdo tee $RUN_LOG
 
