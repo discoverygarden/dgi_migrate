@@ -74,6 +74,7 @@ process:
         'info:fedora/islandora:sp-audioCModel': 'audio'
         'info:fedora/islandora:pageCModel': 'image'
         'info:fedora/islandora:newspaperPageCModel': 'image'
+        'info:fedora/islandora:sp_document': 'file'
     - plugin: extract
       index: [ 0 ]
   # XXX: This should be uncommented when Islandora/islandora#829 is pulled into

@@ -116,6 +116,7 @@ process:
         'info:fedora/islandora:newspaperIssueCModel': 'https://schema.org/PublicationIssue'
         'info:fedora/islandora:newspaperCModel': 'https://schema.org/Newspaper'
         'info:fedora/islandora:compoundCModel': 'http://vocab.getty.edu/aat/300242735'
+        'info:fedora/islandora:sp_document': 'https://schema.org/DigitalDocument'
   field_model:
     - plugin: dgi_migrate.required_entity_lookup
       source: '@_i8_model_uri'
