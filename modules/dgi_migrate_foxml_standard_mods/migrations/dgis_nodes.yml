@@ -80,6 +80,12 @@ process:
       property: createdDate
     - plugin: callback
       callable: strtotime
+  changed:
+    - plugin: dgi_migrate.subproperty
+      source: '@_node_foxml_parsed'
+      property: lastModifiedDate
+    - plugin: callback
+      callable: strtotime
   status:
     - plugin: dgi_migrate.subproperty
       source: '@_node_foxml_parsed'
