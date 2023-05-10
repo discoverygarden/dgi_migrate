@@ -16,7 +16,11 @@ use Drupal\migrate\MigrateException;
  *
  * Accepts:
  * - One of:
- *   - "index": An index to attempt to access.
+ *   - "index": A concrete index to attempt to access.
+ *   - "index_from_row": The name of a property from the row to dereference,
+ *     following the usual rules: Beginning with an `@' symbol indicates a
+ *     "destination" property; no '@' implies a "source" property. To explicitly
+ *     include an '@' at the beginning for a source property, '@@' can be used.
  *   - "index_from_destination": The name of a destination property to
  *     dereference, to attempt to use as the index to access.
  * - "skip_row_if_missing": Deprecated in favour of "missing_behavior". A flag
@@ -59,6 +63,9 @@ class Subindex extends ProcessPluginBase {
     }
     elseif (isset($this->configuration['index'])) {
       $index = $this->configuration['index'];
+    }
+    elseif (isset($this->configuration['index_from_row'])) {
+      $index = $row->get($this->configuration['index_from_row']);
     }
     elseif (isset($this->configuration['index_from_destination'])) {
       $_index = $this->configuration['index_from_destination'];
