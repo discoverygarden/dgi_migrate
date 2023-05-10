@@ -250,6 +250,7 @@ process:
     - plugin: callback
       callable: file_get_contents
     - plugin: dgi_migrate.process.xml.domstring
+      missing_behavior: skip_process
     - plugin: dgi_migrate.process.xml.xpath
       namespaces:
         mods: 'http://www.loc.gov/mods/v3'
