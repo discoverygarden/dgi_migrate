@@ -4,8 +4,8 @@ namespace Drupal\dgi_migrate_edtf_validator\Plugin\migrate\process;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\controlled_access_terms\EDTFUtils;
+use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
 use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 
@@ -27,12 +27,15 @@ use Drupal\migrate\Row;
  */
 class Validator extends ProcessPluginBase implements ConfigurableInterface {
 
+  use MissingBehaviorTrait;
+
   /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->setConfiguration($configuration);
+    $this->missingBehaviorInit();
   }
 
   /**
@@ -44,7 +47,7 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
     }
     $errors = EDTFUtils::validate($value, $this->configuration['intervals'], $this->configuration['sets'], $this->configuration['strict']);
     if (!empty($errors)) {
-      throw new MigrateSkipRowException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
+      throw $this->getMissingException(strtr('The value: ":value" for ":property" is not a valid EDTF date: :errors', [
         ':value' => $value,
         ':property' => $destination_property,
         ':errors' => implode(' ', $errors),
@@ -77,6 +80,13 @@ class Validator extends ProcessPluginBase implements ConfigurableInterface {
       'sets' => TRUE,
       'strict' => FALSE,
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultMissingBehavior() {
+    return 'skip_row';
   }
 
 }
