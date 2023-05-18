@@ -26,6 +26,8 @@ class DetermineExtension extends ProcessPluginBase {
   protected $mimeTypes;
 
   /**
+   * The migration being executed.
+   *
    * @var \Drupal\migrate\Plugin\MigrationInterface|null
    */
   protected ?MigrationInterface $migration;
