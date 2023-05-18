@@ -95,7 +95,7 @@ class MigrateCommands extends MigrateToolsCommands {
   /**
    * {@inheritdoc}
    */
-  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []) {
+  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []): void {
     // Keep track of all migrations run during this command so the same
     // migration is not run multiple times.
     static $executed_migrations = [];
@@ -237,7 +237,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'skip-progress-bar' => FALSE,
     'continue-on-failure' => FALSE,
     'statuses' => self::REQ,
-  ]) {
+  ]): void {
     $group_names = $options['group'];
     $tag_names = $options['tag'];
     $all = $options['all'];
