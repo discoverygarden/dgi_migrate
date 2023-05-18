@@ -341,11 +341,11 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
 
     $queue = $this->getQueue();
-    $get_current = function () use (&$sandbox, $queue) {
-      return $sandbox['total'] - $queue->numberOfItems();
+    $get_current = function (bool $pre_delete = FALSE) use (&$sandbox, $queue) {
+      return $sandbox['total'] - $queue->numberOfItems() + ($pre_delete ? 1 : 0);
     };
-    $update_finished = function () use (&$context, &$sandbox, $get_current) {
-      $context['finished'] = $get_current() / $sandbox['total'];
+    $update_finished = function (bool $pre_delete = FALSE) use (&$context, &$sandbox, $get_current) {
+      $context['finished'] = $get_current($pre_delete) / $sandbox['total'];
     };
     try {
       $update_finished();
@@ -373,7 +373,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
           $status = $this->processRowFromQueue($row);
           $context['message'] = $this->t('Migration "@migration": @current/@total; processed row with IDs: (@ids)', [
             '@migration' => $this->migration->id(),
-            '@current'   => $get_current(),
+            '@current'   => $get_current(TRUE),
             '@ids'       => var_export($row->getSourceIdValues(), TRUE),
             '@total'     => $sandbox['total'],
           ]);
@@ -383,7 +383,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
             // phpcs:ignore DrupalPractice.General.ExceptionT.ExceptionT
             throw new MigrateBatchException($this->t('Stopping "@migration" after @current of @total', [
               '@migration' => $this->migration->id(),
-              '@current' => $get_current(),
+              '@current' => $get_current(TRUE),
               '@total' => $sandbox['total'],
             ]), 1);
           }
@@ -404,7 +404,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
             // increment 'current'.
             $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); re-enqueueing. Exception info:@n@ex', [
               '@migration' => $this->migration->id(),
-              '@current'   => $get_current(),
+              '@current'   => $get_current(TRUE),
               '@ids'       => var_export($row->getSourceIdValues(), TRUE),
               '@total'     => $sandbox['total'],
               '@ex'        => $e,
@@ -415,7 +415,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
           else {
             $context['message'] = $this->t('Migration "@migration": @current/@total; encountered exception processing row with IDs: (@ids); attempts exhausted, failing. Exception info:@n@ex', [
               '@migration' => $this->migration->id(),
-              '@current'   => $sandbox['current'],
+              '@current'   => $get_current(TRUE),
               '@ids'       => var_export($row->getSourceIdValues(), TRUE),
               '@total'     => $sandbox['total'],
               '@ex'        => $e,
