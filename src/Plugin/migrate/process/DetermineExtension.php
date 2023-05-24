@@ -26,12 +26,20 @@ class DetermineExtension extends ProcessPluginBase {
   protected $mimeTypes;
 
   /**
+   * The migration being executed.
+   *
+   * @var \Drupal\migrate\Plugin\MigrationInterface|null
+   */
+  protected ?MigrationInterface $migration;
+
+  /**
    * Constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $migration);
 
     $this->mimeTypes = new MimeTypes();
+    $this->migration = $migration;
   }
 
   /**
@@ -48,10 +56,13 @@ class DetermineExtension extends ProcessPluginBase {
       return reset($result);
     }
 
-    $migrate_executable->saveMessage(
-      "Falling back to the second part of the MIME-type for an extension.",
-      MigrationInterface::MESSAGE_NOTICE
-    );
+    if ($this->migration) {
+      $this->migration->getIdMap()->saveMessage(
+        $row->getSourceIdValues(),
+        "Falling back to the second part of the MIME-type for an extension.",
+        MigrationInterface::MESSAGE_NOTICE
+      );
+    }
     [, $ext] = explode('/', $value, 2);
     return $ext;
   }
