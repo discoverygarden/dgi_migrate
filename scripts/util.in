@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function wwwdo () {
-  sudo -u $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
+  sudo -Eu $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
 }
 
 function wwwdrush () {
