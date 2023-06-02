@@ -65,6 +65,10 @@ function init_vars () {
   declare -g TIME=${TIME:-/usr/bin/time}
   declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
   declare -g PROCESSES=${PROCESSES:-1}
+  declare -g SKIP_STATUS=false
+  declare -g -a MULTIPROCESS_PRE_ENQUEUE_PAUSE=(${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]})
+  declare -g -a MULTIPROCESS_POST_ENQUEUE_PAUSE=(${MULTIPROCESS_POST_ENQUEUE_PAUSE[@]})
+  declare -g -a MULTIPROCESS_POST_PROCESS_PAUSE=(${MULTIPROCESS_POST_PROCESS_PAUSE[@]})
 
   # Initialize the log directory.
   if ! [ -d "$LOG_DIR" ]; then
@@ -96,6 +100,19 @@ function do_migration_single_process() {
   timedwwwdrush dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}"
 }
 
+# Helper; facilitate pausing for various reasons (likely snapshotting).
+#
+# Positional args:
+# - 1: A descripitive string of _when_ we are pausing; e.g. "pre-enqueue",
+#   "post-enqueue", etc.
+# - 2: The ID of the specific migration during which we are pausing.
+function do_pause() {
+  local WHEN=$1
+  local MIGRATION_ID=$2
+
+  read -p "Pausing $WHEN of $MIGRATION_ID as requested. Hit enter to continue."
+}
+
 # Kick off a migration in multiple processes.
 #
 # Positional args:
@@ -112,17 +129,40 @@ function do_migration_multi_process() {
   echo "Listing migrations..."
   timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
     | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
+      if [ " ${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
+        do_pause "pre-enqueue" "$MIGRATION_ID"
+      fi
+
       echo "Enqueuing items for $MIGRATION_ID"
-      timedwwwdrush dgi-migrate:enqueue --user=$DRUPAL_USER $MIGRATION_ID "${@:2}"
+      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}"
+
+      if [ " ${MULTIPROCESS_POST_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
+        do_pause "post-enqueue" "$MIGRATION_ID"
+      fi
+
       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
       for i in $(seq 1 $PROCESSES); do
         echo "Starting $i/$PROCESSES to process $MIGRATION_ID."
-        timedwwwdrush dgi-migrate:enqueued-process --user=$DRUPAL_USER $MIGRATION_ID "${@:2}" &> $PROCESS_LOG_DIR/$MIGRATION_ID.$i.log &
+        timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
       done
       echo "Waiting for processes to exit..."
       wait
-      timedwwwdrush dgi-migrate:finish-enqueued-process --user=1 $MIGRATION_ID "${@:2}"
+      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}"
+
+      if [ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
+        do_pause "post-process" "$MIGRATION_ID"
+      fi
     done
+}
+
+# Dump status for the given migration group.
+#
+# Can be skipped if SKIP_STATUS=true; in which case the call to this should be
+# no-op.
+function dump_status() {
+  if [ $SKIP_STATUS != 'true']; then
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
+  fi
 }
 
 # Handle kicking off a migration.
@@ -146,7 +186,7 @@ function do_migration () {
     # (lookin' at you, dgi_migrate_foxml_standard_mods_xslt dealio)
     wwwdrush cache:rebuild
     # Dump status before run.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     {
       # Do the import, one way or another.
       if [ $PROCESSES -eq 1 ]; then
@@ -156,10 +196,10 @@ function do_migration () {
       fi
     } |& wwwdo tee $IMPORT_LOG > /dev/null
     # Dump status after run.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     # Dump messages after run, so they're not lost with a subsequent run.
     wwwdo mkdir -p $MESSAGES_DIR
-    wwwdrush migrate:status --group=$MIGRATION_GROUP --field=id --format=string | \
+    wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string | \
     while read NAME ; do
       wwwdrush migrate:messages --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
     done
@@ -202,11 +242,11 @@ function do_rollback () {
     # (lookin' at you, things involving Fedora dealio)
     wwwdrush cache:rebuild
     # Dump status before rollback.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     # The base rollback.
     timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
     # Dump status after rollback.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     set +x
   } |& wwwdo tee $RUN_LOG
 
