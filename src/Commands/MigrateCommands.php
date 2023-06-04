@@ -356,10 +356,10 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  protected function getExecutable(string $migration_id, array $options = []) : MigrateBatchExecutable {
+  protected function getExecutable(string $migration_id, string $run_id, array $options = []) : MigrateBatchExecutable {
     /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
     $migration = $this->migrationPluginManager->createInstance($migration_id);
-    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
+    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options, $run_id);
   }
 
   /**
@@ -374,11 +374,11 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function enqueueMigration(string $migration_id, array $options = [
+  public function enqueueMigration(string $migration_id, string $run_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
   ]) : void {
-    $executable = $this->getExecutable($migration_id, $options);
+    $executable = $this->getExecutable($migration_id, $run_id, $options);
     // drush_op() provides --simulate support.
     drush_op([$executable, 'prepareBatch']);
   }
@@ -395,11 +395,11 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function processEnqueuedMigration(string $migration_id, array $options = [
+  public function processEnqueuedMigration(string $migration_id, string $run_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
   ]) : void {
-    $executable = $this->getExecutable($migration_id, $options);
+    $executable = $this->getExecutable($migration_id, $run_id, $options);
     // drush_op() provides --simulate support.
     $batch = [
       'title' => $this->t('Running migration: @migration', [

@@ -114,13 +114,19 @@ function do_migration_multi_process() {
     | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
       echo "Enqueuing items for $MIGRATION_ID"
       timedwwwdrush dgi-migrate:enqueue --user=$DRUPAL_USER $MIGRATION_ID "${@:2}"
+      local ENQUEUEING_JOB=$!
       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
+      local -a PROCESS_JOBS=()
       for i in $(seq 1 $PROCESSES); do
         echo "Starting $i/$PROCESSES to process $MIGRATION_ID."
         timedwwwdrush dgi-migrate:enqueued-process --user=$DRUPAL_USER $MIGRATION_ID "${@:2}" &> $PROCESS_LOG_DIR/$MIGRATION_ID.$i.log &
+        PROCESS_JOBS+=($!)
       done
-      echo "Waiting for processes to exit..."
-      wait
+      wait $ENQUEUEING_JOB
+      echo "Enqueing finished; signalling workers."
+      kill -SIGUSR1 ${PROCESS_JOBS[@]}
+      echo "Workers signalled; Waiting for them to finish..."
+      wait ${PROCESS_JOBS[@]}
       timedwwwdrush dgi-migrate:finish-enqueued-process --user=1 $MIGRATION_ID "${@:2}"
     done
 }
