@@ -137,7 +137,7 @@ class StompQueue implements QueueInterface {
     if (!$this->subscribed) {
       $this->stomp->subscribe(
         $this->getQueueName(),
-        null,
+        NULL,
         'client'
       );
       $connection = $this->stomp->getClient()->getConnection();
