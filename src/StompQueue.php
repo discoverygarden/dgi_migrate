@@ -78,7 +78,10 @@ class StompQueue implements QueueInterface {
 
   protected function subscribe() {
     if (!$this->subscribed) {
-      $this->stomp->subscribe("/queue/dgi_migrate", "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'");
+      $this->stomp->subscribe(
+        "/queue/dgi_migrate",
+        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'"
+      );
       $connection = $this->stomp->getClient()->getConnection();
       $connection->setReadTimeout(10);
 

@@ -128,7 +128,7 @@ function do_migration_multi_process() {
       echo "Workers signalled; Waiting for them to finish..."
       wait ${PROCESS_JOBS[@]}
       echo "Workers exited; Finalizing $MIGRATION_ID"
-      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}"
+      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "$NUM" "${@:2}"
       echo "Finished $MIGRATION_ID."
     done
 }

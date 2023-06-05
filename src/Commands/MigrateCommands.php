@@ -227,7 +227,7 @@ class MigrateCommands extends MigrateToolsCommands {
    * @throws \Exception
    *   If there are not enough parameters to the command.
    */
-  public function rollback($migration_names = '', array $options = [
+  public function rollback($migration_names = '', $run_id = NULL, array $options = [
     'all' => FALSE,
     'group' => self::REQ,
     'tag' => self::REQ,
@@ -270,6 +270,7 @@ class MigrateCommands extends MigrateToolsCommands {
         $executable = new MigrateBatchExecutable(
           $migration,
           $this->getMigrateMessage(),
+          $run_id,
           $options
         );
         // drush_op() provides --simulate support.
@@ -431,11 +432,11 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function finishEnqueuedMigration(string $migration_id, array $options = [
+  public function finishEnqueuedMigration(string $migration_id, string $run_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
   ]) {
-    $executable = $this->getExecutable($migration_id, $options);
+    $executable = $this->getExecutable($migration_id, $run_id, $options);
     drush_op([$executable, 'teardownMigration']);
   }
 
