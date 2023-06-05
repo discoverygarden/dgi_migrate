@@ -104,7 +104,7 @@ class StompQueue implements QueueInterface {
     );
 
     $this->stomp->send(
-      '/queue/dgi_migrate',
+      $this->getQueueName(),
       $message
     );
 
@@ -121,13 +121,23 @@ class StompQueue implements QueueInterface {
   }
 
   /**
+   * Helper; get queue name.
+   *
+   * @return string
+   *   The name of the queue with which to communicate.
+   */
+  protected function getQueueName() {
+    return "/queue/dgi_migrate_{$this->name}_{$this->group}";
+  }
+
+  /**
    * Helper; subscribe to the queue if we are not yet subscribed.
    */
   protected function subscribe() {
     if (!$this->subscribed) {
       $this->stomp->subscribe(
-        "/queue/dgi_migrate",
-        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'",
+        $this->getQueueName(),
+        null,
         'client'
       );
       $connection = $this->stomp->getClient()->getConnection();
