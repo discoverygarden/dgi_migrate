@@ -4,25 +4,57 @@ namespace Drupal\dgi_migrate;
 
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Queue\QueueInterface;
+use Drupal\migrate\Row;
 use Stomp\States\IStateful;
 use Stomp\Transport\Message;
 
+/**
+ * STOMP-backed queue.
+ */
 class StompQueue implements QueueInterface {
 
   use DependencySerializationTrait {
     __sleep as dstSleep;
   }
 
+  /**
+   * The STOMP client.
+   *
+   * @var \Stomp\States\IStateful
+   */
   protected IStateful $stomp;
 
+  /**
+   * The name of the migration for which to manage the queue.
+   *
+   * @var string
+   */
   protected string $name;
+
+  /**
+   * The run number of the migration, for which to manage the queue.
+   *
+   * @var string
+   */
   protected string $group;
 
+  /**
+   * Flag, whether we have subscribed to the queue or not.
+   *
+   * @var bool
+   */
   protected bool $subscribed = FALSE;
 
+  /**
+   * Serial number allocated when enqueueing.
+   *
+   * @var int
+   */
   protected int $serial = 0;
 
-
+  /**
+   * Constructor.
+   */
   public function __construct(
     IStateful $stomp,
     string $name,
@@ -33,6 +65,16 @@ class StompQueue implements QueueInterface {
     $this->group = $group;
   }
 
+  /**
+   * Static factory method.
+   *
+   * @param string $name
+   *   The name of the migration for which to manage the queue.
+   * @param string $group
+   *   The run number of the migration, for which to manage the queue.
+   *
+   * @return static
+   */
   public static function create(string $name, string $group) {
     return new static(
       \Drupal::service('islandora.stomp'),
@@ -42,7 +84,7 @@ class StompQueue implements QueueInterface {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function createItem($data) {
     $id = $this->serial++;
@@ -70,20 +112,26 @@ class StompQueue implements QueueInterface {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function numberOfItems() {
-    return $this->id;
+    // XXX: If called near the end, should be approximately the number of items
+    // in the queue.
+    return $this->serial;
   }
 
+  /**
+   * Helper; subscribe to the queue if we are not yet subscribed.
+   */
   protected function subscribe() {
     if (!$this->subscribed) {
       $this->stomp->subscribe(
         "/queue/dgi_migrate",
-        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'"
+        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'",
+        'client'
       );
       $connection = $this->stomp->getClient()->getConnection();
-      $connection->setReadTimeout(10);
+      $connection->setReadTimeout(60);
 
       if (extension_loaded('pcntl')) {
         pcntl_signal(SIGUSR1, [$this, 'pcntlSignalHandler']);
@@ -106,8 +154,6 @@ class StompQueue implements QueueInterface {
   /**
    * Signal handler.
    *
-   * @return void
-   *
    * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L26-L29
    */
   public function pcntlSignalHandler() {
@@ -118,6 +164,7 @@ class StompQueue implements QueueInterface {
    * Wait callback.
    *
    * @return false|void
+   *   FALSE to interrupt; otherwise, continue.
    *
    * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L38-L53
    */
@@ -129,7 +176,7 @@ class StompQueue implements QueueInterface {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function claimItem($lease_time = 3600) {
     $this->subscribe();
@@ -140,39 +187,47 @@ class StompQueue implements QueueInterface {
       return FALSE;
     }
 
-    $to_return = unserialize($frame->getBody());
+    $to_return = unserialize($frame->getBody(), [
+      'allowed_classes' => [
+        Row::class,
+        \stdClass::class,
+      ],
+    ]);
     $to_return->frame = $frame;
     return $to_return;
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function deleteItem($item) {
     $this->stomp->ack($item->frame);
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function releaseItem($item) {
     $this->stomp->nack($item->frame);
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function createQueue() {
     // No-op.
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function deleteQueue() {
     // No-op... can't delete via STOMP.
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function __sleep() {
     $vars = $this->dstSleep();
 

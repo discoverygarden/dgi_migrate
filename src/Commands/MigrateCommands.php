@@ -49,6 +49,7 @@ class MigrateCommands extends MigrateToolsCommands {
    * @option skip-progress-bar Skip displaying a progress bar.
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
+   * @option run The ID of the run, if relevant.
    *
    * @default $options []
    * @usage migrate:batch-import --all
@@ -88,6 +89,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'execute-dependencies' => FALSE,
     'skip-progress-bar' => FALSE,
     'sync' => FALSE,
+    'run' => NULL,
   ]) {
     return parent::import($migration_names, $options);
   }
@@ -205,6 +207,7 @@ class MigrateCommands extends MigrateToolsCommands {
    *   An optional set of row statuses, comma-separated, to which to constrain
    *   the rollback. Valid states are: "imported", "needs_update", "ignored",
    *   and "failed".
+   * @option run The ID of the run, if relevant.
    *
    * @default $options []
    *
@@ -227,7 +230,7 @@ class MigrateCommands extends MigrateToolsCommands {
    * @throws \Exception
    *   If there are not enough parameters to the command.
    */
-  public function rollback($migration_names = '', $run_id = NULL, array $options = [
+  public function rollback($migration_names = '', array $options = [
     'all' => FALSE,
     'group' => self::REQ,
     'tag' => self::REQ,
@@ -237,6 +240,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'skip-progress-bar' => FALSE,
     'continue-on-failure' => FALSE,
     'statuses' => self::REQ,
+    'run' => NULL,
   ]) {
     $group_names = $options['group'];
     $tag_names = $options['tag'];
@@ -270,8 +274,8 @@ class MigrateCommands extends MigrateToolsCommands {
         $executable = new MigrateBatchExecutable(
           $migration,
           $this->getMigrateMessage(),
-          $run_id,
-          $options
+          $options,
+          $options['run']
         );
         // drush_op() provides --simulate support.
         $result = drush_op([$executable, 'rollback']);
@@ -283,7 +287,7 @@ class MigrateCommands extends MigrateToolsCommands {
 
     // If any rollbacks failed, throw an exception to generate exit status.
     if ($has_failure) {
-      $error_message = dt('!name migration failed.', ['!name' => $migration_id]);
+      $error_message = dt(strtr('!name migration failed.', ['!name' => $migration_id]));
       if ($options['continue-on-failure']) {
         $this->logger()->error($error_message);
       }
@@ -357,10 +361,10 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
-  protected function getExecutable(string $migration_id, string $run_id, array $options = []) : MigrateBatchExecutable {
+  protected function getExecutable(string $migration_id, array $options = []) : MigrateBatchExecutable {
     /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
     $migration = $this->migrationPluginManager->createInstance($migration_id);
-    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options, $run_id);
+    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
   }
 
   /**
@@ -372,14 +376,16 @@ class MigrateCommands extends MigrateToolsCommands {
    *   source, update previously-imported items with the current data
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
+   * @option run The ID of the run, if relevant.
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function enqueueMigration(string $migration_id, string $run_id, array $options = [
+  public function enqueueMigration(string $migration_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
+    'run' => NULL,
   ]) : void {
-    $executable = $this->getExecutable($migration_id, $run_id, $options);
+    $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.
     drush_op([$executable, 'prepareBatch']);
   }
@@ -393,14 +399,16 @@ class MigrateCommands extends MigrateToolsCommands {
    *   source, update previously-imported items with the current data
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
+   * @option run The ID of the run, if relevant.
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function processEnqueuedMigration(string $migration_id, string $run_id, array $options = [
+  public function processEnqueuedMigration(string $migration_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
+    'run' => NULL,
   ]) : void {
-    $executable = $this->getExecutable($migration_id, $run_id, $options);
+    $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.
     $batch = [
       'title' => $this->t('Running migration: @migration', [
@@ -432,11 +440,12 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function finishEnqueuedMigration(string $migration_id, string $run_id, array $options = [
+  public function finishEnqueuedMigration(string $migration_id, array $options = [
     'update' => FALSE,
     'sync' => FALSE,
+    'run' => NULL,
   ]) {
-    $executable = $this->getExecutable($migration_id, $run_id, $options);
+    $executable = $this->getExecutable($migration_id, $options);
     drush_op([$executable, 'teardownMigration']);
   }
 

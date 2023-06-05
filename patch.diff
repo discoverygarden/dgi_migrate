@@ -1,0 +1,429 @@
+diff --git a/scripts/util.in b/scripts/util.in
+index 0a08e02..81c4737 100644
+--- a/scripts/util.in
++++ b/scripts/util.in
+@@ -113,13 +113,13 @@ function do_migration_multi_process() {
+   timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
+     | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
+       echo "Enqueuing items for $MIGRATION_ID"
+-      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "$MIGRATION_ID" "$NUM" "${@:2}" &
++      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &
+       local ENQUEUEING_JOB=$!
+       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
+       local -a PROCESS_JOBS=()
+       for i in $(seq 1 $PROCESSES); do
+         echo "Starting $i/$PROCESSES to process $MIGRATION_ID."
+-        timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "$NUM" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
++        timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
+         PROCESS_JOBS+=($!)
+       done
+       wait $ENQUEUEING_JOB
+@@ -128,7 +128,7 @@ function do_migration_multi_process() {
+       echo "Workers signalled; Waiting for them to finish..."
+       wait ${PROCESS_JOBS[@]}
+       echo "Workers exited; Finalizing $MIGRATION_ID"
+-      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "$NUM" "${@:2}"
++      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}"
+       echo "Finished $MIGRATION_ID."
+     done
+ }
+@@ -212,7 +212,7 @@ function do_rollback () {
+     # Dump status before rollback.
+     wwwdrush migrate:status --group=$MIGRATION_GROUP
+     # The base rollback.
+-    timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
++    timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "--run=$NUM" "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
+     # Dump status after rollback.
+     wwwdrush migrate:status --group=$MIGRATION_GROUP
+     set +x
+diff --git a/src/Commands/MigrateCommands.php b/src/Commands/MigrateCommands.php
+index acf5c42..6042248 100644
+--- a/src/Commands/MigrateCommands.php
++++ b/src/Commands/MigrateCommands.php
+@@ -49,6 +49,7 @@ class MigrateCommands extends MigrateToolsCommands {
+    * @option skip-progress-bar Skip displaying a progress bar.
+    * @option sync Sync source and destination. Delete destination records that
+    *   do not exist in the source.
++   * @option run The ID of the run, if relevant.
+    *
+    * @default $options []
+    * @usage migrate:batch-import --all
+@@ -88,6 +89,7 @@ class MigrateCommands extends MigrateToolsCommands {
+     'execute-dependencies' => FALSE,
+     'skip-progress-bar' => FALSE,
+     'sync' => FALSE,
++    'run' => NULL,
+   ]) {
+     return parent::import($migration_names, $options);
+   }
+@@ -205,6 +207,7 @@ class MigrateCommands extends MigrateToolsCommands {
+    *   An optional set of row statuses, comma-separated, to which to constrain
+    *   the rollback. Valid states are: "imported", "needs_update", "ignored",
+    *   and "failed".
++   * @option run The ID of the run, if relevant.
+    *
+    * @default $options []
+    *
+@@ -227,7 +230,7 @@ class MigrateCommands extends MigrateToolsCommands {
+    * @throws \Exception
+    *   If there are not enough parameters to the command.
+    */
+-  public function rollback($migration_names = '', $run_id = NULL, array $options = [
++  public function rollback($migration_names = '', array $options = [
+     'all' => FALSE,
+     'group' => self::REQ,
+     'tag' => self::REQ,
+@@ -237,6 +240,7 @@ class MigrateCommands extends MigrateToolsCommands {
+     'skip-progress-bar' => FALSE,
+     'continue-on-failure' => FALSE,
+     'statuses' => self::REQ,
++    'run' => NULL,
+   ]) {
+     $group_names = $options['group'];
+     $tag_names = $options['tag'];
+@@ -270,8 +274,8 @@ class MigrateCommands extends MigrateToolsCommands {
+         $executable = new MigrateBatchExecutable(
+           $migration,
+           $this->getMigrateMessage(),
+-          $run_id,
+-          $options
++          $options,
++          $options['run']
+         );
+         // drush_op() provides --simulate support.
+         $result = drush_op([$executable, 'rollback']);
+@@ -283,7 +287,7 @@ class MigrateCommands extends MigrateToolsCommands {
+
+     // If any rollbacks failed, throw an exception to generate exit status.
+     if ($has_failure) {
+-      $error_message = dt('!name migration failed.', ['!name' => $migration_id]);
++      $error_message = dt(strtr('!name migration failed.', ['!name' => $migration_id]));
+       if ($options['continue-on-failure']) {
+         $this->logger()->error($error_message);
+       }
+@@ -357,10 +361,10 @@ class MigrateCommands extends MigrateToolsCommands {
+    *
+    * @throws \Drupal\Component\Plugin\Exception\PluginException
+    */
+-  protected function getExecutable(string $migration_id, string $run_id, array $options = []) : MigrateBatchExecutable {
++  protected function getExecutable(string $migration_id, array $options = []) : MigrateBatchExecutable {
+     /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
+     $migration = $this->migrationPluginManager->createInstance($migration_id);
+-    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options, $run_id);
++    return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
+   }
+
+   /**
+@@ -372,14 +376,16 @@ class MigrateCommands extends MigrateToolsCommands {
+    *   source, update previously-imported items with the current data
+    * @option sync Sync source and destination. Delete destination records that
+    *   do not exist in the source.
++   * @option run The ID of the run, if relevant.
+    *
+    * @islandora-drush-utils-user-wrap
+    */
+-  public function enqueueMigration(string $migration_id, string $run_id, array $options = [
++  public function enqueueMigration(string $migration_id, array $options = [
+     'update' => FALSE,
+     'sync' => FALSE,
++    'run' => NULL,
+   ]) : void {
+-    $executable = $this->getExecutable($migration_id, $run_id, $options);
++    $executable = $this->getExecutable($migration_id, $options);
+     // drush_op() provides --simulate support.
+     drush_op([$executable, 'prepareBatch']);
+   }
+@@ -393,14 +399,16 @@ class MigrateCommands extends MigrateToolsCommands {
+    *   source, update previously-imported items with the current data
+    * @option sync Sync source and destination. Delete destination records that
+    *   do not exist in the source.
++   * @option run The ID of the run, if relevant.
+    *
+    * @islandora-drush-utils-user-wrap
+    */
+-  public function processEnqueuedMigration(string $migration_id, string $run_id, array $options = [
++  public function processEnqueuedMigration(string $migration_id, array $options = [
+     'update' => FALSE,
+     'sync' => FALSE,
++    'run' => NULL,
+   ]) : void {
+-    $executable = $this->getExecutable($migration_id, $run_id, $options);
++    $executable = $this->getExecutable($migration_id, $options);
+     // drush_op() provides --simulate support.
+     $batch = [
+       'title' => $this->t('Running migration: @migration', [
+@@ -432,11 +440,12 @@ class MigrateCommands extends MigrateToolsCommands {
+    *
+    * @islandora-drush-utils-user-wrap
+    */
+-  public function finishEnqueuedMigration(string $migration_id, string $run_id, array $options = [
++  public function finishEnqueuedMigration(string $migration_id, array $options = [
+     'update' => FALSE,
+     'sync' => FALSE,
++    'run' => NULL,
+   ]) {
+-    $executable = $this->getExecutable($migration_id, $run_id, $options);
++    $executable = $this->getExecutable($migration_id, $options);
+     drush_op([$executable, 'teardownMigration']);
+   }
+
+diff --git a/src/MigrateBatchExecutable.php b/src/MigrateBatchExecutable.php
+index 0f28f59..bb6e079 100644
+--- a/src/MigrateBatchExecutable.php
++++ b/src/MigrateBatchExecutable.php
+@@ -49,18 +49,23 @@ class MigrateBatchExecutable extends MigrateExecutable {
+    */
+   protected $idMapStatuses;
+
+-  protected string $runId;
++  /**
++   * The options passed.
++   *
++   * @var array
++   */
++  protected array $options;
+
+   /**
+    * {@inheritdoc}
+    */
+-  public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = [], string $run_id = NULL) {
+-    $this->runId = $run_id;
++  public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
+     $this->idMapStatuses = isset($options['statuses']) ?
+       StatusFilter::mapStatuses($options['statuses']) :
+       [];
+
+     parent::__construct($migration, $message, $options);
++    $this->options = $options;
+     $this->getQueue();
+
+     if (static::isCli()) {
+@@ -81,7 +86,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
+    *   The name of the queue.
+    */
+   public function getQueueName() : string {
+-    return "dgi_migrate__{$this->migration->id()}";
++    return "dgi_migrate__batch_ingest__{$this->migration->id()}";
+   }
+
+   /**
+@@ -92,7 +97,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
+    */
+   protected function getQueue() : QueueInterface {
+     if (!isset($this->queue)) {
+-      $this->queue = StompQueue::create($this->migration->id(), $this->runId);
++      $this->queue = ($this->options['run'] ?? FALSE) ?
++        StompQueue::create($this->migration->id(), $this->options['run']) :
++        \Drupal::queue($this->getQueueName(), TRUE);
++      ;
+     }
+
+     return $this->queue;
+@@ -332,7 +340,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
+    *   Batch context.
+    */
+   public function processBatch(&$context) {
+-    $sandbox =& $context['sandbox'];
++    $context['finished'] = 0;
+
+     $queue = $this->getQueue();
+
+diff --git a/src/StompQueue.php b/src/StompQueue.php
+index e8b6cc6..370909a 100644
+--- a/src/StompQueue.php
++++ b/src/StompQueue.php
+@@ -4,25 +4,57 @@ namespace Drupal\dgi_migrate;
+
+ use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+ use Drupal\Core\Queue\QueueInterface;
++use Drupal\migrate\Row;
+ use Stomp\States\IStateful;
+ use Stomp\Transport\Message;
+
++/**
++ * STOMP-backed queue.
++ */
+ class StompQueue implements QueueInterface {
+
+   use DependencySerializationTrait {
+     __sleep as dstSleep;
+   }
+
++  /**
++   * The STOMP client.
++   *
++   * @var \Stomp\States\IStateful
++   */
+   protected IStateful $stomp;
+
++  /**
++   * The name of the migration for which to manage the queue.
++   *
++   * @var string
++   */
+   protected string $name;
++
++  /**
++   * The run number of the migration, for which to manage the queue.
++   *
++   * @var string
++   */
+   protected string $group;
+
++  /**
++   * Flag, whether we have subscribed to the queue or not.
++   *
++   * @var bool
++   */
+   protected bool $subscribed = FALSE;
+
++  /**
++   * Serial number allocated when enqueueing.
++   *
++   * @var int
++   */
+   protected int $serial = 0;
+
+-
++  /**
++   * Constructor.
++   */
+   public function __construct(
+     IStateful $stomp,
+     string $name,
+@@ -33,6 +65,16 @@ class StompQueue implements QueueInterface {
+     $this->group = $group;
+   }
+
++  /**
++   * Static factory method.
++   *
++   * @param string $name
++   *   The name of the migration for which to manage the queue.
++   * @param string $group
++   *   The run number of the migration, for which to manage the queue.
++   *
++   * @return static
++   */
+   public static function create(string $name, string $group) {
+     return new static(
+       \Drupal::service('islandora.stomp'),
+@@ -42,7 +84,7 @@ class StompQueue implements QueueInterface {
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function createItem($data) {
+     $id = $this->serial++;
+@@ -70,20 +112,26 @@ class StompQueue implements QueueInterface {
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function numberOfItems() {
+-    return $this->id;
++    // XXX: If called near the end, should be approximately the number of items
++    // in the queue.
++    return $this->serial;
+   }
+
++  /**
++   * Helper; subscribe to the queue if we are not yet subscribed.
++   */
+   protected function subscribe() {
+     if (!$this->subscribed) {
+       $this->stomp->subscribe(
+         "/queue/dgi_migrate",
+-        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'"
++        "dgi_migrate_migration = '{$this->name}' AND dgi_migrate_run_id = '{$this->group}'",
++        'client'
+       );
+       $connection = $this->stomp->getClient()->getConnection();
+-      $connection->setReadTimeout(10);
++      $connection->setReadTimeout(60);
+
+       if (extension_loaded('pcntl')) {
+         pcntl_signal(SIGUSR1, [$this, 'pcntlSignalHandler']);
+@@ -106,8 +154,6 @@ class StompQueue implements QueueInterface {
+   /**
+    * Signal handler.
+    *
+-   * @return void
+-   *
+    * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L26-L29
+    */
+   public function pcntlSignalHandler() {
+@@ -118,6 +164,7 @@ class StompQueue implements QueueInterface {
+    * Wait callback.
+    *
+    * @return false|void
++   *   FALSE to interrupt; otherwise, continue.
+    *
+    * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L38-L53
+    */
+@@ -129,7 +176,7 @@ class StompQueue implements QueueInterface {
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function claimItem($lease_time = 3600) {
+     $this->subscribe();
+@@ -140,39 +187,47 @@ class StompQueue implements QueueInterface {
+       return FALSE;
+     }
+
+-    $to_return = unserialize($frame->getBody());
++    $to_return = unserialize($frame->getBody(), [
++      'allowed_classes' => [
++        Row::class,
++        \stdClass::class,
++      ],
++    ]);
+     $to_return->frame = $frame;
+     return $to_return;
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function deleteItem($item) {
+     $this->stomp->ack($item->frame);
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function releaseItem($item) {
+     $this->stomp->nack($item->frame);
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function createQueue() {
+     // No-op.
+   }
+
+   /**
+-   * @inheritDoc
++   * {@inheritDoc}
+    */
+   public function deleteQueue() {
+     // No-op... can't delete via STOMP.
+   }
+
++  /**
++   * {@inheritDoc}
++   */
+   public function __sleep() {
+     $vars = $this->dstSleep();
+

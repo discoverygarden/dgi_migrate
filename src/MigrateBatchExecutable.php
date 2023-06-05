@@ -49,18 +49,23 @@ class MigrateBatchExecutable extends MigrateExecutable {
    */
   protected $idMapStatuses;
 
-  protected string $runId;
+  /**
+   * The options passed.
+   *
+   * @var array
+   */
+  protected array $options;
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = [], string $run_id = NULL) {
-    $this->runId = $run_id;
+  public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
     $this->idMapStatuses = isset($options['statuses']) ?
       StatusFilter::mapStatuses($options['statuses']) :
       [];
 
     parent::__construct($migration, $message, $options);
+    $this->options = $options;
     $this->getQueue();
 
     if (static::isCli()) {
@@ -81,7 +86,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
    *   The name of the queue.
    */
   public function getQueueName() : string {
-    return "dgi_migrate__{$this->migration->id()}";
+    return "dgi_migrate__batch_ingest__{$this->migration->id()}";
   }
 
   /**
@@ -92,7 +97,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
    */
   protected function getQueue() : QueueInterface {
     if (!isset($this->queue)) {
-      $this->queue = StompQueue::create($this->migration->id(), $this->runId);
+      $this->queue = ($this->options['run'] ?? FALSE) ?
+        StompQueue::create($this->migration->id(), $this->options['run']) :
+        \Drupal::queue($this->getQueueName(), TRUE);
+      ;
     }
 
     return $this->queue;
@@ -332,7 +340,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
    *   Batch context.
    */
   public function processBatch(&$context) {
-    $sandbox =& $context['sandbox'];
+    $context['finished'] = 0;
 
     $queue = $this->getQueue();
 
