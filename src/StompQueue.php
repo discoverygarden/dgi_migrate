@@ -189,7 +189,7 @@ class StompQueue implements QueueInterface {
     // return that it failed to read anything. If we haven't been signalled that
     // the queue has been completely populated, try again; otherwise, if the
     // queue is finished, report its exhaustion.
-    while(($frame = $this->stomp->read()) === FALSE) {
+    while (($frame = $this->stomp->read()) === FALSE) {
       $this->logger->debug('Not signalled; polling again.');
     }
     $headers = $frame->getHeaders();
@@ -198,7 +198,6 @@ class StompQueue implements QueueInterface {
       $this->deleteItem($frame);
       return FALSE;
     }
-
 
     $to_return = unserialize($frame->getBody(), [
       'allowed_classes' => [
