@@ -186,9 +186,8 @@ class StompQueue implements QueueInterface {
     $this->subscribe();
 
     // XXX: The STOMP client has an associated timeout out, after which it will
-    // return that it failed to read anything. If we haven't been signalled that
-    // the queue has been completely populated, try again; otherwise, if the
-    // queue is finished, report its exhaustion.
+    // return that it failed to read anything. We expect a "terminal" message to
+    // be added to the queue for each worker, telling them to quit.
     while (($frame = $this->stomp->read()) === FALSE) {
       $this->logger->debug('Not signalled; polling again.');
     }
