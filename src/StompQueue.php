@@ -195,7 +195,7 @@ class StompQueue implements QueueInterface {
     $headers = $frame->getHeaders();
     if (array_key_exists('type', $headers) && $headers['type'] === 'terminal') {
       // Got a terminal message; ack-knowledge it and flag the queue's empty.
-      $this->deleteItem($frame);
+      $this->stomp->ack($frame);
       return FALSE;
     }
 
