@@ -100,7 +100,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $this->queue = ($this->options['run'] ?? FALSE) ?
         StompQueue::create($this->migration->id(), $this->options['run']) :
         \Drupal::queue($this->getQueueName(), TRUE);
-      ;
     }
 
     return $this->queue;
