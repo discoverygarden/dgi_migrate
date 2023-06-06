@@ -377,6 +377,8 @@ class MigrateCommands extends MigrateToolsCommands {
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
    * @option run The ID of the run, if relevant.
+   * @option send_terminals The number of terminal messages to send after
+   *   enqueueing all the messages.
    *
    * @islandora-drush-utils-user-wrap
    */
@@ -384,6 +386,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'update' => FALSE,
     'sync' => FALSE,
     'run' => NULL,
+    'send_terminals' => 0,
   ]) : void {
     $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.

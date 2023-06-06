@@ -5,6 +5,7 @@ namespace Drupal\dgi_migrate;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\migrate\Row;
+use Psr\Log\LoggerInterface;
 use Stomp\States\IStateful;
 use Stomp\Transport\Message;
 
@@ -53,14 +54,23 @@ class StompQueue implements QueueInterface {
   protected int $serial = 0;
 
   /**
+   * Logger.
+   *
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected LoggerInterface $logger;
+
+  /**
    * Constructor.
    */
   public function __construct(
     IStateful $stomp,
+    LoggerInterface $logger,
     string $name,
     string $group
   ) {
     $this->stomp = $stomp;
+    $this->logger = $logger;
     $this->name = $name;
     $this->group = $group;
   }
@@ -78,6 +88,7 @@ class StompQueue implements QueueInterface {
   public static function create(string $name, string $group) {
     return new static(
       \Drupal::service('islandora.stomp'),
+      \Drupal::logger('dgi_migrate.stomp_queue'),
       $name,
       $group
     );
@@ -97,6 +108,7 @@ class StompQueue implements QueueInterface {
     $message = new Message(
       serialize($body),
       [
+        'type' => 'to_process',
         'dgi_migrate_migration' => $this->name,
         'dgi_migrate_run_id' => $this->group,
         'persistent' => 'true',
@@ -109,6 +121,28 @@ class StompQueue implements QueueInterface {
     );
 
     return $id;
+  }
+
+  /**
+   * Send a "terminal" message.
+   *
+   * Should be one for each worker we intend to start.
+   */
+  public function sendTerminal() {
+    $message = new Message(
+      '',
+      [
+        'type' => 'terminal',
+        'dgi_migrate_migration' => $this->name,
+        'dgi_migrate_run_id' => $this->group,
+        'persistent' => 'true',
+      ]
+    );
+
+    $this->stomp->send(
+      $this->getQueueName(),
+      $message
+    );
   }
 
   /**
@@ -140,48 +174,8 @@ class StompQueue implements QueueInterface {
         NULL,
         'client'
       );
-      $connection = $this->stomp->getClient()->getConnection();
-      $connection->setReadTimeout(60);
 
-      if (extension_loaded('pcntl')) {
-        pcntl_signal(SIGUSR1, [$this, 'pcntlSignalHandler']);
-        pcntl_signal(SIGINT, [$this, 'pcntlSignalHandler']);
-        $connection->setWaitCallback([$this, 'pcntlWaitCallback']);
-      }
       $this->subscribed = TRUE;
-    }
-  }
-
-  /**
-   * Signal flag.
-   *
-   * @var bool
-   *
-   * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L20-L21
-   */
-  protected bool $signalled = FALSE;
-
-  /**
-   * Signal handler.
-   *
-   * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L26-L29
-   */
-  public function pcntlSignalHandler() {
-    $this->signalled = TRUE;
-  }
-
-  /**
-   * Wait callback.
-   *
-   * @return false|void
-   *   FALSE to interrupt; otherwise, continue.
-   *
-   * @see https://github.com/stomp-php/stomp-php-examples/blob/693d436228c49eabeda853d1c390dab0ce0ace7d/src/pcntl_signal_handling.php#L38-L53
-   */
-  public function pcntlWaitCallback() {
-    pcntl_signal_dispatch();
-    if ($this->signalled) {
-      return FALSE;
     }
   }
 
@@ -191,11 +185,20 @@ class StompQueue implements QueueInterface {
   public function claimItem($lease_time = 3600) {
     $this->subscribe();
 
-    $frame = $this->stomp->read();
-
-    if ($frame === FALSE) {
+    // XXX: The STOMP client has an associated timeout out, after which it will
+    // return that it failed to read anything. If we haven't been signalled that
+    // the queue has been completely populated, try again; otherwise, if the
+    // queue is finished, report its exhaustion.
+    while(($frame = $this->stomp->read()) === FALSE) {
+      $this->logger->debug('Not signalled; polling again.');
+    }
+    $headers = $frame->getHeaders();
+    if (array_key_exists('type', $headers) && $headers['type'] === 'terminal') {
+      // Got a terminal message; ack-knowledge it and flag the queue's empty.
+      $this->deleteItem($frame);
       return FALSE;
     }
+
 
     $to_return = unserialize($frame->getBody(), [
       'allowed_classes' => [

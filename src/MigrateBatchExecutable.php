@@ -86,7 +86,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
    *   The name of the queue.
    */
   public function getQueueName() : string {
-    return "dgi_migrate__batch_ingest__{$this->migration->id()}";
+    return "dgi_migrate__batch_queue__{$this->migration->id()}";
   }
 
   /**
@@ -244,6 +244,12 @@ class MigrateBatchExecutable extends MigrateExecutable {
         'row' => $row,
         'attempts' => 0,
       ]);
+    }
+    if ($queue instanceof StompQueue) {
+      $total = intval($this->options['send_terminals'] ?? 0);
+      for ($i = 0; $i < $total; $i++) {
+        $queue->sendTerminal();
+      }
     }
     return MigrationInterface::RESULT_COMPLETED;
   }
