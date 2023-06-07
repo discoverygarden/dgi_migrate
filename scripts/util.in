@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function wwwdo () {
-  sudo -u $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
+  sudo -Eu $WEB_USER --preserve-env=DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING -- ${@:1}
 }
 
 function wwwdrush () {
@@ -138,21 +138,22 @@ function do_migration_multi_process() {
       fi
 
       echo "Enqueuing items for $MIGRATION_ID"
-      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}"
-
-      if [ " ${MULTIPROCESS_POST_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
-        do_pause "post-enqueue" "$MIGRATION_ID"
-      fi
+      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "--send_terminals=$PROCESSES" "$MIGRATION_ID" "${@:2}" &
+      local ENQUEUEING_JOB=$!
 
       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
+      local -a PROCESS_JOBS=()
       for i in $(seq 1 $PROCESSES); do
         echo "Starting $i/$PROCESSES to process $MIGRATION_ID."
-        timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
+        timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
+        PROCESS_JOBS+=($!)
       done
-      echo "Waiting for processes to exit..."
-      wait
-      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "$MIGRATION_ID" "${@:2}"
-
+      wait $ENQUEUEING_JOB
+      echo "Enqueing finished; Waiting for workers to finish..."
+      wait ${PROCESS_JOBS[@]}
+      echo "Workers exited; Finalizing $MIGRATION_ID"
+      timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}"
+      echo "Finished $MIGRATION_ID."
       if [ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
         do_pause "post-process" "$MIGRATION_ID"
       fi
@@ -248,7 +249,7 @@ function do_rollback () {
     # Dump status before rollback.
     dump_status
     # The base rollback.
-    timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
+    timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "--run=$NUM" "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
     # Dump status after rollback.
     dump_status
     set +x
