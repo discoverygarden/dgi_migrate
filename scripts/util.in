@@ -104,14 +104,16 @@ function do_migration_single_process() {
 # Helper; facilitate pausing for various reasons (likely snapshotting).
 #
 # Positional args:
-# - 1: A descripitive string of _when_ we are pausing; e.g. "pre-enqueue",
+# - 1: A descriptive string of _when_ we are pausing; e.g. "pre-enqueue",
 #   "post-enqueue", etc.
 # - 2: The ID of the specific migration during which we are pausing.
 function do_pause() {
   local WHEN=$1
   local MIGRATION_ID=$2
+  local DISCARD
 
-  read -p "Pausing $WHEN of $MIGRATION_ID as requested. Hit enter to continue."
+  read -ep "Pausing $WHEN of $MIGRATION_ID as requested. Hit enter to continue." DISCARD
+  echo "DISCARD is $DISCARD"
 }
 
 # Kick off a migration in multiple processes.
@@ -132,18 +134,18 @@ function do_migration_multi_process() {
   wwwdo touch $PAUSE_LOCK_FILE
 
   echo "Listing migrations..."
-  timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id --sort | \
-   while read MIGRATION_ID; do
+  local -a migrations=($(wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id --sort))
+  for MIGRATION_ID in ${migrations[@]}; do
       if [ ! -f $PAUSE_LOCK_FILE ] ; then
         echo "Pause lock file removed."
         do_pause "pre-enqueue" "$MIGRATION_ID"
       elif [ ! -f $STOP_LOCK_FILE ] ; then
         echo "Stop lock file removed; exiting before touching $MIGRATION_ID."
         return
-      elif [ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]; then
+      elif [[ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]]; then
         echo "Skipping $MIGRATION_ID as requested."
         continue
-      elif [ " ${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
+      elif [[ " ${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]]; then
         do_pause "pre-enqueue" "$MIGRATION_ID"
       fi
 
@@ -179,7 +181,7 @@ function do_migration_multi_process() {
       echo "Finalizing $MIGRATION_ID."
       timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}"
       echo "Finished $MIGRATION_ID."
-      if [ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
+      if [[ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]] ; then
         do_pause "post-process" "$MIGRATION_ID"
       fi
 
