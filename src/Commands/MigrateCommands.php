@@ -304,21 +304,23 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @command dgi-migrate:list-migrations
    *
-   * @option all Process all migrations.
-   * @option group A comma-separated list of migration groups to import.
-   * @option tag Name of the migration tag to import.
-   *
    * @field-labels
    *   id: Migration IDs
    *   weight: Weight of the migration
    * @default-fields id,weight
+   *
+   * @option all Process all migrations.
+   * @option group A comma-separated list of migration groups to import.
+   * @option tag Name of the migration tag to import.
+   * @option sort Sort according to weight.
    */
   public function listMigrations(array $options = [
     'all' => FALSE,
     'group' => self::REQ,
     'tag' => self::REQ,
     'format' => 'csv',
-  ]) {
+    'sort' => FALSE,
+  ]) : RowsOfFields {
 
     $generate_order = function () use ($options) {
       $migration_groups = $this->migrationsList('', $options);
@@ -346,7 +348,15 @@ class MigrateCommands extends MigrateToolsCommands {
       }
     };
 
-    return new RowsOfFields(iterator_to_array($generate_order()));
+    $generated = iterator_to_array($generate_order());
+
+    if ($options['sort']) {
+      usort($generated, function ($a, $b) {
+        return $a['weight'] - $b['weight'];
+      });
+    }
+
+    return new RowsOfFields($generated);
   }
 
   /**
@@ -378,8 +388,6 @@ class MigrateCommands extends MigrateToolsCommands {
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
    * @option run The ID of the run, if relevant.
-   * @option send_terminals The number of terminal messages to send after
-   *   enqueueing all the messages.
    *
    * @islandora-drush-utils-user-wrap
    */
@@ -387,7 +395,6 @@ class MigrateCommands extends MigrateToolsCommands {
     'update' => FALSE,
     'sync' => FALSE,
     'run' => NULL,
-    'send_terminals' => 0,
   ]) : void {
     $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.

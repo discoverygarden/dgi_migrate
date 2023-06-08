@@ -124,16 +124,21 @@ function do_migration_multi_process() {
   local NUM=${1}
 
   local PROCESS_LOG_DIR="$LOG_DIR/$NUM-multiprocess-logs"
-  local LOCK_FILE="$LOG_FILE/$NUM.lock"
+  local STOP_LOCK_FILE="$LOG_DIR/$NUM-stop.lock"
+  local PAUSE_LOCK_FILE="$LOG_DIR/$NUM-pause.lock"
 
   wwwdo mkdir -p $PROCESS_LOG_DIR
-  wwwdo touch $LOCK_FILE
+  wwwdo touch $STOP_LOCK_FILE
+  wwwdo touch $PAUSE_LOCK_FILE
 
   echo "Listing migrations..."
-  timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
-    | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
-      if [ ! -f $LOCK_FILE ] ; then
-        echo "Lock file removed; exiting before touching $MIGRATION_ID."
+  timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id --sort | \
+   while read MIGRATION_ID; do
+      if [ ! -f $PAUSE_LOCK_FILE ] ; then
+        echo "Pause lock file removed."
+        do_pause "pre-enqueue" "$MIGRATION_ID"
+      elif [ ! -f $STOP_LOCK_FILE ] ; then
+        echo "Stop lock file removed; exiting before touching $MIGRATION_ID."
         return
       elif [ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]; then
         echo "Skipping $MIGRATION_ID as requested."
@@ -143,7 +148,7 @@ function do_migration_multi_process() {
       fi
 
       echo "Enqueuing items for $MIGRATION_ID"
-      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "--send_terminals=$PROCESSES" "$MIGRATION_ID" "${@:2}" &
+      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &
       local ENQUEUEING_JOB=$!
 
       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
@@ -163,7 +168,10 @@ function do_migration_multi_process() {
       echo "Terminal messages enqueued; waiting for workers to finish..."
       wait ${PROCESS_JOBS[@]}
       echo "Workers exited."
-      if [ ! -f $LOCK_FILE ] ; then
+
+      if [ ! -f $PAUSE_LOCK_FILE ] ; then
+        do_pause "post-process, pre-finalize" "$MIGRATION_ID"
+      elif [ ! -f $STOP_LOCK_FILE ] ; then
         echo "Lock file removed; exiting without finalizing batch."
         return
       fi
@@ -176,7 +184,7 @@ function do_migration_multi_process() {
       fi
 
     done
-  wwwdo rm $LOCK_FILE
+  wwwdo rm $STOP_LOCK_FILE $PAUSE_LOCK_FILE
 }
 
 # Dump status for the given migration group.
@@ -184,7 +192,7 @@ function do_migration_multi_process() {
 # Can be skipped if SKIP_STATUS=true; in which case the call to this should be
 # no-op.
 function dump_status() {
-  if [ $SKIP_STATUS != 'true']; then
+  if [ $SKIP_STATUS != 'true' ]; then
     wwwdrush migrate:status --group=$MIGRATION_GROUP
   fi
 }
@@ -223,7 +231,7 @@ function do_migration () {
     dump_status
     # Dump messages after run, so they're not lost with a subsequent run.
     wwwdo mkdir -p $MESSAGES_DIR
-    wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string | \
+    wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id | \
     while read NAME ; do
       wwwdrush migrate:messages --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
     done
