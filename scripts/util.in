@@ -124,13 +124,18 @@ function do_migration_multi_process() {
   local NUM=${1}
 
   local PROCESS_LOG_DIR="$LOG_DIR/$NUM-multiprocess-logs"
+  local LOCK_FILE="$LOG_FILE/$NUM.lock"
 
   wwwdo mkdir -p $PROCESS_LOG_DIR
+  wwwdo touch $LOCK_FILE
 
   echo "Listing migrations..."
   timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
     | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
-      if [ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]; then
+      if [ ! -f $LOCK_FILE ] ; then
+        echo "Lock file removed; exiting before touching $MIGRATION_ID."
+        return
+      elif [ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]; then
         echo "Skipping $MIGRATION_ID as requested."
         continue
       elif [ " ${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
@@ -148,16 +153,30 @@ function do_migration_multi_process() {
         timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
         PROCESS_JOBS+=($!)
       done
+
       wait $ENQUEUEING_JOB
-      echo "Enqueing finished; Waiting for workers to finish..."
+      echo "Work enqueueing finished; enqueueing terminal messages."
+      for i in $(seq 1 $PROCESSES); do
+        wwwdrush dgi-migrate:enqueue-terminal "$MIGRATION_ID" "$NUM"
+      done
+
+      echo "Terminal messages enqueued; waiting for workers to finish..."
       wait ${PROCESS_JOBS[@]}
-      echo "Workers exited; Finalizing $MIGRATION_ID"
+      echo "Workers exited."
+      if [ ! -f $LOCK_FILE ] ; then
+        echo "Lock file removed; exiting without finalizing batch."
+        return
+      fi
+
+      echo "Finalizing $MIGRATION_ID."
       timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}"
       echo "Finished $MIGRATION_ID."
       if [ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]; then
         do_pause "post-process" "$MIGRATION_ID"
       fi
+
     done
+  wwwdo rm $LOCK_FILE
 }
 
 # Dump status for the given migration group.

@@ -238,22 +238,14 @@ class MigrateBatchExecutable extends MigrateExecutable {
     // XXX: Nuke it, just in case.
     $queue = $this->getQueue();
     $queue->deleteQueue();
-    try {
-      foreach ($source as $row) {
-        $queue->createItem([
-          'row' => $row,
-          'attempts' => 0,
-        ]);
-      }
+
+    foreach ($source as $row) {
+      $queue->createItem([
+        'row' => $row,
+        'attempts' => 0,
+      ]);
     }
-    finally {
-      if ($queue instanceof StompQueue) {
-        $total = intval($this->options['send_terminals'] ?? 0);
-        for ($i = 0; $i < $total; $i++) {
-          $queue->sendTerminal();
-        }
-      }
-    }
+
     return MigrationInterface::RESULT_COMPLETED;
   }
 

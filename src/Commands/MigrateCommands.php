@@ -5,6 +5,7 @@ namespace Drupal\dgi_migrate\Commands;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\dgi_migrate\StompQueue;
 use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -440,6 +441,7 @@ class MigrateCommands extends MigrateToolsCommands {
    *   source, update previously-imported items with the current data
    * @option sync Sync source and destination. Delete destination records that
    *   do not exist in the source.
+   * @option run The ID of the run, if relevant.
    *
    * @islandora-drush-utils-user-wrap
    */
@@ -450,6 +452,25 @@ class MigrateCommands extends MigrateToolsCommands {
   ]) {
     $executable = $this->getExecutable($migration_id, $options);
     drush_op([$executable, 'teardownMigration']);
+  }
+
+  /**
+   * Enqueue STOMP "terminal" messages.
+   *
+   * @option priority The priority of the message. Higher should lead to earlier
+   *   processing, allowing workers to be shutdown prior to completion of the
+   *   queue. Defined by STOMP/JMS, an integer ranging from 0 to 9. Defaults to
+   *   4.
+   *
+   * @command dgi-migrate:enqueue-terminal
+   */
+  public function enqueueTerminal(string $migration_id, string $run_id, array $options = [
+    'priority' => 4,
+  ]) {
+    $stomp_queue = StompQueue::create($migration_id, $run_id);
+    $stomp_queue->sendTerminal([
+      'priority' => $options['priority'] ?? 4,
+    ]);
   }
 
 }
