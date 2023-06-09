@@ -79,7 +79,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   /**
    * An array of SplFileObjects, to facilitate locking.
    *
-   * @var SplFileObject[]
+   * @var \SplFileObject[]
    */
   protected array $lockFiles = [];
 
