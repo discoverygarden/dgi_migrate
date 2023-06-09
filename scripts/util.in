@@ -65,6 +65,10 @@ function init_vars () {
   declare -g TIME=${TIME:-/usr/bin/time}
   declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
   declare -g PROCESSES=${PROCESSES:-1}
+  declare -g SKIP_STATUS=${SKIP_STATUS:-false}
+  declare -g -a MULTIPROCESS_SKIP_MIGRATIONS=(${MULTIPROCESS_SKIP_MIGRATIONS[@]})
+  declare -g -a MULTIPROCESS_PRE_ENQUEUE_PAUSE=(${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]})
+  declare -g -a MULTIPROCESS_POST_PROCESS_PAUSE=(${MULTIPROCESS_POST_PROCESS_PAUSE[@]})
 
   # Initialize the log directory.
   if ! [ -d "$LOG_DIR" ]; then
@@ -96,6 +100,21 @@ function do_migration_single_process() {
   timedwwwdrush dgi-migrate:import "--root=$DRUPAL_ROOT" "--uri=$URI" "--user=$DRUPAL_USER" "--group=$MIGRATION_GROUP" "${@:2}"
 }
 
+# Helper; facilitate pausing for various reasons (likely snapshotting).
+#
+# Positional args:
+# - 1: A descriptive string of _when_ we are pausing; e.g. "pre-enqueue",
+#   "post-enqueue", etc.
+# - 2: The ID of the specific migration during which we are pausing.
+function do_pause() {
+  local WHEN=$1
+  local MIGRATION_ID=$2
+  local DISCARD
+
+  read -ep "Pausing $WHEN of $MIGRATION_ID as requested. Hit enter to continue." DISCARD
+  echo "DISCARD is $DISCARD"
+}
+
 # Kick off a migration in multiple processes.
 #
 # Positional args:
@@ -106,15 +125,33 @@ function do_migration_multi_process() {
   local NUM=${1}
 
   local PROCESS_LOG_DIR="$LOG_DIR/$NUM-multiprocess-logs"
+  local STOP_LOCK_FILE="$LOG_DIR/$NUM-stop.lock"
+  local PAUSE_LOCK_FILE="$LOG_DIR/$NUM-pause.lock"
 
   wwwdo mkdir -p $PROCESS_LOG_DIR
+  wwwdo touch $STOP_LOCK_FILE
+  wwwdo touch $PAUSE_LOCK_FILE
 
   echo "Listing migrations..."
-  timedwwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --format=string \
-    | sort -n --key=2 | cut -f1 | while read MIGRATION_ID; do
+  local -a migrations=($(wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id --sort))
+  for MIGRATION_ID in ${migrations[@]}; do
+      if [ ! -f $PAUSE_LOCK_FILE ] ; then
+        echo "Pause lock file removed."
+        do_pause "pre-enqueue" "$MIGRATION_ID"
+      elif [ ! -f $STOP_LOCK_FILE ] ; then
+        echo "Stop lock file removed; exiting before touching $MIGRATION_ID."
+        return
+      elif [[ " ${MULTIPROCESS_SKIP_MIGRATIONS[@]} " =~ " $MIGRATION_ID " ]]; then
+        echo "Skipping $MIGRATION_ID as requested."
+        continue
+      elif [[ " ${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]} " =~ " $MIGRATION_ID " ]]; then
+        do_pause "pre-enqueue" "$MIGRATION_ID"
+      fi
+
       echo "Enqueuing items for $MIGRATION_ID"
-      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "--send_terminals=$PROCESSES" "$MIGRATION_ID" "${@:2}" &
+      timedwwwdrush dgi-migrate:enqueue "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &
       local ENQUEUEING_JOB=$!
+
       echo "Starting $PROCESSES processes to process $MIGRATION_ID."
       local -a PROCESS_JOBS=()
       for i in $(seq 1 $PROCESSES); do
@@ -122,13 +159,43 @@ function do_migration_multi_process() {
         timedwwwdrush dgi-migrate:enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}" &> $PROCESS_LOG_DIR/"$MIGRATION_ID.$i.log" &
         PROCESS_JOBS+=($!)
       done
+
       wait $ENQUEUEING_JOB
-      echo "Enqueing finished; Waiting for workers to finish..."
+      echo "Work enqueueing finished; enqueueing terminal messages."
+      for i in $(seq 1 $PROCESSES); do
+        wwwdrush dgi-migrate:enqueue-terminal "$MIGRATION_ID" "$NUM"
+      done
+
+      echo "Terminal messages enqueued; waiting for workers to finish..."
       wait ${PROCESS_JOBS[@]}
-      echo "Workers exited; Finalizing $MIGRATION_ID"
+      echo "Workers exited."
+
+      if [ ! -f $PAUSE_LOCK_FILE ] ; then
+        do_pause "post-process, pre-finalize" "$MIGRATION_ID"
+      elif [ ! -f $STOP_LOCK_FILE ] ; then
+        echo "Lock file removed; exiting without finalizing batch."
+        return
+      fi
+
+      echo "Finalizing $MIGRATION_ID."
       timedwwwdrush dgi-migrate:finish-enqueued-process "--user=$DRUPAL_USER" "--run=$NUM" "$MIGRATION_ID" "${@:2}"
       echo "Finished $MIGRATION_ID."
+      if [[ " ${MULTIPROCESS_POST_PROCESS_PAUSE[@]} " =~ " $MIGRATION_ID " ]] ; then
+        do_pause "post-process" "$MIGRATION_ID"
+      fi
+
     done
+  wwwdo rm $STOP_LOCK_FILE $PAUSE_LOCK_FILE
+}
+
+# Dump status for the given migration group.
+#
+# Can be skipped if SKIP_STATUS=true; in which case the call to this should be
+# no-op.
+function dump_status() {
+  if [ $SKIP_STATUS != 'true' ]; then
+    wwwdrush migrate:status --group=$MIGRATION_GROUP
+  fi
 }
 
 # Handle kicking off a migration.
@@ -152,7 +219,7 @@ function do_migration () {
     # (lookin' at you, dgi_migrate_foxml_standard_mods_xslt dealio)
     wwwdrush cache:rebuild
     # Dump status before run.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     {
       # Do the import, one way or another.
       if [ $PROCESSES -eq 1 ]; then
@@ -162,10 +229,10 @@ function do_migration () {
       fi
     } |& wwwdo tee $IMPORT_LOG > /dev/null
     # Dump status after run.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     # Dump messages after run, so they're not lost with a subsequent run.
     wwwdo mkdir -p $MESSAGES_DIR
-    wwwdrush migrate:status --group=$MIGRATION_GROUP --field=id --format=string | \
+    wwwdrush dgi-migrate:list-migrations "--group=$MIGRATION_GROUP" --field=id | \
     while read NAME ; do
       wwwdrush migrate:messages --format=json $NAME | wwwdo tee "$MESSAGES_DIR/$NAME.json" > /dev/null
     done
@@ -208,11 +275,11 @@ function do_rollback () {
     # (lookin' at you, things involving Fedora dealio)
     wwwdrush cache:rebuild
     # Dump status before rollback.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     # The base rollback.
     timedwwwdrush dgi-migrate:rollback --user=$DRUPAL_USER --group=$MIGRATION_GROUP "--run=$NUM" "${@:2}" |& wwwdo tee $ROLLBACK_LOG > /dev/null
     # Dump status after rollback.
-    wwwdrush migrate:status --group=$MIGRATION_GROUP
+    dump_status
     set +x
   } |& wwwdo tee $RUN_LOG
 

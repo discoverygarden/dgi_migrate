@@ -127,11 +127,14 @@ class StompQueue implements QueueInterface {
    * Send a "terminal" message.
    *
    * Should be one for each worker we intend to start.
+   *
+   * @param array $extra_headers
+   *   Extra headers to send on the message.
    */
-  public function sendTerminal() {
+  public function sendTerminal(array $extra_headers = []) {
     $message = new Message(
       '',
-      [
+      $extra_headers + [
         'type' => 'terminal',
         'dgi_migrate_migration' => $this->name,
         'dgi_migrate_run_id' => $this->group,
