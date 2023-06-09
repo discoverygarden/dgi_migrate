@@ -3,7 +3,6 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
@@ -27,13 +26,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    * @var \Drupal\migrate\Plugin\MigrateProcessInterface
    */
   protected MigrateProcessInterface $parent;
-
-  /**
-   * Lock service.
-   *
-   * @var \Drupal\Core\Lock\LockBackendInterface
-   */
-  protected LockBackendInterface $lock;
 
   /**
    * Memoized array of migrations referenced.
@@ -85,12 +77,23 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected MigrationInterface $migration;
 
   /**
+   * An array of SplFileObjects, to facilitate locking.
+   *
+   * @var SplFileObject[]
+   */
+  protected array $lockFiles = [];
+
+  /**
    * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->doLocking = getenv('DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING') === 'TRUE';
+    // We do not need to do the locking with `no_stub`, as we would not be
+    // creating any entities, so there would be no potential for creating
+    // duplicates.
+    $this->doLocking = empty($this->configuration['no_stub']) &&
+      (getenv('DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING') === 'TRUE');
   }
 
   /**
@@ -144,9 +147,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   The lock name to use for the given migration.
    */
   protected function getLockName(string $migration_name) : string {
-    // XXX: May have to get creative with hashing... thinking max lock name is
-    // something like 255 chars?
-    // XXX: 255 character limit may be a non-issue?: https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Core%21Lock%21DatabaseLockBackend.php/function/DatabaseLockBackend%3A%3AnormalizeName/10
     return "dgi_migrate_locking_migration_lookup__migration__$migration_name";
   }
 
@@ -160,16 +160,18 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function acquireMigrationLocks(float $timeout = 30.0) : void {
     try {
-      if (!$this->getControlLock()) {
-        throw new MigrateException('Failed to acquire control lock.');
+      if (count($this->getLockMap()) > 1) {
+        // More than one, we need to acquire the "control" lock before
+        // proceeding, to avoid potential deadlocks.
+        if (!$this->getControlLock()) {
+          throw new MigrateException('Failed to acquire control lock.');
+        }
       }
+
       if (!$this->hasMigrationLocks) {
         $this->hasMigrationLocks = TRUE;
         foreach ($this->getLockMap() as $migration => $lock_name) {
-          while (!$this->lock->acquire($lock_name, $timeout)) {
-            while ($this->lock->wait($lock_name));
-          }
-          if (!$this->lock->acquire($lock_name, $timeout)) {
+          if (!$this->acquireLock($lock_name)) {
             throw new MigrateException("Failed to acquire lock for '$migration'.");
           }
         }
@@ -188,7 +190,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected function releaseMigrationLocks() : void {
     if ($this->hasMigrationLocks) {
       foreach ($this->getLockMap() as $lock_name) {
-        $this->lock->release($lock_name);
+        $this->releaseLock($lock_name);
       }
       $this->hasMigrationLocks = FALSE;
     }
@@ -201,10 +203,60 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   TRUE if we acquired it; otherwise, FALSE.
    */
   protected function getControlLock() : bool {
-    while (!($this->hasControl = $this->lock->acquire(static::CONTROL_LOCK, 600))) {
-      while ($this->lock->wait(static::CONTROL_LOCK));
+    if (!$this->hasControl) {
+      $this->hasControl = $this->acquireLock(static::CONTROL_LOCK);
     }
     return $this->hasControl;
+  }
+
+  /**
+   * Get an \SplFileObject instance to act as the lock.
+   *
+   * @param string $name
+   *   The name of the lock to acquire. Should result in a file being created
+   *   under the temporary:// scheme of the same name, against which `flock`
+   *   commands will be issued.
+   *
+   * @return \SplFileObject
+   *   The \SplFileObject instance against which to lock.
+   */
+  protected function getLockFile(string $name) : \SplFileObject {
+    if (!isset($this->lockFiles[$name])) {
+      $file_name = "temporary://{$name}";
+      touch($file_name);
+      $this->lockFiles[$name] = $file = new \SplFileObject($file_name, 'w');
+      $file->fwrite("This is a temporary lock file. If there are no migrations running, it should be safe to delete.");
+    }
+
+    return $this->lockFiles[$name];
+  }
+
+  /**
+   * Helper; acquire the lock.
+   *
+   * @param string $name
+   *   The name of the lock to acquire.
+   *
+   * @return bool
+   *   TRUE on success. Should not be able to return FALSE, as we perform this
+   *   in a blocking manner.
+   */
+  protected function acquireLock(string $name) : bool {
+    return $this->getLockFile($name)->flock(LOCK_EX);
+  }
+
+  /**
+   * Helper; Release the given lock.
+   *
+   * @param string $name
+   *   The name of the lock to release.
+   *
+   * @return bool
+   *   TRUE on success. Should not be able to return FALSE, unless we maybe did
+   *   not hold the lock?
+   */
+  protected function releaseLock(string $name) : bool {
+    return $this->getLockFile($name)->flock(LOCK_UN);
   }
 
   /**
@@ -212,7 +264,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function releaseControlLock() {
     if ($this->hasControl) {
-      $this->lock->release(static::CONTROL_LOCK);
+      $this->releaseLock(static::CONTROL_LOCK);
       $this->hasControl = FALSE;
     }
   }
@@ -232,7 +284,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
       return $this->parent->transform($value, $migrate_executable, $row, $destination_property);
     }
 
-    $transaction = $this->database->startTransaction();
     try {
       // Acquire locks for all referenced migrations.
       $log('Locking migrations.');
@@ -241,18 +292,12 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
 
       // Perform the lookup as per the wrapped transform.
       $result = $this->parent->transform($value, $migrate_executable, $row, $destination_property);
-      $log("Parent run, commit transaction and releasing migration locks.");
-      unset($transaction);
+      $log("Parent run, releasing migration locks.");
+
       // Optimistically drop migration locks.
       $this->releaseMigrationLocks();
       $log("Releasing migration locks, returning.");
       return $result;
-    }
-    catch (\Exception $e) {
-      if (isset($transaction)) {
-        $transaction->rollBack();
-      }
-      throw $e;
     }
     finally {
       // Drop migration locks, if we still have them.
@@ -270,7 +315,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     /** @var \Drupal\Component\Plugin\PluginManagerInterface $process_plugin_manager */
     $process_plugin_manager = $container->get('plugin.manager.migrate.process');
     $instance->parent = $process_plugin_manager->createInstance('dgi_migrate_original_migration_lookup', $configuration, $migration);
-    $instance->lock = $container->get('lock');
     $instance->database = $container->get('database');
     $instance->migration = $migration;
 
