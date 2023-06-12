@@ -2,10 +2,16 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\MigrateLookupInterface;
+use Drupal\migrate\MigrateSkipProcessException;
+use Drupal\migrate\MigrateStubInterface;
 use Drupal\migrate\Plugin\MigrateProcessInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
@@ -14,6 +20,23 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Override upstream `migration_lookup` plugin, with some additional locking.
+ *
+ * @MigrateProcessPlugin(
+ *   id = "dgi_migrate.process.locking_migration_lookup"
+ * )
+ *
+ * Accepts all the same as the core "migration_lookup" plugin, in addition to:
+ * - "no_lock": Flag to explicitly skip locking, which should only be used when
+ *   it is known that there's a one-to-one mapping between each set of paramters
+ *   and each resultant value.
+ * - "lock_context_keys": A mapping of migrations IDs to arrays of maps,
+ *   mapping:
+ *     - "offset": An array of offsets indexing into the `$value` passed to the
+ *       `::transform()` call, to allow the lock(s) acquired to be more
+ *       specific.
+ *     - "hash": An optional string representing a pattern. If provided every
+ *       '#' found will be replaced with hexit resulting from hashing the value
+ *       "offset".
  */
 class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcessInterface, ContainerFactoryPluginInterface {
 
@@ -83,6 +106,19 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected array $lockFiles = [];
 
+  protected MigrateStubInterface $migrateStub;
+
+  protected MigrateLookupInterface $migrateLookup;
+
+  protected array $lockContext;
+
+  /**
+   * @var array|mixed
+   */
+  protected $lockContextKeys;
+
+  protected FileSystemInterface $fileSystem;
+
   /**
    * Constructor.
    */
@@ -93,7 +129,10 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     // creating any entities, so there would be no potential for creating
     // duplicates.
     $this->doLocking = empty($this->configuration['no_stub']) &&
-      (getenv('DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING') === 'TRUE');
+      (getenv('DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING') === 'TRUE') &&
+      !($this->configuration['no_lock'] ?? FALSE);
+
+    $this->lockContextKeys = $this->configuration['lock_context_keys'] ?? [];
   }
 
   /**
@@ -120,21 +159,55 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   /**
    * List migrations mapped to lock names.
    *
-   * @return array
-   *   An associative array mapping migration names to lock names.
+   * @return \Traversable
+   *   Generated mapping of migration names to lock names.
    */
-  protected function getLockMap() : array {
+  protected function getLockMap() : \Traversable {
     if (!isset($this->lockMap)) {
       $this->lockMap = array_combine(
         $this->getMigrations(),
         array_map([$this, 'getLockName'], $this->getMigrations())
       );
     }
+
     if (!$this->lockMap) {
       throw new MigrateException('Failed to map migration IDs to lock names.');
     }
 
-    return $this->lockMap;
+    if ($this->lockContextKeys) {
+      $apply_context_keys = function ($migration, $name) {
+        $parts = ["{$name}-extra_context"];
+
+        if (isset($this->lockContextKeys[$migration])) {
+          foreach ($this->lockContextKeys[$migration] as $info) {
+            $value = NestedArray::getValue($this->lockContext, $info['offset']);
+
+            if (($prefix = ($info['hash'] ?? FALSE))) {
+              $hash = md5($value, FALSE);
+              $prefix_offset = 0;
+              $hash_offset = 0;
+              while (($prefix_offset = strpos($prefix, '#', $prefix_offset)) !== FALSE) {
+                $prefix[$prefix_offset++] = $hash[$hash_offset++];
+              }
+              $parts[] = $prefix;
+            }
+            else {
+              $parts[] = $value;
+            }
+          }
+        }
+
+        return implode('/', $parts);
+      };
+      foreach ($this->lockMap as $migration => $original_name) {
+        yield $migration => $apply_context_keys($migration, $original_name);
+      }
+    }
+    else {
+      foreach ($this->lockMap as $migration => $name) {
+        yield $migration => $name;
+      }
+    }
   }
 
   /**
@@ -147,20 +220,18 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   The lock name to use for the given migration.
    */
   protected function getLockName(string $migration_name) : string {
-    return "dgi_migrate_locking_migration_lookup__migration__$migration_name";
+    return "dgi_migrate/locking_migration_lookup/migration/$migration_name";
   }
 
   /**
    * Acquire all migration locks.
    *
-   * @param float $timeout
-   *   The time for which to acquire the locks.
-   *
    * @throws \Drupal\migrate\MigrateException
    */
-  protected function acquireMigrationLocks(float $timeout = 30.0) : void {
+  protected function acquireMigrationLocks(int $mode = LOCK_EX, bool &$would_block = FALSE) : bool {
     try {
-      if (count($this->getLockMap()) > 1) {
+      $lock_map = iterator_to_array($this->getLockMap());
+      if (count($lock_map) > 1) {
         // More than one, we need to acquire the "control" lock before
         // proceeding, to avoid potential deadlocks.
         if (!$this->getControlLock()) {
@@ -169,13 +240,20 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
       }
 
       if (!$this->hasMigrationLocks) {
+        // Don't have 'em yet; initial acquisition.
         $this->hasMigrationLocks = TRUE;
-        foreach ($this->getLockMap() as $migration => $lock_name) {
-          if (!$this->acquireLock($lock_name)) {
-            throw new MigrateException("Failed to acquire lock for '$migration'.");
-          }
+      }
+      else {
+        // Attempting to "promote" the locks, no need to set that we have 'em.
+      }
+
+      foreach ($lock_map as $lock_name) {
+        if (!$this->acquireLock($lock_name, $mode, $would_block)) {
+          return FALSE;
         }
       }
+
+      return TRUE;
     }
     finally {
       $this->releaseControlLock();
@@ -223,9 +301,13 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected function getLockFile(string $name) : \SplFileObject {
     if (!isset($this->lockFiles[$name])) {
       $file_name = "temporary://{$name}";
+      $directory = $this->fileSystem->dirname($file_name);
+      $basename = $this->fileSystem->basename($file_name);
+      $this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
+      $file_name = "{$directory}/{$basename}";
+
       touch($file_name);
-      $this->lockFiles[$name] = $file = new \SplFileObject($file_name, 'w');
-      $file->fwrite("This is a temporary lock file. If there are no migrations running, it should be safe to delete.");
+      $this->lockFiles[$name] = $file = new \SplFileObject($file_name, 'a+');
     }
 
     return $this->lockFiles[$name];
@@ -241,8 +323,8 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   TRUE on success. Should not be able to return FALSE, as we perform this
    *   in a blocking manner.
    */
-  protected function acquireLock(string $name) : bool {
-    return $this->getLockFile($name)->flock(LOCK_EX);
+  protected function acquireLock(string $name, int $mode = LOCK_EX, bool &$would_block = FALSE) : bool {
+    return $this->getLockFile($name)->flock($mode, $would_block);
   }
 
   /**
@@ -285,23 +367,183 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     }
 
     try {
-      // Acquire locks for all referenced migrations.
-      $log('Locking migrations.');
-      $this->acquireMigrationLocks();
-      $log('Locked migrations, running parent.');
-
-      // Perform the lookup as per the wrapped transform.
-      $result = $this->parent->transform($value, $migrate_executable, $row, $destination_property);
-      $log("Parent run, releasing migration locks.");
-
-      // Optimistically drop migration locks.
-      $this->releaseMigrationLocks();
-      $log("Releasing migration locks, returning.");
-      return $result;
+      $this->setLockContext((array) $value);
+      return $this->doTransform($value, $migrate_executable, $row, $destination_property);
     }
     finally {
       // Drop migration locks, if we still have them.
       $this->releaseMigrationLocks();
+      $this->setLockContext(NULL);
+    }
+
+  }
+
+  /**
+   * Set values for more-specific locking.
+   *
+   * @param mixed $values
+   *   The values to set; or: NULL to reset.
+   */
+  protected function setLockContext($values = []) : void {
+    if ($values === NULL) {
+      // Clear the context.
+      unset($this->lockContext);
+    }
+    $values = (array) $values;
+    $this->lockContext = $values;
+  }
+
+  /**
+   * Locking transformation.
+   *
+   * Adapted from the core `migration_lookup`, with locks sprinkled in.
+   *
+   * @throws \Drupal\migrate\MigrateSkipRowException
+   * @throws \Drupal\migrate\MigrateException
+   *
+   * @see https://git.drupalcode.org/project/drupal/-/blob/9.5.x/core/modules/migrate/src/Plugin/migrate/process/MigrationLookup.php#L194-276
+   */
+  protected function doTransform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
+    $context = [
+      'self' => FALSE,
+      'source_id_values' => [],
+      'lookup_migration_ids' => (array) $this->configuration['migration'],
+    ];
+    $lookup_migration_ids =& $context['lookup_migration_ids'];
+
+    try {
+      // Acquire shared lock to do the lookup.
+      $this->acquireMigrationLocks(LOCK_SH);
+      $destination_ids = $this->doLookup($value, $migrate_executable, $row, $destination_property, $context);
+
+      if (!$destination_ids && !empty($this->configuration['no_stub'])) {
+        return NULL;
+      }
+
+      if (!$destination_ids && ($context['self'] || isset($this->configuration['stub_id']) || count($lookup_migration_ids) == 1)) {
+        // Non-blockingly attempt to promote lock from shared to exclusive. Drop
+        // shared lock and reacquire as exclusive if we would block, to avoid
+        // potential deadlock.
+        $would_block = FALSE;
+        if (!$this->acquireMigrationLocks(LOCK_EX | LOCK_NB, $would_block) && $would_block) {
+          $this->releaseMigrationLocks();
+          $this->acquireMigrationLocks(LOCK_EX);
+
+          // Attempt lookup again, as something might have populated it while we
+          // were blocked attempting to acquire the exclusive lock.
+          $destination_ids = $this->doLookup($value, $migrate_executable, $row, $destination_property, $context);
+        }
+        if (!$destination_ids) {
+          $destination_ids = $this->doStub($context);
+        }
+      }
+
+      if ($destination_ids) {
+        if (count($destination_ids) == 1) {
+          return reset($destination_ids);
+        }
+        else {
+          return $destination_ids;
+        }
+      }
+    }
+    finally {
+      $this->releaseMigrationLocks();
+    }
+
+  }
+
+  /**
+   * Perform the lookup proper.
+   *
+   * @return array|null
+   *   The array of destination ID info.
+   *
+   * @throws \Drupal\migrate\MigrateException
+   * @throws \Drupal\migrate\MigrateSkipProcessException
+   *
+   * @see https://git.drupalcode.org/project/drupal/-/blob/9.5.x/core/modules/migrate/src/Plugin/migrate/process/MigrationLookup.php#L194-229
+   */
+  protected function doLookup($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property, array &$context) : ?array {
+    $source_id_values =& $context['source_id_values'];
+    $lookup_migration_ids =& $context['lookup_migration_ids'];
+
+    $destination_ids = NULL;
+    foreach ($lookup_migration_ids as $lookup_migration_id) {
+      $lookup_value = $value;
+      if ($lookup_migration_id == $this->migration->id()) {
+        $context['self'] = TRUE;
+      }
+      if (isset($this->configuration['source_ids'][$lookup_migration_id])) {
+        $lookup_value = array_values($row->getMultiple($this->configuration['source_ids'][$lookup_migration_id]));
+      }
+      $lookup_value = (array) $lookup_value;
+      $this->skipInvalid($lookup_value);
+      $source_id_values[$lookup_migration_id] = $lookup_value;
+
+      // Re-throw any PluginException as a MigrateException so the executable
+      // can shut down the migration.
+      try {
+        $destination_id_array = $this->migrateLookup->lookup($lookup_migration_id, $lookup_value);
+      }
+      catch (PluginNotFoundException $e) {
+        $destination_id_array = [];
+      }
+      catch (MigrateException $e) {
+        throw $e;
+      }
+      catch (\Exception $e) {
+        throw new MigrateException(sprintf('A %s was thrown while processing this migration lookup', gettype($e)), $e->getCode(), $e);
+      }
+
+      if ($destination_id_array) {
+        $destination_ids = array_values(reset($destination_id_array));
+        break;
+      }
+    }
+
+    return $destination_ids;
+  }
+
+  /**
+   * Perform stub creation.
+   *
+   * @throws \Drupal\migrate\MigrateSkipProcessException
+   * @throws \Drupal\migrate\MigrateException
+   *
+   * @see https://git.drupalcode.org/project/drupal/-/blob/9.5.x/core/modules/migrate/src/Plugin/migrate/process/MigrationLookup.php#L236-267
+   */
+  protected function doStub(&$context) {
+    $self =& $context['self'];
+    $source_id_values =& $context['source_id_values'];
+    $lookup_migration_ids =& $context['lookup_migration_ids'];
+
+    // If the lookup didn't succeed, figure out which migration will do the
+    // stubbing.
+    if ($self) {
+      $stub_migration = $this->migration->id();
+    }
+    elseif (isset($this->configuration['stub_id'])) {
+      $stub_migration = $this->configuration['stub_id'];
+    }
+    else {
+      $stub_migration = reset($lookup_migration_ids);
+    }
+    // Rethrow any exception as a MigrateException so the executable can shut
+    // down the migration.
+    try {
+      return $this->migrateStub->createStub($stub_migration, $source_id_values[$stub_migration], [], FALSE);
+    }
+    catch (\LogicException | PluginNotFoundException $e) {
+      // For BC reasons, we must allow attempting to stub:
+      // - a derived migration; and,
+      // - a non-existent migration.
+    }
+    catch (MigrateException | MigrateSkipProcessException $e) {
+      throw $e;
+    }
+    catch (\Exception $e) {
+      throw new MigrateException(sprintf('%s was thrown while attempting to stub: %s', get_class($e), $e->getMessage()), $e->getCode(), $e);
     }
 
   }
@@ -317,8 +559,47 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     $instance->parent = $process_plugin_manager->createInstance('dgi_migrate_original_migration_lookup', $configuration, $migration);
     $instance->database = $container->get('database');
     $instance->migration = $migration;
+    $instance->migrateStub = $container->get('migrate.stub');
+    $instance->migrateLookup = $container->get('migrate.lookup');
+    $instance->fileSystem = $container->get('file_system');
 
     return $instance;
   }
+
+  /**
+   * Skips the migration process entirely if the value is invalid.
+   *
+   * Copypasta from upstream.
+   *
+   * @param array $value
+   *   The incoming value to check.
+   *
+   * @throws \Drupal\migrate\MigrateSkipProcessException
+   *
+   * @see https://git.drupalcode.org/project/drupal/-/blob/9.5.x/core/modules/migrate/src/Plugin/migrate/process/MigrationLookup.php#L279-291
+   */
+  protected function skipInvalid(array $value) {
+    if (!array_filter($value, [$this, 'isValid'])) {
+      throw new MigrateSkipProcessException();
+    }
+  }
+
+  /**
+   * Determines if the value is valid for lookup.
+   *
+   * The only values considered invalid are: NULL, FALSE, [] and "".
+   *
+   * @param string $value
+   *   The value to test.
+   *
+   * @return bool
+   *   Return true if the value is valid.
+   *
+   * @see https://git.drupalcode.org/project/drupal/-/blob/9.5.x/core/modules/migrate/src/Plugin/migrate/process/MigrationLookup.php#L293-306
+   */
+  protected function isValid($value) {
+    return !in_array($value, [NULL, FALSE, [], ""], TRUE);
+  }
+
 
 }
