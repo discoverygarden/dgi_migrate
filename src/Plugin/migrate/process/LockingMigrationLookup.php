@@ -106,17 +106,39 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected array $lockFiles = [];
 
+  /**
+   * The migration stub service.
+   *
+   * @var \Drupal\migrate\MigrateStubInterface
+   */
   protected MigrateStubInterface $migrateStub;
 
+  /**
+   * The migration lookup service.
+   *
+   * @var \Drupal\migrate\MigrateLookupInterface
+   */
   protected MigrateLookupInterface $migrateLookup;
 
+  /**
+   * The value from which to build the lock context.
+   *
+   * @var array
+   */
   protected array $lockContext;
 
   /**
+   * Array of lock context.
+   *
    * @var array|mixed
    */
   protected $lockContextKeys;
 
+  /**
+   * The file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
   protected FileSystemInterface $fileSystem;
 
   /**
@@ -318,6 +340,11 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *
    * @param string $name
    *   The name of the lock to acquire.
+   * @param int $mode
+   *   The mode with which to acquire the lock.
+   * @param bool $would_block
+   *   A reference to a boolean, to be updated if called with LOCK_NB and the
+   *   call _would_ have blocked.
    *
    * @return bool
    *   TRUE on success. Should not be able to return FALSE, as we perform this
@@ -600,6 +627,5 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected function isValid($value) {
     return !in_array($value, [NULL, FALSE, [], ""], TRUE);
   }
-
 
 }
