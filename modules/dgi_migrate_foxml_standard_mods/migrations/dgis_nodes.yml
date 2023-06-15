@@ -72,6 +72,7 @@ process:
       method: models
     - plugin: skip_on_empty
       method: row
+      message: 'Skipping; no model defined.'
   title:
     - plugin: dgi_migrate.subproperty
       source: '@_node_foxml_parsed'
