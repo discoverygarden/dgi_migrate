@@ -1285,14 +1285,56 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_date:
-          - << : *nested_mods_node
-            query: 'mods:date'
+        _field_date_single:
+          - <<: *nested_mods_node
+            query: 'mods:date[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_start:
+          - <<: *nested_mods_node
+            query: 'mods:date[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_end:
+          - <<: *nested_mods_node
+            query: 'mods:date[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_assembled:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_single'
+            range_start: '@_field_date_start'
+            range_end: '@_field_date_end'
+            get_values: true
+        field_date:
+          - plugin: get
+            source: '@_field_date_assembled'
+          - plugin: skip_on_empty
+            method: process
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+            missing_behavior: skip_process
+        field_date_backup:
+          - plugin: get
+            source: '@_field_date_assembled'
+          - plugin: skip_on_empty
+            method: process
         field_end:
           - << : *nested_mods_node
             query: 'mods:extent/mods:end'
