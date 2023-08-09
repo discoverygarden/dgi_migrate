@@ -885,15 +885,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_copyright_date:
+        _field_copyright_date_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_copyright_date_single'
             range_start: '@_field_copyright_date_start'
             range_end: '@_field_copyright_date_end'
             get_values: true
+        field_copyright_date:
+          - plugin: get
+            source: '@_field_copyright_date_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_copyright_date_backup:
+          - plugin: gate
+            source: '@_field_copyright_date_assembled'
+            use_as_key: '@field_copyright_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_captured_single:
           - << : *nested_mods_node
             query: 'mods:dateCaptured[not(@point)]'
@@ -924,15 +937,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_date_captured:
+        _field_date_captured_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_date_captured_single'
             range_start: '@_field_date_captured_start'
             range_end: '@_field_date_captured_end'
             get_values: true
+        field_date_captured:
+          - plugin: get
+            source: '@_field_date_captured_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_date_captured_backup:
+          - plugin: gate
+            source: '@_field_date_captured_assembled'
+            use_as_key: '@field_date_captured'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_created_single:
           - << : *nested_mods_node
             query: 'mods:dateCreated[not(@point)]'
@@ -963,15 +989,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_date_created:
+        _field_date_created_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_date_created_single'
             range_start: '@_field_date_created_start'
             range_end: '@_field_date_created_end'
             get_values: true
+        field_date_created:
+          - plugin: get
+            source: '@_field_date_created_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_date_created_backup:
+          - plugin: gate
+            source: '@_field_date_created_assembled'
+            use_as_key: '@field_date_created'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_issued_single:
           - << : *nested_mods_node
             query: 'mods:dateIssued[not(@point)]'
@@ -1002,15 +1041,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_date_issued:
+        _field_date_issued_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_date_issued_single'
             range_start: '@_field_date_issued_start'
             range_end: '@_field_date_issued_end'
             get_values: true
+        field_date_issued:
+          - plugin: get
+            source: '@_field_date_issued_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_date_issued_backup:
+          - plugin: gate
+            source: '@_field_date_issued_assembled'
+            use_as_key: '@field_date_issued'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_modified_single:
           - << : *nested_mods_node
             query: 'mods:dateModified[not(@point)]'
@@ -1041,15 +1093,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_date_modified:
+        _field_date_modified_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_date_modified_single'
             range_start: '@_field_date_modified_start'
             range_end: '@_field_date_modified_end'
             get_values: true
+        field_date_modified:
+          - plugin: get
+            source: '@_field_date_modified_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_date_modified_backup:
+          - plugin: gate
+            source: '@_field_date_modified_assembled'
+            use_as_key: '@field_date_modified'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_valid_single:
           - << : *nested_mods_node
             query: 'mods:dateValid[not(@point)]'
@@ -1080,15 +1145,28 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_date_valid:
+        _field_date_valid_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_date_valid_single'
             range_start: '@_field_date_valid_start'
             range_end: '@_field_date_valid_end'
             get_values: true
+        field_date_valid:
+          - plugin: get
+            source: '@_field_date_valid_assembled'
+          - plugin: skip_on_empty
+            method: process
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+            missing_behavior: skip_process
+        field_date_valid_backup:
+          - plugin: gate
+            source: '@_field_date_valid_assembled'
+            use_as_key: '@field_date_valid'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -1151,7 +1229,7 @@ process:
             property: nodeValue
           - plugin: single_value
           - plugin: null_coalesce
-        field_other_date:
+        _field_other_date_assembled:
           - plugin: dgi_migrate.process.assemble_date
             single_date: '@_field_other_date_single'
             range_start: '@_field_other_date_start'
@@ -1160,6 +1238,22 @@ process:
           - plugin: dgi_migrate_edtf_validator
             intervals: true
             strict: false
+        field_other_date:
+          - plugin: get
+            source: '@_field_other_date_assembled'
+          - plugin: skip_on_empty
+            method: process
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+            missing_behavior: skip_process
+        field_other_date_backup:
+          - plugin: gate
+            source: '@_field_other_date_assembled'
+            use_as_key: '@field_other_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
@@ -1205,14 +1299,58 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_date:
-          - << : *nested_mods_node
-            query: 'mods:date'
+        _field_date_single:
+          - <<: *nested_mods_node
+            query: 'mods:date[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_start:
+          - <<: *nested_mods_node
+            query: 'mods:date[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_end:
+          - <<: *nested_mods_node
+            query: 'mods:date[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_date_assembled:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_date_single'
+            range_start: '@_field_date_start'
+            range_end: '@_field_date_end'
+            get_values: true
+        field_date:
+          - plugin: get
+            source: '@_field_date_assembled'
+          - plugin: skip_on_empty
+            method: process
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+            missing_behavior: skip_process
+        field_date_backup:
+          - plugin: gate
+            source: '@_field_date_assembled'
+            use_as_key: '@field_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_end:
           - << : *nested_mods_node
             query: 'mods:extent/mods:end'
@@ -1358,14 +1496,58 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_record_change_date:
+        _field_record_change_date_single:
           - << : *nested_mods_node
-            query: 'mods:recordChangeDate'
+            query: 'mods:recordChangeDate[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_change_date_start:
+          - << : *nested_mods_node
+            query: 'mods:recordChangeDate[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_change_date_end:
+          - << : *nested_mods_node
+            query: 'mods:recordChangeDate[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_change_date_assembled:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_record_change_date_single'
+            range_start: '@_field_record_change_date_start'
+            range_end: '@_field_record_change_date_end'
+            get_values: true
+        field_record_change_date:
+          - plugin: get
+            source: '@_field_record_change_date_assembled'
+          - plugin: skip_on_empty
+            method: process
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+            missing_behavior: skip_process
+        field_record_change_date_backup:
+          - plugin: gate
+            source: '@_field_record_change_date_assembled'
+            use_as_key: '@field_record_change_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_record_content_source:
           - << : *nested_mods_node
             query: 'mods:recordContentSource'
@@ -1374,14 +1556,58 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_record_creation_date:
-          - << : *nested_mods_node
-            query: 'mods:recordCreationDate'
+        _field_record_creation_date_single:
+          - <<: *nested_mods_node
+            query: 'mods:recordCreationDate[not(@point)]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_creation_date_start:
+          - <<: *nested_mods_node
+            query: 'mods:recordCreationDate[@point="start"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_creation_date_end:
+          - <<: *nested_mods_node
+            query: 'mods:recordCreationDate[@point="end"]'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: single_value
+          - plugin: null_coalesce
+        _field_record_creation_date_assembled:
+          - plugin: dgi_migrate.process.assemble_date
+            single_date: '@_field_record_creation_date_single'
+            range_start: '@_field_record_creation_date_start'
+            range_end: '@_field_record_creation_date_end'
+            get_values: true
+        field_record_creation_date:
+          - plugin: get
+            source: '@_field_record_creation_date_assembled'
+          - plugin: skip_on_empty
+            method: process
+          - plugin: dgi_migrate_edtf_validator
+            intervals: true
+            strict: false
+            missing_behavior: skip_process
+        field_record_creation_date_backu:
+          - plugin: gate
+            source: '@_field_record_creation_date_assembled'
+            use_as_key: '@field_record_creation_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_record_identifier:
           - << : *nested_mods_node
             query: 'mods:recordIdentifier'
