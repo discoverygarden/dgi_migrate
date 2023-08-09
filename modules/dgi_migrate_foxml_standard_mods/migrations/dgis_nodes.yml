@@ -2013,4 +2013,3 @@ dependencies:
     module:
       - dgi_migrate_edtf_validator
       - dgi_migrate_paragraphs
-
