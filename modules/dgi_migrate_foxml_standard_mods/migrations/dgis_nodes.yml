@@ -901,10 +901,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_copyright_date_backup:
-          - plugin: get
-            source: '@_field_date_captured_assembled'
-          - plugin: skip_on_empty
-            method: process
+          - plugin: gate
+            source: '@_field_copyright_date_assembled'
+            use_as_key: '@field_copyright_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_captured_single:
           - << : *nested_mods_node
             query: 'mods:dateCaptured[not(@point)]'
@@ -951,10 +953,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_captured_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_captured_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date_captured'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_created_single:
           - << : *nested_mods_node
             query: 'mods:dateCreated[not(@point)]'
@@ -1001,10 +1005,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_created_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_created_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date_created'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_issued_single:
           - << : *nested_mods_node
             query: 'mods:dateIssued[not(@point)]'
@@ -1051,10 +1057,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_issued_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_issued_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date_issued'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_modified_single:
           - << : *nested_mods_node
             query: 'mods:dateModified[not(@point)]'
@@ -1101,10 +1109,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_modified_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_modified_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date_modified'
+            valid_keys:
+              - null
+            key_direction: unlock
         _field_date_valid_single:
           - << : *nested_mods_node
             query: 'mods:dateValid[not(@point)]'
@@ -1151,10 +1161,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_valid_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_valid_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date_valid'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_edition:
           - << : *nested_mods_node
             query: 'mods:edition'
@@ -1236,10 +1248,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_other_date_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_other_date_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_other_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_place:
           - << : *nested_mods_node
             query: 'mods:place/mods:placeTerm[normalize-space()][1]'
@@ -1331,10 +1345,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_date_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_date_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_end:
           - << : *nested_mods_node
             query: 'mods:extent/mods:end'
@@ -1526,10 +1542,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_record_change_date_backup:
-          - plugin: get
+          - plugin: gate
             source: '@_field_record_change_date_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_record_change_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_record_content_source:
           - << : *nested_mods_node
             query: 'mods:recordContentSource'
@@ -1584,10 +1602,12 @@ process:
             strict: false
             missing_behavior: skip_process
         field_record_creation_date_backu:
-          - plugin: get
+          - plugin: gate
             source: '@_field_record_creation_date_assembled'
-          - plugin: skip_on_empty
-            method: process
+            use_as_key: '@field_record_creation_date'
+            valid_keys:
+              - null
+            key_direction: unlock
         field_record_identifier:
           - << : *nested_mods_node
             query: 'mods:recordIdentifier'
@@ -1993,3 +2013,4 @@ dependencies:
     module:
       - dgi_migrate_edtf_validator
       - dgi_migrate_paragraphs
+
