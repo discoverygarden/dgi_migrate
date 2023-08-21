@@ -864,7 +864,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_copyright_date_start:
           - << : *nested_mods_node
             query: 'mods:copyrightDate[@point="start"]'
@@ -916,7 +915,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_captured_start:
           - << : *nested_mods_node
             query: 'mods:dateCaptured[@point="start"]'
@@ -968,7 +966,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_created_start:
           - << : *nested_mods_node
             query: 'mods:dateCreated[@point="start"]'
@@ -1020,7 +1017,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_issued_start:
           - << : *nested_mods_node
             query: 'mods:dateIssued[@point="start"]'
@@ -1072,7 +1068,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_modified_start:
           - << : *nested_mods_node
             query: 'mods:dateModified[@point="start"]'
@@ -1124,7 +1119,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_valid_start:
           - << : *nested_mods_node
             query: 'mods:dateValid[@point="start"]'
@@ -1208,7 +1202,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_other_date_start:
           - << : *nested_mods_node
             query: 'mods:dateOther[@point="start"]'
@@ -1305,7 +1298,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_date_start:
           - <<: *nested_mods_node
             query: 'mods:date[@point="start"]'
@@ -1502,7 +1494,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_record_change_date_start:
           - << : *nested_mods_node
             query: 'mods:recordChangeDate[@point="start"]'
@@ -1562,7 +1553,6 @@ process:
           - plugin: dgi_migrate.subproperty
             property: nodeValue
           - plugin: single_value
-          - plugin: null_coalesce
         _field_record_creation_date_start:
           - <<: *nested_mods_node
             query: 'mods:recordCreationDate[@point="start"]'
