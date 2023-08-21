@@ -1235,9 +1235,6 @@ process:
             range_start: '@_field_other_date_start'
             range_end: '@_field_other_date_end'
             get_values: true
-          - plugin: dgi_migrate_edtf_validator
-            intervals: true
-            strict: false
         field_other_date:
           - plugin: get
             source: '@_field_other_date_assembled'
