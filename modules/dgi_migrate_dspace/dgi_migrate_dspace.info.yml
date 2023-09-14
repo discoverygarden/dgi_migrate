@@ -2,7 +2,7 @@ name: DGI Migrate DSpace
 description: DSpace Migrations to import AIP ZIP exports.
 package: DGI Helpers
 type: module
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:migrate
   - dgi_migrate:dgi_migrate

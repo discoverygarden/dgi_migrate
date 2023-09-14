@@ -105,7 +105,8 @@ class Pathauto extends DrushCommands {
     $sandbox =& $context['sandbox'];
 
     $node_storage = $this->entityTypeManager->getStorage('node');
-    $base_query = $node_storage->getQuery()->condition('type', $bundle);
+    $base_query = $node_storage->getQuery()->condition('type', $bundle)
+      ->accessCheck();
     if (!isset($sandbox['total'])) {
       $count_query = clone $base_query;
       $sandbox['total'] = $count_query->count()->execute();
