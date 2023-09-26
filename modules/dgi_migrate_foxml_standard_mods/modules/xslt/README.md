@@ -19,7 +19,7 @@ The XLST transformation can be defined at the `admin/config/dgi_migrate_foxml_st
 ## Installation
 
 Install as usual, see
-[this](https://drupal.org/documentation/install/modules-themes/modules-8) for
+[this](https://www.drupal.org/docs/extending-drupal/installing-modules) for
 further information.
 
 ## Troubleshooting/Issues
