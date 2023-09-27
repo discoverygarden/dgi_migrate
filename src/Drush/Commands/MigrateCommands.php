@@ -1,16 +1,16 @@
 <?php
 
-namespace Drupal\dgi_migrate\Commands;
+namespace Drupal\dgi_migrate\Drush\Commands;
 
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
-use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_tools\Drush\MigrateToolsCommands;
 use Drupal\migrate_tools\Drush9LogMigrateMessage;
 use Drupal\migrate_tools\MigrateTools;
+use Psr\Log\LoggerInterface;
 
 /**
  * Migration command.
@@ -90,8 +90,8 @@ class MigrateCommands extends MigrateToolsCommands {
     'execute-dependencies' => FALSE,
     'skip-progress-bar' => FALSE,
     'sync' => FALSE,
-  ]) {
-    return parent::import($migration_names, $options);
+  ]) : void {
+    parent::import($migration_names, $options);
   }
 
   /**
@@ -370,11 +370,26 @@ class MigrateCommands extends MigrateToolsCommands {
   protected function getMigrateMessage() : Drush9LogMigrateMessage {
     if (!isset($this->migrateMessage)) {
       $this->migrateMessage = new Drush9LogMigrateMessage(
-        \Drupal::service('logger.channel.migrate_tools')
+        // XXX: Something about the default of `$this->logger()` used in the
+        // parent implementation just... doesn't work?
+        static::getMigrateToolsLogger()
       );
     }
 
     return parent::getMigrateMessage();
+  }
+
+  /**
+   * Helper; get fresh logger instance.
+   *
+   * Something seems to be awry with how loggers are passed along during
+   * batches. Let's just side-step the issue.
+   *
+   * @return \Psr\Log\LoggerInterface
+   *   Logger from the service container.
+   */
+  protected static function getMigrateToolsLogger() : LoggerInterface {
+    return \Drupal::service('logger.channel.migrate_tools');
   }
 
   /**
