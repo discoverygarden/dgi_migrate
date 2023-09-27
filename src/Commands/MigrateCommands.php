@@ -5,9 +5,9 @@ namespace Drupal\dgi_migrate\Commands;
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate_tools\Drush\MigrateToolsCommands;
 use Drupal\migrate_tools\MigrateTools;
 
 /**
@@ -95,7 +95,7 @@ class MigrateCommands extends MigrateToolsCommands {
   /**
    * {@inheritdoc}
    */
-  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []) {
+  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []) : void {
     // Keep track of all migrations run during this command so the same
     // migration is not run multiple times.
     static $executed_migrations = [];
@@ -237,7 +237,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'skip-progress-bar' => FALSE,
     'continue-on-failure' => FALSE,
     'statuses' => self::REQ,
-  ]) {
+  ]) : void {
     $group_names = $options['group'];
     $tag_names = $options['tag'];
     $all = $options['all'];
