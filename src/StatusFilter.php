@@ -3,11 +3,12 @@
 namespace Drupal\dgi_migrate;
 
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
+use Drupal\migrate_tools\IdMapFilter;
 
 /**
  * Id map status filter iterator.
  */
-class StatusFilter extends \FilterIterator {
+class StatusFilter extends IdMapFilter {
 
   /**
    * Mapping of human-friendly machine names for to represent the constants.
@@ -29,14 +30,14 @@ class StatusFilter extends \FilterIterator {
   /**
    * Constructor.
    *
-   * @param \Iterator $child
+   * @param \Drupal\migrate\Plugin\MigrateIdMapInterface $child
    *   An upstream iterator/ID map which we are filtering.
    * @param array $statuses
    *   An array of MigrateIdMapInterface::STATUS_* values to which we will
    *   constrain iteration.
    */
-  public function __construct(\Iterator $child, array $statuses) {
-    parent::__construct($child);
+  public function __construct(MigrateIdMapInterface $child, array $statuses) {
+    parent::__construct($child, []);
 
     $this->statuses = $statuses;
   }
@@ -44,7 +45,7 @@ class StatusFilter extends \FilterIterator {
   /**
    * {@inheritdoc}
    */
-  public function accept() {
+  public function accept() : bool {
     if (empty($this->statuses)) {
       return TRUE;
     }

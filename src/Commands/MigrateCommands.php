@@ -6,8 +6,10 @@ use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
+use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_tools\Drush\MigrateToolsCommands;
+use Drupal\migrate_tools\Drush9LogMigrateMessage;
 use Drupal\migrate_tools\MigrateTools;
 
 /**
@@ -360,6 +362,19 @@ class MigrateCommands extends MigrateToolsCommands {
     /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
     $migration = $this->migrationPluginManager->createInstance($migration_id);
     return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected function getMigrateMessage() : Drush9LogMigrateMessage {
+    if (!isset($this->migrateMessage)) {
+      $this->migrateMessage = new Drush9LogMigrateMessage(
+        \Drupal::service('logger.channel.migrate_tools')
+      );
+    }
+
+    return parent::getMigrateMessage();
   }
 
   /**
