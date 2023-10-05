@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate;
 
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\migrate\MigrateException;
+use Drupal\migrate_tools\IdMapFilter;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
@@ -525,7 +526,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
   /**
    * {@inheritdoc}
    */
-  protected function getIdMap() {
+  protected function getIdMap() : IdMapFilter {
     return new StatusFilter(parent::getIdMap(), $this->idMapStatuses);
   }
 

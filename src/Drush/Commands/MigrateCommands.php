@@ -1,14 +1,16 @@
 <?php
 
-namespace Drupal\dgi_migrate\Commands;
+namespace Drupal\dgi_migrate\Drush\Commands;
 
 use Consolidation\OutputFormatters\StructuredData\RowsOfFields;
 use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\migrate_tools\Commands\MigrateToolsCommands;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate_tools\Drush\MigrateToolsCommands;
+use Drupal\migrate_tools\Drush9LogMigrateMessage;
 use Drupal\migrate_tools\MigrateTools;
+use Psr\Log\LoggerInterface;
 
 /**
  * Migration command.
@@ -88,14 +90,14 @@ class MigrateCommands extends MigrateToolsCommands {
     'execute-dependencies' => FALSE,
     'skip-progress-bar' => FALSE,
     'sync' => FALSE,
-  ]) {
-    return parent::import($migration_names, $options);
+  ]) : void {
+    parent::import($migration_names, $options);
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []) {
+  protected function executeMigration(MigrationInterface $migration, $migration_id, array $options = []) : void {
     // Keep track of all migrations run during this command so the same
     // migration is not run multiple times.
     static $executed_migrations = [];
@@ -237,7 +239,7 @@ class MigrateCommands extends MigrateToolsCommands {
     'skip-progress-bar' => FALSE,
     'continue-on-failure' => FALSE,
     'statuses' => self::REQ,
-  ]) {
+  ]) : void {
     $group_names = $options['group'];
     $tag_names = $options['tag'];
     $all = $options['all'];
@@ -360,6 +362,34 @@ class MigrateCommands extends MigrateToolsCommands {
     /** @var \Drupal\migrate\Plugin\MigrationInterface $migration */
     $migration = $this->migrationPluginManager->createInstance($migration_id);
     return new MigrateBatchExecutable($migration, $this->getMigrateMessage(), $options);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected function getMigrateMessage() : Drush9LogMigrateMessage {
+    if (!isset($this->migrateMessage)) {
+      $this->migrateMessage = new Drush9LogMigrateMessage(
+        // XXX: Something about the default of `$this->logger()` used in the
+        // parent implementation just... doesn't work?
+        static::getMigrateToolsLogger()
+      );
+    }
+
+    return parent::getMigrateMessage();
+  }
+
+  /**
+   * Helper; get fresh logger instance.
+   *
+   * Something seems to be awry with how loggers are passed along during
+   * batches. Let's just side-step the issue.
+   *
+   * @return \Psr\Log\LoggerInterface
+   *   Logger from the service container.
+   */
+  protected static function getMigrateToolsLogger() : LoggerInterface {
+    return \Drupal::service('logger.channel.migrate_tools');
   }
 
   /**
