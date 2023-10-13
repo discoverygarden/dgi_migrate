@@ -166,3 +166,15 @@ $ tail -n23 /tmp/asdf/15-rollback.log
 	Page size (bytes): 4096
 	Exit status: 0
 ```
+
+## Double Models
+
+The provided script, `double_model.sh` will perform a naive analysis on a FOXML object store. FOXML objects with two models defined in their `RELS-EXT` will silently fail the migration.
+
+This script requires the `RELS-EXT` to be managed (and not base 64 encoded) for it to work. It's recommended to redirect the output to a file.
+
+Example:
+
+```
+sudo bash $($DRUSH dd dgi_migrate)/scripts/double_model.sh /mnt/objectStore > models
+```
