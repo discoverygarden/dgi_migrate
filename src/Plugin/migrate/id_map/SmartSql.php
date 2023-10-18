@@ -43,6 +43,13 @@ class SmartSql extends Sql {
   protected bool $manageOrphans;
 
   /**
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
    * {@inheritdoc}
    *
    * @see https://drupal.org/i/2845340
