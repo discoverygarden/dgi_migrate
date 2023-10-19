@@ -16,6 +16,13 @@ use Drupal\migrate\Row;
 class DcName extends ProcessPluginBase {
 
   /**
+   * Associative array containing the mapping.
+   *
+   * @var array
+   */
+  protected array $map;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {

@@ -33,11 +33,18 @@ use Drupal\Component\Utility\Unicode;
 class DgiStandardTitleParagraph extends ProcessPluginBase {
 
   /**
-   * Whether or not entities generated should be validated.
+   * Whether entities generated should be validated.
    *
    * @var bool
    */
-  protected $validate = FALSE;
+  protected bool $validate = FALSE;
+
+  /**
+   * The length to which to truncate the title.
+   *
+   * @var false|int
+   */
+  private mixed $maxLength;
 
   /**
    * Constructor.
