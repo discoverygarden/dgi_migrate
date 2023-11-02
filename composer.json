@@ -16,7 +16,7 @@
         "islandora/controlled_access_terms": "^2",
         "islandora/islandora": "^2",
         "iqb/substream": "dev-master",
-        "symfony/mime": "^5"
+        "symfony/mime": "^5 || ^6"
     },
     "require-dev": {
         "drupal/devel": "^4"

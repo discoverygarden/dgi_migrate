@@ -102,6 +102,27 @@ class SubProcess extends ProcessPluginBase {
   protected $parentValueKey;
 
   /**
+   * Flag indicating if we should handle multiple.
+   *
+   * @var bool
+   */
+  protected bool $handleMultiple;
+
+  /**
+   * The parent index.
+   *
+   * @var string
+   */
+  protected string $parentIndex;
+
+  /**
+   * The key as which to save the value in the return array.
+   *
+   * @var string
+   */
+  protected string $outputKey;
+
+  /**
    * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {

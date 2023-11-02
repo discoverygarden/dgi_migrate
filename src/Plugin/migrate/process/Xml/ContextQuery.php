@@ -27,6 +27,27 @@ class ContextQuery extends ProcessPluginBase {
   use MissingBehaviorTrait;
 
   /**
+   * The instance on which to run the query.
+   *
+   * @var \DOMXPath
+   */
+  protected mixed $xpath;
+
+  /**
+   * The query to execute.
+   *
+   * @var string
+   */
+  protected string $query;
+
+  /**
+   * The name of the method to use.
+   *
+   * @var string
+   */
+  protected string $method;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
