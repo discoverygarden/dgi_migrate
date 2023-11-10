@@ -227,7 +227,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
 
           // XXX: Divergence is here, emitting the event instead of registering
           // a shutdown handler.
-          $this->eventDispatcher->dispatch(TempImageEvent::EVENT_NAME, new TempImageEvent($arguments->getSourceLocalPath()));
+          $this->eventDispatcher->dispatch(new TempImageEvent($arguments->getSourceLocalPath()), TempImageEvent::EVENT_NAME);
         }
         catch (FileException $e) {
           $this->logger->error($e->getMessage());
