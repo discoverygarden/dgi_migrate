@@ -2,7 +2,7 @@ name: 'DGI Migrate EDTF Validator'
 description: "DGI Migration EDTF Support."
 type: module
 package: DGI
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:migrate
   - controlled_access_terms:controlled_access_terms

@@ -1,6 +1,8 @@
+---
 services:
   dgi_migrate.commands:
-    class: \Drupal\dgi_migrate\Commands\MigrateCommands
-    arguments: ['@plugin.manager.migration', '@date.formatter', '@entity_type.manager', '@keyvalue']
+    class: \Drupal\dgi_migrate\Drush\Commands\MigrateCommands
+    factory: [null, create]
+    arguments: ['@service_container']
     tags:
       - { name: drush.command }

@@ -2,7 +2,7 @@ name: DGI Migrate FOXML (Standard MODS) XSLT
 description: "XSLT preprocessing for FOXML migration for MODS into the DGI standard content type"
 type: module
 package: DGI
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - dgi_migrate:dgi_migrate
   - dgi_migrate:dgi_migrate_foxml_standard_mods

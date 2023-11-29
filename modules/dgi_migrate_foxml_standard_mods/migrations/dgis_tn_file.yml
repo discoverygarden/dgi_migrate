@@ -102,6 +102,10 @@ process:
     - plugin: callback
       source: '@uri'
       callable: filesize
+    - plugin: skip_on_value
+      method: row
+      value: 0
+      message: 'Thumbnail file has a filesize of 0'
   status:
     - plugin: default_value
       default_value: 1

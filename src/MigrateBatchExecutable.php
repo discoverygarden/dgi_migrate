@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate;
 
 use Drupal\Core\Queue\QueueInterface;
 use Drupal\migrate\MigrateException;
+use Drupal\migrate_tools\IdMapFilter;
 use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
@@ -176,7 +177,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
    */
   public function teardownMigration() {
     $this->getQueue()->deleteQueue();
-    $this->getEventDispatcher()->dispatch(MigrateEvents::POST_IMPORT, new MigrateImportEvent($this->migration, $this->message));
+    $this->getEventDispatcher()->dispatch(new MigrateImportEvent($this->migration, $this->message), MigrateEvents::POST_IMPORT);
     $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
   }
 
@@ -200,7 +201,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
         ]), 'error');
       return MigrationInterface::RESULT_FAILED;
     }
-    $this->getEventDispatcher()->dispatch(MigrateEvents::PRE_IMPORT, new MigrateImportEvent($this->migration, $this->message));
+    $this->getEventDispatcher()->dispatch(new MigrateImportEvent($this->migration, $this->message), MigrateEvents::PRE_IMPORT);
 
     // Knock off migration if the requirements haven't been met.
     try {
@@ -287,11 +288,11 @@ class MigrateBatchExecutable extends MigrateExecutable {
     if ($save) {
       try {
         $destination = $this->migration->getDestinationPlugin();
-        $this->getEventDispatcher()->dispatch(MigrateEvents::PRE_ROW_SAVE, new MigratePreRowSaveEvent($this->migration, $this->message, $row));
+        $this->getEventDispatcher()->dispatch(new MigratePreRowSaveEvent($this->migration, $this->message, $row), MigrateEvents::PRE_ROW_SAVE);
         $destination_ids = $id_map->lookupDestinationIds($this->sourceIdValues);
         $destination_id_values = $destination_ids ? reset($destination_ids) : [];
         $destination_id_values = $destination->import($row, $destination_id_values);
-        $this->getEventDispatcher()->dispatch(MigrateEvents::POST_ROW_SAVE, new MigratePostRowSaveEvent($this->migration, $this->message, $row, $destination_id_values));
+        $this->getEventDispatcher()->dispatch(new MigratePostRowSaveEvent($this->migration, $this->message, $row, $destination_id_values), MigrateEvents::POST_ROW_SAVE);
         if ($destination_id_values) {
           // We do not save an idMap entry for config.
           if ($destination_id_values !== TRUE) {
@@ -513,7 +514,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
   /**
    * {@inheritdoc}
    */
-  protected function getIdMap() {
+  protected function getIdMap() : IdMapFilter {
     return new StatusFilter(parent::getIdMap(), $this->idMapStatuses);
   }
 

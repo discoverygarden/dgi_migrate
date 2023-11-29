@@ -85,6 +85,7 @@ class FindFirstImageMedia extends ProcessPluginBase implements ContainerFactoryP
 
     // Find all the nodes that are a member of the current.
     $nodes = $this->nodeStorage->getQuery()
+      ->accessCheck()
       ->condition('field_member_of', $value)
       ->execute();
 
@@ -98,6 +99,7 @@ class FindFirstImageMedia extends ProcessPluginBase implements ContainerFactoryP
     // XXX: "Representative images" are passed through the image styles, so we
     // should be fine ignoring the MIME-types here.
     $media = $this->mediaStorage->getQuery()
+      ->accessCheck()
       ->condition('bundle', 'image')
       ->condition('field_media_of', $nodes, 'IN')
       ->sort('field_media_use.entity:taxonomy_term.field_external_uri', 'ASC')

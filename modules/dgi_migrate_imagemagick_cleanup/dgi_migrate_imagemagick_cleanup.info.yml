@@ -2,7 +2,7 @@ name: 'DGI Migrate Imagemagick Cleanup'
 description: "Imagemagick helper."
 type: module
 package: DGI
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9 || ^10
 dependencies:
   - drupal:migrate
   - imagemagick:imagemagick
