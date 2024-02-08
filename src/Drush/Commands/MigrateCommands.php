@@ -7,7 +7,7 @@ use Drupal\Component\Graph\Graph;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\migrate\Plugin\MigrationInterface;
-use Drupal\migrate_tools\Drush\MigrateToolsCommands;
+use Drupal\migrate_tools\Drush\Commands\MigrateToolsCommands;
 use Drupal\migrate_tools\Drush9LogMigrateMessage;
 use Drupal\migrate_tools\MigrateTools;
 use Psr\Log\LoggerInterface;
