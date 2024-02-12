@@ -24,5 +24,12 @@
     "suggest": {
         "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields.",
         "drupal/entity_reference_integrity": "Used to check things when a migration elects to 'manage_orphans'."
+    },
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.10-11.services.yml": "^10 || ^11"
+            }
+        }
     }
 }
