@@ -41,13 +41,6 @@ class Pathauto extends DrushCommands {
   protected $entityTypeBundleInfo;
 
   /**
-   * Logger.
-   *
-   * @var \Psr\Log\LoggerInterface
-   */
-  protected $logger;
-
-  /**
    * Constructor.
    *
    * @param \Drupal\pathauto\PathautoGeneratorInterface $pathauto_generator
