@@ -6,7 +6,7 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\dgi_migrate_alter\Exception\MigrationNotFoundException;
 
 /**
- * Base class for CSV Alteration plugins.
+ * Base class for migration alter plugins.
  */
 abstract class MigrationAlterBase extends PluginBase implements MigrationAlterInterface {
 

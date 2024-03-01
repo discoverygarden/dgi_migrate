@@ -7,7 +7,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 
 /**
- * Provides the CSV alteration plugin manager.
+ * Provides the migration alter plugin manager.
  */
 class MigrationAlterPluginManager extends DefaultPluginManager {
 
@@ -15,7 +15,7 @@ class MigrationAlterPluginManager extends DefaultPluginManager {
    * Constructs a new MigrationAlterManager object.
    *
    * @param string $type
-   *   The type of the plugin: csv, foxml.
+   *   The type of the plugin: spreadsheet, foxml.
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
    *   keyed by the corresponding namespace to look for plugin implementations.
