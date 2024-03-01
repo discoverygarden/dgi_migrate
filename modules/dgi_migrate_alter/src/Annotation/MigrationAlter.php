@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\dgi_migrate_alter\Annotation;
 
 use Drupal\Component\Annotation\Plugin;

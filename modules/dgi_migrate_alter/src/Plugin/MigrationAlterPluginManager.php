@@ -32,7 +32,7 @@ class MigrationAlterPluginManager extends DefaultPluginManager {
       'Drupal\dgi_migrate_alter\Plugin\MigrationAlterInterface',
       'Drupal\dgi_migrate_alter\Annotation\MigrationAlter'
     );
-    $this->alterInfo('dgi_migrate_alter_' . $type. '_info');
+    $this->alterInfo('dgi_migrate_alter_' . $type . '_info');
     $this->setCacheBackend($cache_backend, 'dgi_migrate_alter' . $type . '_plugins');
   }
 
