@@ -178,3 +178,15 @@ Example:
 ```
 sudo bash $($DRUSH dd dgi_migrate)/scripts/double_model.sh /mnt/objectStore > models
 ```
+
+## DS Injector Python Script
+
+The `ds_injector.py` Python script is designed to quickly add datastreams to FOXML files, and encodes them in base64.
+
+This script requires Python 3.x and the `lxml` library.
+
+Usage:
+
+```
+python ds_injector.py --xml [path_to_foxml] --dsid [datastream_id] --content [path_to_binary_content] --output [name_of_output_foxml] [--label [datastream_label]]
+```
