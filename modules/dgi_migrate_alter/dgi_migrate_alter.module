@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Contains dgi_migrate_alter.module.
+ */
+
+use Drupal\dgi_migrate_alter\Exception\MigrationNotFoundException;
+
+/**
+ * Implements hook_migration_plugins_alter().
+ */
+function dgi_migrate_alter_migration_plugins_alter(array &$migrations) {
+  $logger = \Drupal::logger('dgi_migrate_alter');
+
+  $spreadsheet_alter_manager = \Drupal::service('plugin.manager.dgi_migrate_alter.spreadsheet');
+  $foxml_alter_manager = \Drupal::service('plugin.manager.dgi_migrate_alter.foxml');
+
+  $spreadsheet_definitions = $spreadsheet_alter_manager->getDefinitions();
+  $foxml_definitions = $foxml_alter_manager->getDefinitions();
+
+  foreach ($spreadsheet_definitions as $id => $definition) {
+    $logger->info('Altering migrations with spreadsheet plugin: ' . $id);
+    $plugin = $spreadsheet_alter_manager->createInstance($id);
+
+    try {
+      $plugin->alterMigrations($migrations);
+    }
+    catch (MigrationNotFoundException $e) {
+      $logger->error('Migration not found: ' . $e->getMessage());
+    }
+  }
+
+  foreach ($foxml_definitions as $id => $definition) {
+    $logger->info('Altering migrations with foxml plugin: ' . $id);
+    $plugin = $foxml_alter_manager->createInstance($id);
+
+    try {
+      $plugin->alterMigrations($migrations);
+    }
+    catch (MigrationNotFoundException $e) {
+      $logger->error('Migration not found: ' . $e->getMessage());
+    }
+  }
+}

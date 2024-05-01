@@ -1,0 +1,8 @@
+---
+services:
+  plugin.manager.dgi_migrate_alter.spreadsheet:
+    class: Drupal\dgi_migrate_alter\Plugin\MigrationAlterPluginManager
+    arguments: [spreadsheet, '@container.namespaces', '@cache.discovery', '@module_handler']
+  plugin.manager.dgi_migrate_alter.foxml:
+    class: Drupal\dgi_migrate_alter\Plugin\MigrationAlterPluginManager
+    arguments: [foxml, '@container.namespaces', '@cache.discovery', '@module_handler']

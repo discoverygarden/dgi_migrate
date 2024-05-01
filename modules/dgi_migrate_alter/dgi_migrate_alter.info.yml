@@ -1,0 +1,5 @@
+name: 'DGI Migrate Alter'
+description: "Allows easy alterations of migrations through plugins."
+type: module
+package: DGI
+core_version_requirement: ^9 || ^10
