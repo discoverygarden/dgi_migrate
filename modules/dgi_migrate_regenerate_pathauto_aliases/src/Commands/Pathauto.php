@@ -2,13 +2,13 @@
 
 namespace Drupal\dgi_migrate_regenerate_pathauto_aliases\Commands;
 
-use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
-use Drupal\pathauto\PathautoGeneratorInterface;
-use Drush\Commands\DrushCommands;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\pathauto\PathautoGeneratorInterface;
 use Drupal\pathauto\PathautoState;
+use Drush\Commands\DrushCommands;
 use Psr\Log\LoggerInterface;
 
 /**
