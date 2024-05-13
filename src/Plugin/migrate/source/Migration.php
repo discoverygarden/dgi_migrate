@@ -2,12 +2,12 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\source;
 
-use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\dgi_migrate\MigrationIterator;
+use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
-use Drupal\dgi_migrate\MigrationIterator;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Perform a migration based upon the results of another migration.

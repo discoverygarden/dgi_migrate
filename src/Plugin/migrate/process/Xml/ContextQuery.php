@@ -2,10 +2,10 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 
-use Drupal\migrate\ProcessPluginBase;
-use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\Row;
 use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
+use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\ProcessPluginBase;
+use Drupal\migrate\Row;
 
 /**
  * Query a DOMXPath using a DOMNode context as the source.

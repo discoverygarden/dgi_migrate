@@ -2,10 +2,9 @@
 
 namespace Drupal\dgi_migrate_dspace\Commands;
 
-use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
-
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
 use Drush\Commands\DrushCommands;
 
 /**

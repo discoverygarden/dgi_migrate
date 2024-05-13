@@ -2,9 +2,8 @@
 
 namespace Drupal\Tests\dgi_migrate_foxml_standard_mods\Unit;
 
-use Drupal\Tests\UnitTestCase;
-
 use Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process\TypedRelation;
+use Drupal\Tests\UnitTestCase;
 
 /**
  * Test out the role mapper.

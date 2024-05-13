@@ -2,23 +2,22 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\Component\Utility\Timer;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Queue\QueueInterface;
-use Drupal\migrate\MigrateException;
-use Drupal\migrate_tools\IdMapFilter;
-use Drupal\migrate_tools\MigrateExecutable;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
 use Drupal\migrate\Event\MigratePostRowSaveEvent;
 use Drupal\migrate\Event\MigratePreRowSaveEvent;
 use Drupal\migrate\Exception\RequirementsException;
-use Drupal\migrate\Plugin\MigrateIdMapInterface;
-use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\MigrateSkipRowException;
+use Drupal\migrate\Plugin\MigrateIdMapInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
-
-use Drupal\Core\DependencyInjection\DependencySerializationTrait;
-use Drupal\Component\Utility\Timer;
+use Drupal\migrate_tools\IdMapFilter;
+use Drupal\migrate_tools\MigrateExecutable;
 
 /**
  * Migration executable to run as fully queued batch.
