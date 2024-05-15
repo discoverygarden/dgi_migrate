@@ -5,7 +5,7 @@
     "require": {
         "discoverygarden/dgi_saxon_helper": "^1",
         "discoverygarden/foxml": "^1",
-        "discoverygarden/islandora_drush_utils": "^1",
+        "discoverygarden/islandora_drush_utils": "^1 || ^2",
         "discoverygarden/update-helper": "^1",
         "drupal/imagemagick": "^3.2",
         "drupal/migrate_directory": "^1 || ^2",
