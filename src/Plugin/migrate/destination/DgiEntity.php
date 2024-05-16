@@ -11,13 +11,25 @@ use Drupal\migrate\Row;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
+ * Provides a custom destination plugin for generating entity revisions.
+ *
+ * This class extends the EntityContentBase class to provide a custom
+ * destination plugin for Drupal migrations. It allows for the creation of
+ * revisions during the migration process, and maintains revision history.
+ *
+ * @see \Drupal\migrate\Plugin\migrate\destination\EntityContentBase
+ *
  * @MigrateDestination(
  *   id = "dgi_node"
  * )
  */
 class DgiEntity extends EntityContentBase {
 
-  /** @var string $entityType */
+  /**
+   * The entity type.
+   *
+   * @var string
+   */
   public static $entityType = 'node';
 
   /**
@@ -75,8 +87,6 @@ class DgiEntity extends EntityContentBase {
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The content entity.
-   * @param \Drupal\migrate\Row $row
-   *   The row object containing migration data.
    *
    * @return string
    *   The generated revision message.
@@ -86,4 +96,5 @@ class DgiEntity extends EntityContentBase {
 
     return sprintf('Migration %s generated new revision for NID %d', $this->migrationId, $entity_id);
   }
+
 }
