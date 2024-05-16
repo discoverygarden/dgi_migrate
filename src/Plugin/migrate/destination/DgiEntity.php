@@ -71,7 +71,7 @@ class DgiEntity extends EntityContentBase {
   }
 
   /**
-   * Generates a detailed revision message based on the entity and row data.
+   * Generates a detailed revision message based on the entity.
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The content entity.
