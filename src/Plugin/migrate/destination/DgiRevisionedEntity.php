@@ -30,7 +30,7 @@ class DgiRevisionedEntity extends EntityContentBase {
    *
    * @var string
    */
-  public static string $entityType;
+  public string $entityType;
 
   /**
    * The migration ID.
