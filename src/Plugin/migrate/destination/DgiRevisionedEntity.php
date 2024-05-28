@@ -43,8 +43,9 @@ class DgiRevisionedEntity extends EntityContentBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
-    static::$entityType = $configuration['entity_type'] ?? 'node';
-    $instance = parent::create($container, $configuration, 'entity:' . static::$entityType, $plugin_definition, $migration);
+    $entity_type = $configuration['entity_type'] ?? 'node';
+    $instance = parent::create($container, $configuration, 'entity:' . $entity_type, $plugin_definition, $migration);
+    $instance->entityType = $entity_type;
     $instance->migrationId = $migration->id();
     return $instance;
   }
