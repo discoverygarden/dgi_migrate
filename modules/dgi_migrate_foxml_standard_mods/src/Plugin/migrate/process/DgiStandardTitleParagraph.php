@@ -2,14 +2,13 @@
 
 namespace Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 use Drupal\paragraphs\Entity\Paragraph;
-
-use Drupal\Component\Utility\Unicode;
 
 /**
  * Generate a Title paragraph.

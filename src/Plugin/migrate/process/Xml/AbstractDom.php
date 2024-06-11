@@ -3,10 +3,10 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process\Xml;
 
 use Drupal\dgi_migrate\Plugin\migrate\process\MissingBehaviorTrait;
-use Drupal\migrate\ProcessPluginBase;
-use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
+use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\ProcessPluginBase;
+use Drupal\migrate\Row;
 
 /**
  * Parses X(HT)ML into a DOMDocument instance.

@@ -3,10 +3,9 @@
 namespace Drupal\Tests\dgi_migrate_foxml_standard_mods\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Symfony\Component\Yaml\Yaml;
-
 use Drupal\migrate\MigrateExecutable;
 use Drupal\migrate\Row;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Test out the role mapper.

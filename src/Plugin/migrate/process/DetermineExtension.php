@@ -2,12 +2,12 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
-use Symfony\Component\Mime\MimeTypes;
-use Drupal\migrate\ProcessPluginBase;
-use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\Row;
 use Drupal\migrate\MigrateException;
+use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\ProcessPluginBase;
+use Drupal\migrate\Row;
+use Symfony\Component\Mime\MimeTypes;
 
 /**
  * Determine a file extension from a MIME-type.

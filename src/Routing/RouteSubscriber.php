@@ -3,9 +3,8 @@
 namespace Drupal\dgi_migrate\Routing;
 
 use Drupal\Core\Routing\RouteSubscriberBase;
-use Symfony\Component\Routing\RouteCollection;
-
 use Drupal\dgi_migrate\Form\MigrationExecuteForm;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Route subscriber handler.

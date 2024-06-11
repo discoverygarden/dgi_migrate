@@ -2,13 +2,11 @@
 
 namespace Drupal\dgi_migrate_foxml_standard_mods_xslt\EventSubscriber;
 
-use Drupal\dgi_migrate_foxml_standard_mods_xslt\Form\Settings;
-use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
-
 use Drupal\Component\Plugin\Discovery\CachedDiscoveryInterface;
 use Drupal\Core\Config\ConfigCrudEvent;
 use Drupal\Core\Config\ConfigEvents;
-
+use Drupal\dgi_migrate_foxml_standard_mods_xslt\Form\Settings;
+use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
