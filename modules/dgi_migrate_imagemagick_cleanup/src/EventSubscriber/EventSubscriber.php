@@ -2,18 +2,16 @@
 
 namespace Drupal\dgi_migrate_imagemagick_cleanup\EventSubscriber;
 
+use Drupal\Core\DestructableInterface;
+use Drupal\Core\File\Exception\FileException;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\dgi_migrate_imagemagick_cleanup\Event\TempImageEvent;
-use Drupal\migrate\Event\MigrateEvents;
-use Drupal\migrate\Event\MigratePreRowSaveEvent;
-use Drupal\migrate\Event\MigratePostRowSaveEvent;
 use Drupal\imagemagick\Event\ImagemagickExecutionEvent;
 use Drupal\imagemagick\ImagemagickExecArguments;
-
-use Drupal\Core\DestructableInterface;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\File\Exception\FileException;
-use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-
+use Drupal\migrate\Event\MigrateEvents;
+use Drupal\migrate\Event\MigratePostRowSaveEvent;
+use Drupal\migrate\Event\MigratePreRowSaveEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
