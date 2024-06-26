@@ -38,6 +38,22 @@ process:
       bundle: islandora_object
       value_key: field_pid
       source: pid
+
+  # XXX: Work around issue with interactions of entity hooks and migrations:
+  # Context reactions firing from entity hooks could try minting a value when
+  # stub entities are ingested; however, the non-stub migration:
+  # - might want to provide a value; or,
+  # - might be left blank, expecting the main migration to mint a value;
+  #   however, the destination plugin would delete the value minted on the stub
+  #   when processing an empty value, resulting in attempting to mint again but
+  #   now failing with HTTP 409s as the Handle was already allocated when the
+  #   stub was ingested.
+  #
+  # @see https://git.drupalcode.org/project/drupal/-/blob/10.3.x/core/modules/migrate/src/Plugin/migrate/destination/EntityContentBase.php?ref_type=heads#L272-311
+  field_handle:
+    - plugin: default_value
+      default_value: 'Handle placeholder'
+
 dependencies:
   enforced:
     module:
