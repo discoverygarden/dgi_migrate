@@ -334,7 +334,7 @@ process:
       property: nodeValue
   field_description:
     - << : *base_mods_node
-      query: 'mods:abstract'
+      query: 'mods:abstract[@displayLabel="summary"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1693,6 +1693,36 @@ process:
           - plugin: callback
             callable: array_filter
           - plugin: null_coalesce
+        field_related_item_identifier:
+          - <<: *nested_mods_node
+            query: 'mods:relatedItem/mods:identifier'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+        field_related_item_genre:
+          - <<: *nested_mods_node
+            query: 'mods:relatedItem/mods:genre'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: genre
+              <<: *generic_term_after
+          - <<: *generic_term_extract
   _resource_type:
     - << : *base_mods_node
       query: 'mods:typeOfResource'
@@ -1973,6 +2003,455 @@ process:
             default_value: language
         <<: *generic_term_after
     - <<: *generic_term_extract
+  field_degree_name:
+    - <<: *base_mods_node
+      query: 'mods:extension/etd:degree/etd:name'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: degree_names
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _degree_level:
+    - <<: *base_mods_node
+      query: 'mods:extension/etd:degree/etd:level'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+  field_degree_level:
+    - plugin: default_value
+      source: '@_degree_level'
+      default_value: Unspecified
+    - plugin: entity_generate
+      bundle: degree_levels
+      bundle_key: vid
+      entity_type: taxonomy_term
+      value_key: name
+      ignore_case: *case_insensitive
+  field_department:
+    - <<: *base_mods_node
+      query: 'mods:extension/etd:degree/etd:discipline'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: discipline
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_institution:
+    - <<: *base_mods_node
+      query: 'mods:extension/etd:degree/etd:grantor'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: institution
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_version_identifier:
+    - <<: *base_mods_node
+      query: 'mods:note[@type="version identification"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_abstract:
+    - <<: *base_mods_node
+      query: 'mods:abstract[@displayLabel="academic"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_open_url:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="openurl"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_ismn:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="ismn"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_repec:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="repec"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_gpo_number:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="gpo"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_pubmed_central_number:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="pmcid"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_pubmed_number:
+    - <<: *base_mods_node
+      query: 'mods:identifier[@type="pmid"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_ddc_classification:
+    - <<: *base_mods_node
+      query: 'mods:classification[@authority="ddc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_sudoc_number:
+    - <<: *base_mods_node
+      query: 'mods:classification[@authority="sudoc"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_swank_classification:
+    - <<: *base_mods_node
+      query: 'mods:classification[@authority="swank"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: null_coalesce
+  field_conference:
+    - <<: *base_mods_node
+      query: 'mods:name[@type="conference"]/mods:namePart'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: conference_events
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_series_paragraph:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="series"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_paragraph_generate
+      validate: *validate
+      type: series
+      process_values: true
+      values:
+        field_series_titles:
+          - <<: *nested_mods_node
+            query: 'mods:titleInfo/mods:title'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: skip_on_empty
+            method: process
+          - plugin: multiple_values
+          - plugin: dgi_migrate.sub_process
+            process_values: true
+            values:
+              _vid:
+                - plugin: default_value
+                  default_value: series_titles
+              <<: *generic_term_after
+          - <<: *generic_term_extract
+        field_series_number:
+          - <<: *nested_mods_node
+            query: 'mods:titleInfo/mods:partNumber'
+          - plugin: callback
+            callable: iterator_to_array
+          - plugin: multiple_values
+          - plugin: dgi_migrate.subproperty
+            property: nodeValue
+          - plugin: callback
+            callable: trim
+          - plugin: single_value
+          - plugin: callback
+            callable: array_filter
+          - plugin: null_coalesce
+  field_publication_title:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: titles
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_publication_number:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partNumber'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_volume_title:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partName'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_chapter_number:
+    - <<: *base_mods_node
+      query: 'mods:part[@type="chapter"]/mods:detail/mods:number'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_section:
+    - <<: *base_mods_node
+      query: 'mods:part[@type="section"]/mods:detail/mods:title'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_identifier:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:identifier'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_url:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:location/mods:url'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: callback
+      callable: trim
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_publication_genre:
+    - <<: *base_mods_node
+      query: 'mods:relatedItem[@type="host"]/mods:genre'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: genre
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_extent_total_pages:
+    - <<: *base_mods_node
+      query: 'mods:part/mods:extent/mods:total'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_extent_first_page:
+    - <<: *base_mods_node
+      query: 'mods:part/mods:extent/mods:start'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_extent_last_page:
+    - <<: *base_mods_node
+      query: 'mods:part/mods:extent/mods:end'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_admin_note:
+    - <<: *base_mods_node
+      query: 'mods:note[@type="admin"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  field_funder:
+    - <<: *base_mods_node
+      query: 'mods:role/mods:roleTerm="funder"'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: funders
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  field_sponsorship_information:
+    - <<: *base_mods_node
+      query: 'mods:note[@type="funding"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  _use_license:
+    - <<: *base_mods_node
+      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabe="Creative Commons"]'
+    - plugin: callback
+      callable: iterator_to_array
+    - plugin: multiple_values
+    - plugin: dgi_migrate.subproperty
+      property: nodeValue
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+  field_use_license:
+    - plugin: default_value
+      source: '@_use_license'
+      default_value: Unspecified
+    - plugin: entity_generate
+      bundle: creative_commons_licenses_4_0
+      bundle_key: vid
+      entity_type: taxonomy_term
+      value_key: name
+      ignore_case: *case_insensitive
   nid:
     - plugin: migration_lookup
       source: '@field_pid'
