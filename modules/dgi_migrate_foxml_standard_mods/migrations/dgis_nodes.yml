@@ -1638,6 +1638,10 @@ process:
       type: related_item
       process_values: true
       values:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
         field_relationship_type:
           - << : *nested_mods_node
             query: '@type'
@@ -2209,6 +2213,10 @@ process:
       type: series
       process_values: true
       values:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
         field_series_titles:
           - <<: *nested_mods_node
             query: 'mods:titleInfo/mods:title'
@@ -2405,7 +2413,7 @@ process:
     - plugin: null_coalesce
   field_funder:
     - <<: *base_mods_node
-      query: 'mods:role/mods:roleTerm="funder"'
+      query: 'mods:name[@type="corporate"][mods:role/mods:roleTerm="funder"]/mods:namePart'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
