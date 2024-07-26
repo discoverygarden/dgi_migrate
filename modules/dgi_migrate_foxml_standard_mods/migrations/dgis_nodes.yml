@@ -1695,7 +1695,7 @@ process:
           - plugin: null_coalesce
         field_related_item_identifier:
           - <<: *nested_mods_node
-            query: 'mods:relatedItem/mods:identifier'
+            query: 'mods:identifier'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1709,7 +1709,7 @@ process:
           - plugin: null_coalesce
         field_related_item_genre:
           - <<: *nested_mods_node
-            query: 'mods:relatedItem/mods:genre'
+            query: 'mods:genre'
           - plugin: callback
             callable: iterator_to_array
           - plugin: skip_on_empty
