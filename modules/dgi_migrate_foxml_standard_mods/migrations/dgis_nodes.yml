@@ -677,7 +677,7 @@ process:
     - plugin: null_coalesce
   field_note_paragraph:
     - << : *base_mods_node
-      query: 'mods:note'
+      query: 'mods:note[not(@type="funding" or @type="admin")]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
