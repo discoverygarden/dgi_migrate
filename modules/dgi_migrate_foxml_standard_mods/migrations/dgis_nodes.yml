@@ -1729,22 +1729,60 @@ process:
       query: 'mods:typeOfResource'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: single_value
-    - plugin: callback
-      callable: array_filter
-  field_resource_type:
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: resource_types
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _unspecified_resource_type:
     - plugin: default_value
-      source: '@_resource_type'
       default_value: Unspecified
-    - plugin: entity_generate
-      bundle: resource_types
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: gate
+      use_as_key: '@_resource_type'
+      valid_keys:
+        - null
+      key_direction: lock
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: resource_types
+        _auth_value_uri:
+          - plugin: default_value
+            default_value: ''
+        _auth_source:
+          - plugin: default_value
+            default_value: ''
+        _value:
+          - plugin: get
+            source: parent_value
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+    - <<: *generic_term_extract
+  field_resource_type:
+    - plugin: get
+      source:
+        - '@_resource_type'
+        - '@_unspecified_resource_type'
+    - plugin: null_coalesce
   field_restriction_on_access:
     - << : *base_mods_node
       query: 'mods:accessCondition[@type="restriction on access"]'
@@ -1753,21 +1791,6 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  # XXX: Was intended as outbound mapping, not inbound. Let's just comment for now.
-  #field_rights_statement:
-  #  - << : *base_mods_node
-  #    query: 'mods:accessCondition[@type="use and reproduction"]'
-  #  - plugin: callback
-  #    callable: iterator_to_array
-  #  - plugin: multiple_values
-  #  - plugin: dgi_migrate.subproperty
-  #    property: nodeValue
-  #  - plugin: entity_generate
-  #    bundle: rights_statements
-  #    bundle_key: vid
-  #    entity_type: taxonomy_term
-  #    value_key: name
-  #    ignore_case: *case_insensitive
   field_shelf_locator:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
@@ -2018,22 +2041,60 @@ process:
       query: 'mods:extension/etd:degree/etd:level'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: single_value
-    - plugin: callback
-      callable: array_filter
-  field_degree_level:
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: degree_levels
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _unspecified_degree_level:
     - plugin: default_value
-      source: '@_degree_level'
       default_value: Unspecified
-    - plugin: entity_generate
-      bundle: degree_levels
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: gate
+      use_as_key: '@_degree_level'
+      valid_keys:
+        - null
+      key_direction: unlock
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: degree_levels
+        _auth_value_uri:
+          - plugin: default_value
+            default_value: ''
+        _auth_source:
+          - plugin: default_value
+            default_value: ''
+        _value:
+          - plugin: get
+            source: parent_value
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+    - <<: *generic_term_extract
+  field_degree_level:
+    - plugin: get
+      source:
+        - '@_degree_level'
+        - '@_unspecified_degree_level'
+    - plugin: null_coalesce
   field_department:
     - <<: *base_mods_node
       query: 'mods:extension/etd:degree/etd:discipline'
@@ -2477,22 +2538,60 @@ process:
       query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons"]'
     - plugin: callback
       callable: iterator_to_array
+    - plugin: skip_on_empty
+      method: process
     - plugin: multiple_values
-    - plugin: dgi_migrate.subproperty
-      property: nodeValue
-    - plugin: single_value
-    - plugin: callback
-      callable: array_filter
-  field_use_license:
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: creative_commons_licenses_4_0
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+  _unspecified_use_license:
     - plugin: default_value
-      source: '@_use_license'
       default_value: Unspecified
-    - plugin: entity_generate
-      bundle: creative_commons_licenses_4_0
-      bundle_key: vid
-      entity_type: taxonomy_term
-      value_key: name
-      ignore_case: *case_insensitive
+    - plugin: gate
+      use_as_key: '@_resource_type'
+      valid_keys:
+        - null
+      key_direction: lock
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: creative_commons_licenses_4_0
+        _auth_value_uri:
+          - plugin: default_value
+            default_value: ''
+        _auth_source:
+          - plugin: default_value
+            default_value: ''
+        _value:
+          - plugin: get
+            source: parent_value
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+    - <<: *generic_term_extract
+  field_use_license:
+    - plugin: get
+      source:
+        - '@_use_license'
+        - '@_unspecified_use_license'
+    - plugin: flatten
   nid:
     - plugin: migration_lookup
       source: '@field_pid'
