@@ -2405,7 +2405,7 @@ process:
       callable: array_filter
     - plugin: null_coalesce
   field_funder:
-    - <<: *base_mods_node
+    - << : *base_mods_node
       query: 'mods:name[@type="corporate"][mods:role/mods:roleTerm="funder"][normalize-space(mods:namePart)]'
     - plugin: callback
       callable: iterator_to_array
@@ -2415,35 +2415,56 @@ process:
     - plugin: dgi_migrate.sub_process
       process_values: true
       values:
-        _vid:
+        _authority:
+          - << : *nested_mods_node
+            query: 'normalize-space(@authority)'
+            method: evaluate
+        _value_uri:
+          - << : *nested_mods_node
+            query: 'normalize-space(@valueURI)'
+            method: evaluate
+        _date_name:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[@type="date"][normalize-space()][1])'
+            method: evaluate
+        _display_form:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:displayForm[normalize-space()][1])'
+            method: evaluate
+        _untyped_names:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:namePart[not(@type)][normalize-space()])'
+            method: evaluate
+        _affiliation_lookup:
+          - << : *nested_mods_node
+            query: 'normalize-space(mods:affiliation[normalize-space()])'
+            method: evaluate
+          - plugin: skip_on_empty
+            method: process
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_affiliate
+            stub_id: dgis_stub_terms_affiliate
+        _affiliation:
           - plugin: default_value
-            default_value: funders
-        _auth_value_uri:
-          - <<: *nested_mods_node
-            query: 'string(@valueURI)'
-            method: evaluate
-        _auth_source:
-          - <<: *nested_mods_node
-            query: 'string(@authority)'
-            method: evaluate
-        _value:
-          - <<: *nested_mods_node
-            query: 'normalize-space(mods:namePart)'
-            method: evaluate
-        actual:
+            source: '@_affiliation_lookup'
+            default_value: ''
+        target_id:
           - plugin: get
             source:
-              - '@_auth_source'
-              - '@_auth_value_uri'
-              - '@_value'
-              # XXX: Needs to be provided wherever this is used, corresponding
-              # to the vocab in which to do the things.
-              - '@_vid'
+              - '@_authority'
+              - '@_value_uri'
+              - '@_untyped_names'
+              - '@_date_name'
+              - '@_display_form'
+              - '@_affiliation'
           - plugin: flatten
           - plugin: migration_lookup
-            migration: dgis_stub_terms_generic
-            stub_id: dgis_stub_terms_generic
-    - <<: *generic_term_extract
+            migration: dgis_stub_terms_corporate_body
+            stub_id: dgis_stub_terms_corporate_body
+          - plugin: skip_on_empty
+            method: row
+    - plugin: dgi_migrate.process.single_extract
+      index: [ target_id ]
   field_sponsorship_information:
     - <<: *base_mods_node
       query: 'mods:note[@type="funding"]'
