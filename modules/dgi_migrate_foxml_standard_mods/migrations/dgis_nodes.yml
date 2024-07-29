@@ -2479,7 +2479,7 @@ process:
     - plugin: null_coalesce
   _use_license:
     - <<: *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabe="Creative Commons"]'
+      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
