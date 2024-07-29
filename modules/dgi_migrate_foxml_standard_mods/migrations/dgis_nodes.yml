@@ -2553,7 +2553,7 @@ process:
     - plugin: default_value
       default_value: Unspecified
     - plugin: gate
-      use_as_key: '@_resource_type'
+      use_as_key: '@_use_license'
       valid_keys:
         - null
       key_direction: lock
