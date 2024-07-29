@@ -635,7 +635,6 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: single_value
-    - plugin: null_coalesce
   field_item_identifier:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
@@ -655,7 +654,6 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: single_value
-    - plugin: null_coalesce
   field_local_identifier:
     - << : *base_mods_node
       query: 'mods:identifier[@type="local"]'
@@ -719,7 +717,6 @@ process:
     - plugin: dgi_migrate.subproperty
       property: nodeValue
     - plugin: single_value
-    - plugin: null_coalesce
   field_linked_agent:
     - << : *base_mods_node
       query: 'mods:name[@type="personal"]'
@@ -2403,7 +2400,6 @@ process:
     - plugin: single_value
     - plugin: callback
       callable: array_filter
-    - plugin: null_coalesce
   field_funder:
     - << : *base_mods_node
       query: 'mods:name[@type="corporate"][mods:role/mods:roleTerm="funder"][normalize-space(mods:namePart)]'
@@ -2476,7 +2472,6 @@ process:
     - plugin: single_value
     - plugin: callback
       callable: array_filter
-    - plugin: null_coalesce
   _use_license:
     - <<: *base_mods_node
       query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons"]'
