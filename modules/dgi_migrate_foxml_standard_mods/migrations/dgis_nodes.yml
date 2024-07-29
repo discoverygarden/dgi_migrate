@@ -1779,7 +1779,7 @@ process:
     - plugin: multiple_values
     - plugin: dgi_migrate.subproperty
       property: nodeValue
-  _subject_topic:
+  field_subject:
     - << : *base_mods_node
       query: 'mods:subject/mods:topic[normalize-space()]'
     - plugin: callback
@@ -1795,7 +1795,7 @@ process:
             default_value: subject
         <<: *generic_term_after
     - <<: *generic_term_extract
-  _subject_name_personal:
+  field_subject_name_person:
     - << : *base_mods_node
       query: 'mods:subject/mods:name[@type="personal" or not(@type)][normalize-space()]'
     - plugin: callback
@@ -1866,7 +1866,7 @@ process:
             method: row
     - plugin: dgi_migrate.process.single_extract
       index: [ target_id ]
-  _subject_name_corporate:
+  field_subject_name_organization:
     - << : *base_mods_node
       query: 'mods:subject/mods:name[@type="corporate"][normalize-space()]'
     - plugin: callback
@@ -1927,13 +1927,6 @@ process:
             method: row
     - plugin: dgi_migrate.process.single_extract
       index: [ target_id ]
-  field_subject:
-    - plugin: get
-      source:
-        - '@_subject_topic'
-        - '@_subject_name_personal'
-        - '@_subject_name_corporate'
-    - plugin: flatten
   field_sub_location:
     - << : *base_mods_node
       query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
@@ -2413,7 +2406,7 @@ process:
     - plugin: null_coalesce
   field_funder:
     - <<: *base_mods_node
-      query: 'mods:name[@type="corporate"][mods:role/mods:roleTerm="funder"]/mods:namePart'
+      query: 'mods:name[@type="corporate"][mods:role/mods:roleTerm="funder"][normalize-space(mods:namePart)]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2425,7 +2418,31 @@ process:
         _vid:
           - plugin: default_value
             default_value: funders
-        <<: *generic_term_after
+        _auth_value_uri:
+          - <<: *nested_mods_node
+            query: 'string(@valueURI)'
+            method: evaluate
+        _auth_source:
+          - <<: *nested_mods_node
+            query: 'string(@authority)'
+            method: evaluate
+        _value:
+          - <<: *nested_mods_node
+            query: 'normalize-space(mods:namePart)'
+            method: evaluate
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
     - <<: *generic_term_extract
   field_sponsorship_information:
     - <<: *base_mods_node
