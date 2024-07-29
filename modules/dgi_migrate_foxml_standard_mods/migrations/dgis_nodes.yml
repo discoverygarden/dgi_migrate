@@ -1747,7 +1747,7 @@ process:
       use_as_key: '@_resource_type'
       valid_keys:
         - null
-      key_direction: lock
+      key_direction: unlock
     - plugin: dgi_migrate.sub_process
       process_values: true
       values:
@@ -2535,7 +2535,7 @@ process:
       callable: array_filter
   _use_license:
     - <<: *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons"]'
+      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2556,7 +2556,7 @@ process:
       use_as_key: '@_use_license'
       valid_keys:
         - null
-      key_direction: lock
+      key_direction: unlock
     - plugin: dgi_migrate.sub_process
       process_values: true
       values:
