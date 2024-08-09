@@ -1474,7 +1474,7 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
-        field_recording_catalog_language:
+        field_record_cataloging_language:
           - << : *nested_mods_node
             query: 'mods:languageOfCataloging'
           - plugin: callback
