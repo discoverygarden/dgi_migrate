@@ -1735,10 +1735,11 @@ process:
       query: 'mods:typeOfResource'
     - plugin: callback
       callable: iterator_to_array
+  _resource_type:
+    - plugin: get
+      source: '@_resource_type_query'
     - plugin: skip_on_empty
       method: process
-  _resource_type:
-    - << : *_resource_type_query
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
@@ -1749,7 +1750,10 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_resource_type:
-    - <<: *_resource_type_query
+    - plugin: get
+      source: '@_resource_type_query'
+    - plugin: skip_on_empty
+      method: process
     - plugin: get
       source: '@_unspecified_term'
     - plugin: gate
@@ -2050,10 +2054,11 @@ process:
       query: 'mods:extension/etd:degree/etd:level'
     - plugin: callback
       callable: iterator_to_array
+  _degree_level:
+    - plugin: get
+      source: '@_degree_level_query'
     - plugin: skip_on_empty
       method: process
-  _degree_level:
-    - <<: *_degree_level_query
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
@@ -2064,7 +2069,10 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_degree_level:
-    - <<: *_degree_level_query
+    - plugin: get
+      source: '@_degree_level_query'
+    - plugin: skip_on_empty
+      method: process
     - plugin: get
       source: '@_unspecified_term'
     - plugin: gate
@@ -2550,10 +2558,11 @@ process:
       query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"]'
     - plugin: callback
       callable: iterator_to_array
+  _use_license:
+    - plugin: get
+      source: '@_use_license_query'
     - plugin: skip_on_empty
       method: process
-  _use_license:
-    - <<: *_use_license_query
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
@@ -2564,7 +2573,10 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_use_license:
-    - <<: *_use_license_query
+    - plugin: get
+      source: '@_use_license_query'
+    - plugin: skip_on_empty
+      method: process
     - plugin: get
       source: '@_unspecified_term'
     - plugin: gate
@@ -2612,10 +2624,11 @@ process:
       query: 'mods:accessCondition[@type="rights statement"]'
     - plugin: callback
       callable: iterator_to_array
+  _rights_statement:
+    - plugin: get
+      source: '@_rights_statement_query'
     - plugin: skip_on_empty
       method: process
-  _rights_statement:
-    - <<: *_rights_statement_query
     - plugin: multiple_values
     - plugin: dgi_migrate.sub_process
       process_values: true
@@ -2630,7 +2643,10 @@ process:
       callable: array_filter
     - plugin: null_coalesce
   _unspecified_rights_statement:
-    - <<: *_rights_statement_query
+    - plugin: get
+      source: '@_rights_statement_query'
+    - plugin: skip_on_empty
+      method: process
     - plugin: get
       source: '@_unspecified_term'
     - plugin: gate
