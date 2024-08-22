@@ -18,7 +18,7 @@ use Drupal\migrate\Row;
  * The output is handled thus:
  * - If a range_start, or a range_end, or both, are provided and not empty, an
  *   EDTF-style date range will be assembled, and any results from single_date
- *   will be ignored.
+ *   will be combined.
  * - If neither a range_start nor a range_end are provided or are empty, but the
  *   single_date is provided and has a value, it is returned.
  * - If no provided property has a value, null will be returned.
@@ -37,7 +37,8 @@ use Drupal\migrate\Row;
  * @code
  * process:
  *   - plugin: dgi_migrate.process.assemble_date
- *     single_date: 2001-01-01
+ *     single_date:
+ *       - 2001-01-01
  *     range_start: 2002-02-02
  *     range_end: 2003-03-03
  *     indicate_open: false
@@ -96,7 +97,7 @@ class AssembleDate extends ProcessPluginBase {
       'range_start' => $this->configuration['range_start'] ?? NULL,
       'range_end' => $this->configuration['range_end'] ?? NULL,
     ];
-    if (!array_filter($this->dates)) {
+    if (empty($this->dates['single_date']) && !$this->dates['range_start'] && !$this->dates['range_end']) {
       throw new MigrateException('Plugin dgi_migrate.process.assemble_date requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided.');
     }
     $indicate_open = $this->configuration['indicate_open'] ?? FALSE;
@@ -108,11 +109,26 @@ class AssembleDate extends ProcessPluginBase {
    * {@inheritdoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    $return_value = $this->getDateRange($value, $migrate_executable, $row);
-    if (!$return_value) {
-      $return_value = $this->getValues ? $row->get($this->dates['single_date']) : $this->dates['single_date'];
+    $return_dates = [];
+
+    $date_range = $this->getDateRange($value, $migrate_executable, $row);
+    if ($date_range !== NULL) {
+      $return_dates[] = $date_range;
     }
-    return $return_value;
+
+    // Get single dates and add them to return_dates
+    $single_dates = $this->getValues ? $row->get($this->dates['single_date']) : $this->dates['single_date'];
+    if (is_array($single_dates)) {
+      $return_dates = array_merge($return_dates, $single_dates);
+    } elseif ($single_dates !== NULL) {
+      $return_dates[] = $single_dates;
+    }
+
+    if (count($return_dates) === 1) {
+      return $return_dates[0];
+    }
+
+    return $return_dates;
   }
 
   /**
