@@ -116,11 +116,12 @@ class AssembleDate extends ProcessPluginBase {
       $return_dates[] = $date_range;
     }
 
-    // Get single dates and add them to return_dates
+    // Get single dates and add them to return_dates.
     $single_dates = $this->getValues ? $row->get($this->dates['single_date']) : $this->dates['single_date'];
     if (is_array($single_dates)) {
       $return_dates = array_merge($return_dates, $single_dates);
-    } elseif ($single_dates !== NULL) {
+    }
+    elseif ($single_dates !== NULL) {
       $return_dates[] = $single_dates;
     }
 
