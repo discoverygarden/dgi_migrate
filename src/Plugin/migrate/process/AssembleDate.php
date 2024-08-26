@@ -97,7 +97,7 @@ class AssembleDate extends ProcessPluginBase {
       'range_start' => $this->configuration['range_start'] ?? NULL,
       'range_end' => $this->configuration['range_end'] ?? NULL,
     ];
-    if (empty($this->dates['single_date']) && !$this->dates['range_start'] && !$this->dates['range_end']) {
+    if (!array_filter($this->dates)) {
       throw new MigrateException('Plugin dgi_migrate.process.assemble_date requires at least one of the three properties, "single_date", "range_start", or "range_end" to be provided.');
     }
     $indicate_open = $this->configuration['indicate_open'] ?? FALSE;
@@ -126,7 +126,7 @@ class AssembleDate extends ProcessPluginBase {
     }
 
     if (count($return_dates) === 1) {
-      return $return_dates[0];
+      return reset($return_dates);
     }
 
     return $return_dates;
