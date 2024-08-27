@@ -55,6 +55,9 @@ destination:
   #translations: true
   validate: &validate true
 process:
+  _unspecified_term:
+    - plugin: default_value
+      default_value: 'Unspecified'
   _node_foxml_parsed:
     - plugin: dgi_migrate.load_entity
       source: fid
@@ -236,6 +239,9 @@ process:
         - '@_sequence_number'
         - '@_constituent_sequence'
     - plugin: null_coalesce
+    # Prevent leading zeroes from crashing the migration.
+    - plugin: callback
+      callable: intval
     - plugin: skip_on_empty
       method: process
   _mods_xpath:
@@ -1724,11 +1730,14 @@ process:
                   default_value: genre
               <<: *generic_term_after
           - <<: *generic_term_extract
-  _resource_type:
+  _resource_type_query:
     - << : *base_mods_node
       query: 'mods:typeOfResource'
     - plugin: callback
       callable: iterator_to_array
+  _resource_type:
+    - plugin: get
+      source: '@_resource_type_query'
     - plugin: skip_on_empty
       method: process
     - plugin: multiple_values
@@ -1741,8 +1750,12 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_resource_type:
-    - plugin: default_value
-      default_value: Unspecified
+    - plugin: get
+      source: '@_resource_type_query'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: get
+      source: '@_unspecified_term'
     - plugin: gate
       use_as_key: '@_resource_type'
       valid_keys:
@@ -1998,7 +2011,7 @@ process:
       validate: *validate
   field_use_and_reproduction:
     - << : *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"]'
+      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2036,11 +2049,14 @@ process:
             default_value: degree_names
         <<: *generic_term_after
     - <<: *generic_term_extract
-  _degree_level:
+  _degree_level_query:
     - <<: *base_mods_node
       query: 'mods:extension/etd:degree/etd:level'
     - plugin: callback
       callable: iterator_to_array
+  _degree_level:
+    - plugin: get
+      source: '@_degree_level_query'
     - plugin: skip_on_empty
       method: process
     - plugin: multiple_values
@@ -2053,8 +2069,12 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_degree_level:
-    - plugin: default_value
-      default_value: Unspecified
+    - plugin: get
+      source: '@_degree_level_query'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: get
+      source: '@_unspecified_term'
     - plugin: gate
       use_as_key: '@_degree_level'
       valid_keys:
@@ -2533,11 +2553,14 @@ process:
     - plugin: single_value
     - plugin: callback
       callable: array_filter
-  _use_license:
+  _use_license_query:
     - <<: *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"]'
+      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"]'
     - plugin: callback
       callable: iterator_to_array
+  _use_license:
+    - plugin: get
+      source: '@_use_license_query'
     - plugin: skip_on_empty
       method: process
     - plugin: multiple_values
@@ -2550,8 +2573,12 @@ process:
         <<: *generic_term_after
     - <<: *generic_term_extract
   _unspecified_use_license:
-    - plugin: default_value
-      default_value: Unspecified
+    - plugin: get
+      source: '@_use_license_query'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: get
+      source: '@_unspecified_term'
     - plugin: gate
       use_as_key: '@_use_license'
       valid_keys:
@@ -2592,6 +2619,76 @@ process:
         - '@_use_license'
         - '@_unspecified_use_license'
     - plugin: flatten
+  _rights_statement_query:
+    - <<: *base_mods_node
+      query: 'mods:accessCondition[@type="rights statement"]'
+    - plugin: callback
+      callable: iterator_to_array
+  _rights_statement:
+    - plugin: get
+      source: '@_rights_statement_query'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: multiple_values
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: rights_statements
+        <<: *generic_term_after
+    - <<: *generic_term_extract
+    - plugin: single_value
+    - plugin: callback
+      callable: array_filter
+    - plugin: null_coalesce
+  _unspecified_rights_statement:
+    - plugin: get
+      source: '@_rights_statement_query'
+    - plugin: skip_on_empty
+      method: process
+    - plugin: get
+      source: '@_unspecified_term'
+    - plugin: gate
+      use_as_key: '@_rights_statement'
+      valid_keys:
+        - null
+      key_direction: unlock
+    - plugin: dgi_migrate.sub_process
+      process_values: true
+      values:
+        _vid:
+          - plugin: default_value
+            default_value: rights_statements
+        _auth_value_uri:
+          - plugin: default_value
+            default_value: ''
+        _auth_source:
+          - plugin: default_value
+            default_value: ''
+        _value:
+          - plugin: get
+            source: parent_value
+        actual:
+          - plugin: get
+            source:
+              - '@_auth_source'
+              - '@_auth_value_uri'
+              - '@_value'
+              # XXX: Needs to be provided wherever this is used, corresponding
+              # to the vocab in which to do the things.
+              - '@_vid'
+          - plugin: flatten
+          - plugin: migration_lookup
+            migration: dgis_stub_terms_generic
+            stub_id: dgis_stub_terms_generic
+    - <<: *generic_term_extract
+  field_rights_statement:
+    - plugin: get
+      source:
+        - '@_rights_statement'
+        - '@_unspecified_rights_statement'
+    - plugin: null_coalesce
   nid:
     - plugin: migration_lookup
       source: '@field_pid'
