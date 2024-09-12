@@ -2,6 +2,8 @@
 id: dgis_stub_terms_generic
 label: Create stub misc authoried terms.
 migration_group: foxml_to_dgis
+migration_tags:
+  - dgi_migrate_foxml_standard_mods
 source:
   plugin: embedded_data
   data_rows: []
