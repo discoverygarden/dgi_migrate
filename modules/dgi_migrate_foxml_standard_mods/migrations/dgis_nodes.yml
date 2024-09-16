@@ -1489,6 +1489,12 @@ process:
           - plugin: multiple_values
           - plugin: dgi_migrate.subproperty
             property: nodeValue
+          - plugin: entity_lookup
+            entity_type: taxonomy_term
+            bundle_key: vid
+            bundle: language
+            value_key: name
+            ignore_case: true
         _field_record_change_date_single:
           - << : *nested_mods_node
             query: 'mods:recordChangeDate[not(@point)]'
