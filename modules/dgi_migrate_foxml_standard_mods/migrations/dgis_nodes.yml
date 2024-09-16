@@ -1473,6 +1473,10 @@ process:
       type: record_information
       process_values: true
       values:
+        _mods_xpath:
+          # XXX: Copy here so it's available for further subprocessing.
+          - plugin: get
+            source: parent_row/dest/_mods_xpath
         field_description_standard:
           - << : *nested_mods_node
             query: 'mods:descriptionStandard'
@@ -1483,16 +1487,20 @@ process:
             property: nodeValue
         field_record_cataloging_language:
           - << : *nested_mods_node
-            query: 'mods:languageOfCataloging'
+            query: 'mods:languageOfCataloging[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
-          - plugin: dgi_migrate.subproperty
-            property: nodeValue
           - plugin: dgi_migrate.sub_process
             process_values: true
             values:
+              _mods_xpath:
+                # XXX: Copy here so it's available for further subprocessing.
+                - plugin: get
+                  source: parent_row/dest/_mods_xpath
               language_term:
+                - << : *nested_mods_node
+                  evaluate: 'normalize-space(.)'
                 - plugin: dgi_migrate.required_entity_lookup
                   source: parent_value
                   entity_type: taxonomy_term
