@@ -1500,7 +1500,8 @@ process:
                   source: parent_row/dest/_mods_xpath
               language_term:
                 - << : *nested_mods_node
-                  evaluate: 'normalize-space(.)'
+                  query: 'normalize-space(.)'
+                  method: evaluate
                 - plugin: dgi_migrate.required_entity_lookup
                   source: parent_value
                   entity_type: taxonomy_term
