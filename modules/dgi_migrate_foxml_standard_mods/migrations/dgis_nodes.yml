@@ -1494,16 +1494,11 @@ process:
           - plugin: dgi_migrate.sub_process
             process_values: true
             values:
-              _mods_xpath:
-                # XXX: Copy here so it's available for further subprocessing.
-                - plugin: get
-                  source: parent_row/dest/_mods_xpath
               language_term:
                 - << : *nested_mods_node
-                  query: 'normalize-space(.)'
+                  query: 'string(normalize-space(.))'
                   method: evaluate
                 - plugin: dgi_migrate.required_entity_lookup
-                  source: parent_value
                   entity_type: taxonomy_term
                   bundle_key: vid
                   bundle: language
