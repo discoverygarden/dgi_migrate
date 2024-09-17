@@ -70,11 +70,6 @@ process:
     - plugin: dgi_migrate.method
       source: '@_latest'
       method: getUri
-  _path:
-    - plugin: format_date
-      source: '@created'
-      from_format: U
-      to_format: 'Y-m'
   filemime:
     - plugin: dgi_migrate.subproperty
       property: MIMETYPE
@@ -93,19 +88,12 @@ process:
         - '@_safe_pid'
         - '@_ext'
       delimiter: '.'
-  _dest_uri:
-    - plugin: concat
-      source:
-        - constants/file_dest
-        - '@_path'
-        - '@filename'
-      delimiter: '/'
   uri:
-    - plugin: dgi_migrate.naive_file_copy
-      file_exists: rename
-      source:
-        - '@_source_uri'
-        - '@_dest_uri'
+    - plugin: dgi_migrate.foxml_file
+      source: '@_source_uri'
+      destination: constants/file_dest
+      date: '@created'
+      filename: '@filename'
   filesize:
     - plugin: callback
       source: '@uri'
