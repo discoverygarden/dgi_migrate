@@ -57,7 +57,11 @@ class FoxmlFile extends ProcessPluginBase implements ContainerFactoryPluginInter
       $plugin_id,
       $plugin_definition,
       $migration,
-      $process_plugin_manager->createInstance('dgi_migrate.naive_file_copy', [], $migration),
+      $process_plugin_manager->createInstance('dgi_migrate.naive_file_copy', [
+        'force_stub' => TRUE,
+        'move' => FALSE,
+        'file_exists' => 'rename',
+      ], $migration),
     );
   }
 
@@ -66,10 +70,15 @@ class FoxmlFile extends ProcessPluginBase implements ContainerFactoryPluginInter
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     return match ($this->configuration['method']) {
-      'copy' => $this->naiveCopyPlugin->transform([
-        $value,
-        $this->getDestinationPath($row),
-      ], $migrate_executable, $row, $destination_property),
+      'copy' => $this->naiveCopyPlugin->transform(
+        [
+          $value,
+          $this->getDestinationPath($row),
+        ],
+        $migrate_executable,
+        $row,
+        $destination_property,
+      ),
       'direct' => static::ensureNonWritable($value),
     };
   }
