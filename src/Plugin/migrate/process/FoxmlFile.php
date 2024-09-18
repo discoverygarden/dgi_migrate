@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Plugin\MigrateProcessInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -26,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "dgi_migrate.foxml_file"
  * )
  */
-class FoxmlFile extends ProcessPluginBase {
+class FoxmlFile extends ProcessPluginBase implements ContainerFactoryPluginInterface {
 
   use EnsureNonWritableTrait;
 
