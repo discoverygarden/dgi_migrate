@@ -89,7 +89,7 @@ process:
         - '@_ext'
       delimiter: '.'
   uri:
-    - plugin: dgi_migrate.foxml_file
+    - plugin: dgi_migrate_foxml_standard_mods.foxml_file
       source: '@_source_uri'
       destination: constants/file_dest
       date: '@created'

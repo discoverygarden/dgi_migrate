@@ -34,6 +34,14 @@ further information.
 
 The migration can be run using the `foxml_to_dgis` migration group.
 
+## Configuration
+
+### Environment variables
+
+| Variable | Default                    | Description                                                                                                                                                        |
+| --- |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DGI_MIGRATE_FOXML_STANDARD_MODS_FILE_METHOD` | (unset, defaults to `copy`) | To `copy` or attempt to reference files `direct`ly. Despite configuration, copying will be forced for URIs referencing parts of base64 encoded archival FOXML. |
+
 ## Troubleshooting/Issues
 
 Having problems or solved a problem? Contact
