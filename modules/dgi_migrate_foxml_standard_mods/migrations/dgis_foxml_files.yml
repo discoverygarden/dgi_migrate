@@ -19,30 +19,9 @@ destination:
   plugin: entity:file
   validate: true
 process:
-  uri: uri
-  _validate:
-    # XXX: Initial safety business... try to avoid operating on files which are
-    # writable, to avoid potentially deleting them on a rollback.
-    - plugin: callback
-      callable: is_writable
-      source: '@uri'
-    - plugin: dgi_migrate.process.log
-      template: 'Should not be writable... is it? :value'
-      level: 4
-    - plugin: skip_on_value
-      value: true
-      method: row
-    - plugin: callback
-      callable: dirname
-      source: '@uri'
-    - plugin: callback
-      callable: is_writable
-    - plugin: dgi_migrate.process.log
-      template: 'Directory should not be writable... is it? :value'
-      level: 4
-    - plugin: skip_on_value
-      value: true
-      method: row
+  uri:
+    - plugin: dgi_migrate.non_writable
+      source: uri
   _parsed:
     plugin: foxml.parse
     source: path

@@ -3,7 +3,6 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Plugin\MigrateProcessInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
@@ -29,6 +28,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class FoxmlFile extends ProcessPluginBase {
 
+  use EnsureNonWritableTrait;
+
   /**
    * Constructor.
    */
@@ -36,7 +37,7 @@ class FoxmlFile extends ProcessPluginBase {
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    protected MigrationInterface $migration,
+    protected ?MigrationInterface $migration,
     protected MigrateProcessInterface $naiveCopyPlugin,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -68,7 +69,7 @@ class FoxmlFile extends ProcessPluginBase {
         $value,
         $this->getDestinationPath($row),
       ], $migrate_executable, $row, $destination_property),
-      'direct' => $this->ensureNonWritable($value),
+      'direct' => static::ensureNonWritable($value),
     };
   }
 
@@ -81,30 +82,6 @@ class FoxmlFile extends ProcessPluginBase {
     $filename = $row->get($this->configuration['filename']);
 
     return "{$dest_dir}/{$path}/{$filename}";
-  }
-
-  /**
-   * Helper; ensure the given path does not appear to be writable.
-   *
-   * @param string $path
-   *   The path to check.
-   *
-   * @return string
-   *   The path unchanged if non-writable; otherwise, we throw the skip
-   *   exception.
-   *
-   * @throws \Drupal\migrate\MigrateSkipRowException
-   *   If the file appears to be writable/deletable.
-   */
-  protected function ensureNonWritable(string $path) : string {
-    $file = new \SplFileInfo($path);
-
-    if ($file->isFile() && !$file->isDir() && $file->isReadable() && !$file->isWritable() &&
-      !$file->getPathInfo()->isWritable()) {
-      throw new MigrateSkipRowException('Source appears writable (or not readable); skipping row.');
-    }
-
-    return $path;
   }
 
 }
