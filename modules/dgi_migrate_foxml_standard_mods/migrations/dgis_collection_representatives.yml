@@ -2,6 +2,9 @@
 id: dgis_collection_representatives
 label: Map representatives for collections.
 migration_group: foxml_to_dgis
+migration_tags:
+  - dgi_migrate_foxml_standard_mods
+  - migration_group:foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true

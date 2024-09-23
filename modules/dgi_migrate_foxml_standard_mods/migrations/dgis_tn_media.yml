@@ -2,6 +2,10 @@
 id: dgis_tn_media
 label: Create thumbnail media entities from FOXML
 migration_group: foxml_to_dgis
+migration_tags:
+  - dgi_migrate_foxml_standard_mods
+  - dgi_migrate_foxml_standard_mods:media_migration
+  - migration_group:foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true

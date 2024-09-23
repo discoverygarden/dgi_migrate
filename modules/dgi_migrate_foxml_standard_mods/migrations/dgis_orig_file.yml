@@ -2,6 +2,10 @@
 id: dgis_orig_file
 label: Create File entities from primary datastreams in FOXML
 migration_group: foxml_to_dgis
+migration_tags:
+  - dgi_migrate_foxml_standard_mods
+  - dgi_migrate_foxml_standard_mods:file_migration
+  - migration_group:foxml_to_dgis
 source:
   plugin: dgi_migrate.source.migration
   track_changes: true

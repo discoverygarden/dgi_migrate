@@ -2,6 +2,9 @@
 id: dgis_foxml_files
 label: Create File entities from exported FOXML
 migration_group: foxml_to_dgis
+migration_tags:
+  - dgi_migrate_foxml_standard_mods
+  - migration_group:foxml_to_dgis
 source:
   plugin: foxml
   track_changes: true
