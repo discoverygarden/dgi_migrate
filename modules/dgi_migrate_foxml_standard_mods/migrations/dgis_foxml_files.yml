@@ -14,7 +14,9 @@ source:
   # validation of the URI in the destination may fail (presumably, naive URI
   # validation inside of Drupal, expecting HTTP-like URLs)... or may just
   # require a third slash to imply an empty "authority" component?
-  cache_counts: true
+  # XXX: For big sets of things, counting could take a substantial amount of
+  # time, so let's skip it.
+  skip_count: true
 destination:
   plugin: entity:file
   validate: true
