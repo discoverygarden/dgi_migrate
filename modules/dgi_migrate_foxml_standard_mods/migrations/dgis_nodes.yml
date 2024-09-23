@@ -41,9 +41,13 @@ source:
               # to the vocab in which to do the things.
               - '@_vid'
           - plugin: flatten
-          - plugin: migration_lookup
+          - plugin: dgi_migrate.process.locking_migration_lookup
             migration: dgis_stub_terms_generic
             stub_id: dgis_stub_terms_generic
+            lock_context_keys:
+              dgis_stub_terms_generic:
+                - { offset: [3] }
+                - { offset: [1], hash: '##'}
       extract: &generic_term_extract
         plugin: dgi_migrate.process.single_extract
         index: [actual]
@@ -71,6 +75,7 @@ process:
       method: models
     - plugin: skip_on_empty
       method: row
+      message: 'Skipping; no model defined.'
   title:
     - plugin: dgi_migrate.subproperty
       source: '@_node_foxml_parsed'
@@ -2703,18 +2708,23 @@ process:
         - '@_unspecified_rights_statement'
     - plugin: null_coalesce
   nid:
-    - plugin: migration_lookup
+    - plugin: dgi_migrate.process.locking_migration_lookup
       source: '@field_pid'
       migration: dgis_stub_nodes
+      lock_context_keys: &dgis_stub_nodes_lock_context_keys
+        dgis_stub_nodes:
+          - { offset: [ 0 ], hash: '#/##' }
   field_member_of:
     - plugin: flatten
       source:
         - '@_members'
         - '@_constituents'
     - plugin: multiple_values
-    - plugin: migration_lookup
+    - plugin: dgi_migrate.process.locking_migration_lookup
       migration: dgis_stub_nodes
       stub_id: dgis_stub_nodes
+      lock_context_keys:
+        << : *dgis_stub_nodes_lock_context_keys
 migration_dependencies:
   required:
     - dgis_foxml_files
