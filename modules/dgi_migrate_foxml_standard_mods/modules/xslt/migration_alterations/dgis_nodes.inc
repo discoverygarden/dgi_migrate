@@ -40,6 +40,7 @@ function _dgi_migrate_foxml_standard_mods_xslt_dgis_nodes_migration_alterations(
 - plugin: dgi_migrate.process.xml.xpath
   namespaces:
     mods: 'http://www.loc.gov/mods/v3'
+    etd: 'http://www.ndltd.org/standards/metadata/etdms/1.0'
     xsi: 'http://www.w3.org/2001/XMLSchema-instance'
     xlink: 'http://www.w3.org/1999/xlink'
 EOI

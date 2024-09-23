@@ -250,6 +250,30 @@ class MigrateBatchExecutable extends MigrateExecutable {
   }
 
   /**
+   * Helper to format exceptions.
+   *
+   * @param \Exception $e
+   *   The exception to format.
+   * @param string $prefix
+   *   Prefix to tack onto exceptions, such that causes can be added
+   *   recursively.
+   * @param int $depth
+   *   Recursive depth, to augment message.
+   *
+   * @return string
+   *   The formatted exception.
+   */
+  protected function formatException(\Throwable $e, string $prefix = 'Initial', int $depth = 0) : string {
+    $parts = [];
+    $parts[] = "$prefix message: {$e->getMessage()}";
+    $parts[] = "$prefix trace:\n{$e->getTraceAsString()}";
+    if ($e->getPrevious()) {
+      $parts[] = $this->formatException($e->getPrevious(), "--- Cause #{$depth}", $depth + 1);
+    }
+    return implode("\n", $parts);
+  }
+
+  /**
    * The meat of processing a row.
    *
    * Perform the processing of a row and save it to the destination, if
@@ -269,11 +293,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $this->processRow($row);
       $save = TRUE;
     }
-    catch (MigrateException $e) {
-      $this->getIdMap()->saveIdMapping($row, [], $e->getStatus());
-      $this->saveMessage($e->getMessage(), $e->getLevel());
-      $save = FALSE;
-    }
     catch (MigrateSkipRowException $e) {
       if ($e->getSaveToMap()) {
         $id_map->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_IGNORED);
@@ -281,6 +300,16 @@ class MigrateBatchExecutable extends MigrateExecutable {
       if ($message = trim($e->getMessage())) {
         $this->saveMessage($message, MigrationInterface::MESSAGE_INFORMATIONAL);
       }
+      $save = FALSE;
+    }
+    catch (MigrateException $e) {
+      $this->getIdMap()->saveIdMapping($row, [], $e->getStatus());
+      $this->saveMessage($this->formatException($e), $e->getLevel());
+      $save = FALSE;
+    }
+    catch (\Exception $e) {
+      $this->getIdMap()->saveIdMapping($row, [], MigrateIdMapInterface::STATUS_FAILED);
+      $this->saveMessage($this->formatException($e), MigrationInterface::MESSAGE_ERROR);
       $save = FALSE;
     }
 
