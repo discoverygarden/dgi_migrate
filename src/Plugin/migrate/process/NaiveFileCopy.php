@@ -20,6 +20,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * The core "file_copy" is rather opinionated, complicating the use of the
  * php:// scheme.
  *
+ * Extends "file_copy", additionally accepting:
+ * - force_stub: Boolean to force the copying when the row being processed
+ *   appears to be a stub.
+ *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.naive_file_copy"
  * )
@@ -34,12 +38,20 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
   protected $migrateConfig;
 
   /**
+   * Boolean if we should force copying when the row is a stub.
+   *
+   * @var bool
+   */
+  protected bool $forceStub;
+
+  /**
    * Constructor.
    */
   public function __construct(array $configuration, $plugin_id, array $plugin_definition, StreamWrapperManagerInterface $stream_wrappers, FileSystemInterface $file_system, MigrateProcessInterface $download_plugin, ConfigFactoryInterface $config_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $stream_wrappers, $file_system, $download_plugin);
 
     $this->migrateConfig = $config_factory->get('dgi_migrate.settings');
+    $this->forceStub = $this->configuration['force_stub'] ?? FALSE;
   }
 
   /**
@@ -63,7 +75,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     // If we're stubbing a file entity, return a URI of NULL so it will get
     // stubbed by the general process.
-    if ($row->isStub()) {
+    if (!$this->forceStub && $row->isStub()) {
       return NULL;
     }
     [$source, $destination] = $value;
