@@ -26,7 +26,7 @@ class NonWritable extends ProcessPluginBase {
    * {@inheritDoc}
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
-    return static::ensureNonWritable($value);
+    return $this->ensureNonWritable($value);
   }
 
 }
