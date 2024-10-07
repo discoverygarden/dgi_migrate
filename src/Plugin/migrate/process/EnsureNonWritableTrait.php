@@ -49,7 +49,7 @@ trait EnsureNonWritableTrait {
         '{path}' => $path,
       ]));
     }
-    if (is_writable($this->fileSystem->dirname($path))) {
+    if (is_writable($this->getFileSystem()->dirname($path))) {
       throw new MigrateSkipRowException(strtr('Directory of source ({path}) appears writable(/deletable); skipping row.', [
         '{path}' => $path,
       ]));
