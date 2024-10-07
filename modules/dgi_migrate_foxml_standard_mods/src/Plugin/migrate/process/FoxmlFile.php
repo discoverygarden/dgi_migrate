@@ -94,7 +94,7 @@ class FoxmlFile extends ProcessPluginBase implements ContainerFactoryPluginInter
         $row,
         $destination_property,
       ),
-      'direct' => static::ensureNonWritable($value),
+      'direct' => $this->ensureNonWritable($value),
     };
   }
 

@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\migrate\MigrateSkipRowException;
 
 /**
@@ -27,36 +28,55 @@ trait EnsureNonWritableTrait {
    * @throws \Drupal\migrate\MigrateSkipRowException
    *   If the file appears to be writable/deletable.
    */
-  protected static function ensureNonWritable(string $path) : string {
-    $file = new \SplFileInfo($path);
-
-    if (!$file->isFile()) {
+  protected function ensureNonWritable(string $path) : string {
+    if (!is_file($path)) {
       throw new MigrateSkipRowException(strtr('Source ({path}) does not appear to be a plain file; skipping row.', [
         '{path}' => $path,
       ]));
     }
-    if ($file->isDir()) {
+    if (is_dir($path)) {
       throw new MigrateSkipRowException(strtr('Source ({path}) appears to be a directory; skipping row.', [
         '{path}' => $path,
       ]));
     }
-    if (!$file->isReadable()) {
+    if (!is_readable($path)) {
       throw new MigrateSkipRowException(strtr('Source ({path}) does not appear to be readable; skipping row.', [
         '{path}' => $path,
       ]));
     }
-    if ($file->isWritable()) {
+    if (is_writable($path)) {
       throw new MigrateSkipRowException(strtr('Source ({path}) appears to be writable(/deletable); skipping row.', [
         '{path}' => $path,
       ]));
     }
-    if ($file->getPathInfo()?->isWritable()) {
+    if (is_writable($this->getFileSystem()->dirname($path))) {
       throw new MigrateSkipRowException(strtr('Directory of source ({path}) appears writable(/deletable); skipping row.', [
         '{path}' => $path,
       ]));
     }
 
     return $path;
+  }
+
+  /**
+   * Drupal's file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected FileSystemInterface $fileSystem;
+
+  /**
+   * Accessor for Drupal's file system service.
+   *
+   * @return \Drupal\Core\File\FileSystemInterface
+   *   Drupal's file system service.
+   */
+  protected function getFileSystem() : FileSystemInterface {
+    if (!isset($this->fileSystem)) {
+      $this->fileSystem = \Drupal::service('file_system');
+    }
+
+    return $this->fileSystem;
   }
 
 }
