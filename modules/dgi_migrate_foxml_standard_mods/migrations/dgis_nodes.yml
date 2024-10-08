@@ -259,6 +259,9 @@ process:
       missing_behavior: skip_process
     - plugin: dgi_migrate.method
       method: getUri
+    - plugin: skip_on_empty
+      method: row
+      message: 'Failed to fetch the MODS XML.'
     # XXX: An issue in the passing off of paths/URIs to libxml prevents the use
     # of "dgi_migrate.process.xml.domfile"
     - plugin: callback
