@@ -65,6 +65,7 @@ function init_vars () {
   declare -g TIME=${TIME:-/usr/bin/time}
   declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
   declare -g PROCESSES=${PROCESSES:-1}
+  declare -g ULIMIT_FOR_PROCESSING=${ULIMIT_FOR_PROCESSING:--1}
   declare -g SKIP_STATUS=${SKIP_STATUS:-false}
   declare -g -a MULTIPROCESS_SKIP_MIGRATIONS=(${MULTIPROCESS_SKIP_MIGRATIONS[@]})
   declare -g -a MULTIPROCESS_PRE_ENQUEUE_PAUSE=(${MULTIPROCESS_PRE_ENQUEUE_PAUSE[@]})
@@ -86,6 +87,9 @@ function init_vars () {
     export DGI_MIGRATE__DO_MIGRATION_LOOKUP_LOCKING="FALSE"
   fi
 
+  if [ $ULIMIT_FOR_PROCESSING -gt -1 ]; then
+    ulimit -n $ULIMIT_FOR_PROCESSING
+  fi
   set -u
 }
 
