@@ -287,7 +287,7 @@ process:
     - plugin: array_shift
   field_ark:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="ark"]'
+      query: 'mods:identifier[@type="ark"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -297,7 +297,7 @@ process:
     - plugin: null_coalesce
   field_coordinates:
     - << : *base_mods_node
-      query: 'mods:subject/mods:cartographics/mods:coordinates'
+      query: 'mods:subject/mods:cartographics/mods:coordinates[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -336,7 +336,7 @@ process:
             source: '@_value/1'
   field_edtf_date_created:
     - << : *base_mods_node
-      query: 'mods:originInfo/mods:dateCreated[@keydate="yes"]'
+      query: 'mods:originInfo/mods:dateCreated[@keydate="yes"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -344,7 +344,7 @@ process:
       property: nodeValue
   field_edtf_date_issued:
     - << : *base_mods_node
-      query: 'mods:originInfo/mods:dateIssued[@keydate="yes"]'
+      query: 'mods:originInfo/mods:dateIssued[@keydate="yes"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -352,7 +352,7 @@ process:
       property: nodeValue
   field_description:
     - << : *base_mods_node
-      query: 'mods:abstract[@displayLabel="summary"]'
+      query: 'mods:abstract[@displayLabel="summary"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -362,7 +362,7 @@ process:
     - plugin: null_coalesce
   field_digital_origin:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:digitalOrigin'
+      query: 'mods:physicalDescription/mods:digitalOrigin[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -370,7 +370,7 @@ process:
       property: nodeValue
   field_doi:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="doi"]'
+      query: 'mods:identifier[@type="doi"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -380,7 +380,7 @@ process:
     - plugin: null_coalesce
   field_electronic_locator:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:electronicLocator[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -390,7 +390,7 @@ process:
     - plugin: null_coalesce
   field_enumeration_and_chronology:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:enumerationAndChronology[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -400,7 +400,7 @@ process:
     - plugin: null_coalesce
   field_extent:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:extent'
+      query: 'mods:physicalDescription/mods:extent[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -408,7 +408,7 @@ process:
       property: nodeValue
   field_faceted_subject:
     - << : *base_mods_node
-      query: 'mods:subject'
+      query: 'mods:subject[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -497,7 +497,7 @@ process:
           - <<: *generic_term_extract
   field_form:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:form[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -537,7 +537,7 @@ process:
     - <<: *generic_term_extract
   field_handle:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="hdl"]'
+      query: 'mods:identifier[@type="hdl"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -547,7 +547,7 @@ process:
     - plugin: null_coalesce
   field_hierarchical_geographic_su:
     - << : *base_mods_node
-      query: 'mods:subject/mods:hierarchicalGeographic'
+      query: 'mods:subject/mods:hierarchicalGeographic[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -558,7 +558,7 @@ process:
       values:
         field_area:
           - << : *nested_mods_node
-            query: 'mods:area'
+            query: 'mods:area[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -566,7 +566,7 @@ process:
             property: nodeValue
         field_city:
           - << : *nested_mods_node
-            query: 'mods:city'
+            query: 'mods:city[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -574,7 +574,7 @@ process:
             property: nodeValue
         field_city_section:
           - << : *nested_mods_node
-            query: 'mods:citySection'
+            query: 'mods:citySection[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -582,7 +582,7 @@ process:
             property: nodeValue
         field_continent:
           - << : *nested_mods_node
-            query: 'mods:continent'
+            query: 'mods:continent[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -590,7 +590,7 @@ process:
             property: nodeValue
         field_country:
           - << : *nested_mods_node
-            query: 'mods:country'
+            query: 'mods:country[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -598,7 +598,7 @@ process:
             property: nodeValue
         field_county:
           - << : *nested_mods_node
-            query: 'mods:county'
+            query: 'mods:county[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -606,7 +606,7 @@ process:
             property: nodeValue
         field_extraterrestrial_area:
           - << : *nested_mods_node
-            query: 'mods:extraterrestrialArea'
+            query: 'mods:extraterrestrialArea[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -614,7 +614,7 @@ process:
             property: nodeValue
         field_island:
           - << : *nested_mods_node
-            query: 'mods:island'
+            query: 'mods:island[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -622,7 +622,7 @@ process:
             property: nodeValue
         field_region:
           - << : *nested_mods_node
-            query: 'mods:region'
+            query: 'mods:region[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -630,7 +630,7 @@ process:
             property: nodeValue
         field_state:
           - << : *nested_mods_node
-            query: 'mods:state'
+            query: 'mods:state[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -638,7 +638,7 @@ process:
             property: nodeValue
         field_territory:
           - << : *nested_mods_node
-            query: 'mods:territory'
+            query: 'mods:territory[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -646,7 +646,7 @@ process:
             property: nodeValue
   field_isbn:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="isbn"]'
+      query: 'mods:identifier[@type="isbn"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -655,7 +655,7 @@ process:
     - plugin: single_value
   field_item_identifier:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:itemIdentifier[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -665,7 +665,7 @@ process:
     - plugin: null_coalesce
   field_lcc_classification:
     - << : *base_mods_node
-      query: 'mods:classification[@authority="lcc"]'
+      query: 'mods:classification[@authority="lcc"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -674,7 +674,7 @@ process:
     - plugin: single_value
   field_local_identifier:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="local"]'
+      query: 'mods:identifier[@type="local"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -683,7 +683,7 @@ process:
     - plugin: single_value
   field_note_location:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:note[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -693,7 +693,7 @@ process:
     - plugin: null_coalesce
   field_note_paragraph:
     - << : *base_mods_node
-      query: 'mods:note[not(@type="funding" or @type="admin")]'
+      query: 'mods:note[not(@type="funding" or @type="admin")][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -718,7 +718,7 @@ process:
             property: nodeValue
   field_note:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:note'
+      query: 'mods:physicalDescription/mods:note[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -728,7 +728,7 @@ process:
     - plugin: null_coalesce
   field_oclc_number:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="oclc"]'
+      query: 'mods:identifier[@type="oclc"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -737,7 +737,7 @@ process:
     - plugin: single_value
   field_linked_agent:
     - << : *base_mods_node
-      query: 'mods:name[@type="personal"]'
+      query: 'mods:name[@type="personal"][normalize-space()]'
     - plugin: dgi_migrate_foxml_standard_mods.typed_relation
       field_name: node.islandora_object.field_linked_agent
       xpath: '@_mods_xpath'
@@ -804,7 +804,7 @@ process:
             method: row
   field_organizations:
     - << : *base_mods_node
-      query: 'mods:name[@type="corporate"]'
+      query: 'mods:name[@type="corporate"][normalize-space()]'
     - plugin: dgi_migrate_foxml_standard_mods.typed_relation
       field_name: node.islandora_object.field_organizations
       xpath: '@_mods_xpath'
@@ -861,7 +861,7 @@ process:
             method: row
   field_origin_information:
     - << : *base_mods_node
-      query: 'mods:originInfo'
+      query: 'mods:originInfo[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -872,7 +872,7 @@ process:
       values:
         _field_copyright_date_single:
           - << : *nested_mods_node
-            query: 'mods:copyrightDate[not(@point)]'
+            query: 'mods:copyrightDate[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -881,7 +881,7 @@ process:
           - plugin: single_value
         _field_copyright_date_start:
           - << : *nested_mods_node
-            query: 'mods:copyrightDate[@point="start"]'
+            query: 'mods:copyrightDate[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -891,7 +891,7 @@ process:
           - plugin: null_coalesce
         _field_copyright_date_end:
           - << : *nested_mods_node
-            query: 'mods:copyrightDate[@point="end"]'
+            query: 'mods:copyrightDate[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -923,7 +923,7 @@ process:
             key_direction: unlock
         _field_date_captured_single:
           - << : *nested_mods_node
-            query: 'mods:dateCaptured[not(@point)]'
+            query: 'mods:dateCaptured[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -932,7 +932,7 @@ process:
           - plugin: single_value
         _field_date_captured_start:
           - << : *nested_mods_node
-            query: 'mods:dateCaptured[@point="start"]'
+            query: 'mods:dateCaptured[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -942,7 +942,7 @@ process:
           - plugin: null_coalesce
         _field_date_captured_end:
           - << : *nested_mods_node
-            query: 'mods:dateCaptured[@point="end"]'
+            query: 'mods:dateCaptured[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -974,7 +974,7 @@ process:
             key_direction: unlock
         _field_date_created_single:
           - << : *nested_mods_node
-            query: 'mods:dateCreated[not(@point)]'
+            query: 'mods:dateCreated[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -983,7 +983,7 @@ process:
           - plugin: single_value
         _field_date_created_start:
           - << : *nested_mods_node
-            query: 'mods:dateCreated[@point="start"]'
+            query: 'mods:dateCreated[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -993,7 +993,7 @@ process:
           - plugin: null_coalesce
         _field_date_created_end:
           - << : *nested_mods_node
-            query: 'mods:dateCreated[@point="end"]'
+            query: 'mods:dateCreated[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1025,7 +1025,7 @@ process:
             key_direction: unlock
         _field_date_issued_single:
           - << : *nested_mods_node
-            query: 'mods:dateIssued[not(@point)]'
+            query: 'mods:dateIssued[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1034,7 +1034,7 @@ process:
           - plugin: single_value
         _field_date_issued_start:
           - << : *nested_mods_node
-            query: 'mods:dateIssued[@point="start"]'
+            query: 'mods:dateIssued[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1044,7 +1044,7 @@ process:
           - plugin: null_coalesce
         _field_date_issued_end:
           - << : *nested_mods_node
-            query: 'mods:dateIssued[@point="end"]'
+            query: 'mods:dateIssued[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1076,7 +1076,7 @@ process:
             key_direction: unlock
         _field_date_modified_single:
           - << : *nested_mods_node
-            query: 'mods:dateModified[not(@point)]'
+            query: 'mods:dateModified[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1085,7 +1085,7 @@ process:
           - plugin: single_value
         _field_date_modified_start:
           - << : *nested_mods_node
-            query: 'mods:dateModified[@point="start"]'
+            query: 'mods:dateModified[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1095,7 +1095,7 @@ process:
           - plugin: null_coalesce
         _field_date_modified_end:
           - << : *nested_mods_node
-            query: 'mods:dateModified[@point="end"]'
+            query: 'mods:dateModified[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1127,7 +1127,7 @@ process:
             key_direction: unlock
         _field_date_valid_single:
           - << : *nested_mods_node
-            query: 'mods:dateValid[not(@point)]'
+            query: 'mods:dateValid[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1136,7 +1136,7 @@ process:
           - plugin: single_value
         _field_date_valid_start:
           - << : *nested_mods_node
-            query: 'mods:dateValid[@point="start"]'
+            query: 'mods:dateValid[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1146,7 +1146,7 @@ process:
           - plugin: null_coalesce
         _field_date_valid_end:
           - << : *nested_mods_node
-            query: 'mods:dateValid[@point="end"]'
+            query: 'mods:dateValid[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1178,7 +1178,7 @@ process:
             key_direction: unlock
         field_edition:
           - << : *nested_mods_node
-            query: 'mods:edition'
+            query: 'mods:edition[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1194,7 +1194,7 @@ process:
             property: nodeValue
         field_frequency:
           - << : *nested_mods_node
-            query: 'mods:frequency'
+            query: 'mods:frequency[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1202,7 +1202,7 @@ process:
             property: nodeValue
         field_issuance:
           - << : *nested_mods_node
-            query: 'mods:issuance'
+            query: 'mods:issuance[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1210,7 +1210,7 @@ process:
             property: nodeValue
         _field_other_date_single:
           - << : *nested_mods_node
-            query: 'mods:dateOther[not(@point)]'
+            query: 'mods:dateOther[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1219,7 +1219,7 @@ process:
           - plugin: single_value
         _field_other_date_start:
           - << : *nested_mods_node
-            query: 'mods:dateOther[@point="start"]'
+            query: 'mods:dateOther[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1229,7 +1229,7 @@ process:
           - plugin: null_coalesce
         _field_other_date_end:
           - << : *nested_mods_node
-            query: 'mods:dateOther[@point="end"]'
+            query: 'mods:dateOther[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1271,7 +1271,7 @@ process:
           - plugin: null_coalesce
         field_publisher:
           - << : *nested_mods_node
-            query: 'mods:publisher'
+            query: 'mods:publisher[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1279,7 +1279,7 @@ process:
             property: nodeValue
   field_part:
     - << : *base_mods_node
-      query: 'mods:part'
+      query: 'mods:part[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1290,7 +1290,7 @@ process:
       values:
         field_additional_information:
           - << : *nested_mods_node
-            query: 'mods:text'
+            query: 'mods:text[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1298,7 +1298,7 @@ process:
             property: nodeValue
         field_caption:
           - << : *nested_mods_node
-            query: 'mods:detail/mods:caption'
+            query: 'mods:detail/mods:caption[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1306,7 +1306,7 @@ process:
             property: nodeValue
         _field_date_single:
           - <<: *nested_mods_node
-            query: 'mods:date[not(@point)]'
+            query: 'mods:date[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1315,7 +1315,7 @@ process:
           - plugin: single_value
         _field_date_start:
           - <<: *nested_mods_node
-            query: 'mods:date[@point="start"]'
+            query: 'mods:date[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1325,7 +1325,7 @@ process:
           - plugin: null_coalesce
         _field_date_end:
           - <<: *nested_mods_node
-            query: 'mods:date[@point="end"]'
+            query: 'mods:date[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1357,7 +1357,7 @@ process:
             key_direction: unlock
         field_end:
           - << : *nested_mods_node
-            query: 'mods:extent/mods:end'
+            query: 'mods:extent/mods:end[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1365,7 +1365,7 @@ process:
             property: nodeValue
         field_extent:
           - << : *nested_mods_node
-            query: 'mods:extent'
+            query: 'mods:extent[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1373,7 +1373,7 @@ process:
             property: nodeValue
         field_extent_units:
           - << : *nested_mods_node
-            query: 'mods:extent/@unit'
+            query: 'mods:extent[normalize-space()]/@unit'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1381,7 +1381,7 @@ process:
             property: nodeValue
         field_list:
           - << : *nested_mods_node
-            query: 'mods:extent/mods:list'
+            query: 'mods:extent/mods:list[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1389,7 +1389,7 @@ process:
             property: nodeValue
         field_number:
           - << : *nested_mods_node
-            query: 'mods:detail/mods:number'
+            query: 'mods:detail/mods:number[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1413,7 +1413,7 @@ process:
             ignore_case: true
         field_start:
           - << : *nested_mods_node
-            query: 'mods:extent/mods:start'
+            query: 'mods:extent/mods:start[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1421,7 +1421,7 @@ process:
             property: nodeValue
         field_title:
           - << : *nested_mods_node
-            query: 'mods:detail/mods:title'
+            query: 'mods:detail/mods:title[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1429,7 +1429,7 @@ process:
             property: nodeValue
         field_total:
           - << : *nested_mods_node
-            query: 'mods:extent/mods:total'
+            query: 'mods:extent/mods:total[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1467,7 +1467,7 @@ process:
     - plugin: null_coalesce
   field_purl:
     - << : *base_mods_node
-      query: 'mods:identifier[@type="purl"]'
+      query: 'mods:identifier[@type="purl"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1475,7 +1475,7 @@ process:
       property: nodeValue
   field_record_information:
     - << : *base_mods_node
-      query: 'mods:recordInfo'
+      query: 'mods:recordInfo[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1490,7 +1490,7 @@ process:
             source: parent_row/dest/_mods_xpath
         field_description_standard:
           - << : *nested_mods_node
-            query: 'mods:descriptionStandard'
+            query: 'mods:descriptionStandard[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1514,7 +1514,7 @@ process:
           - <<: *generic_term_extract
         _field_record_change_date_single:
           - << : *nested_mods_node
-            query: 'mods:recordChangeDate[not(@point)]'
+            query: 'mods:recordChangeDate[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1523,7 +1523,7 @@ process:
           - plugin: single_value
         _field_record_change_date_start:
           - << : *nested_mods_node
-            query: 'mods:recordChangeDate[@point="start"]'
+            query: 'mods:recordChangeDate[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1533,7 +1533,7 @@ process:
           - plugin: null_coalesce
         _field_record_change_date_end:
           - << : *nested_mods_node
-            query: 'mods:recordChangeDate[@point="end"]'
+            query: 'mods:recordChangeDate[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1565,7 +1565,7 @@ process:
             key_direction: unlock
         field_record_content_source:
           - << : *nested_mods_node
-            query: 'mods:recordContentSource'
+            query: 'mods:recordContentSource[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1573,7 +1573,7 @@ process:
             property: nodeValue
         _field_record_creation_date_single:
           - <<: *nested_mods_node
-            query: 'mods:recordCreationDate[not(@point)]'
+            query: 'mods:recordCreationDate[not(@point)][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1582,7 +1582,7 @@ process:
           - plugin: single_value
         _field_record_creation_date_start:
           - <<: *nested_mods_node
-            query: 'mods:recordCreationDate[@point="start"]'
+            query: 'mods:recordCreationDate[@point="start"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1592,7 +1592,7 @@ process:
           - plugin: null_coalesce
         _field_record_creation_date_end:
           - <<: *nested_mods_node
-            query: 'mods:recordCreationDate[@point="end"]'
+            query: 'mods:recordCreationDate[@point="end"][normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1624,7 +1624,7 @@ process:
             key_direction: unlock
         field_record_identifier:
           - << : *nested_mods_node
-            query: 'mods:recordIdentifier'
+            query: 'mods:recordIdentifier[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1632,7 +1632,7 @@ process:
             property: nodeValue
         field_record_information_note:
           - << : *nested_mods_node
-            query: 'mods:recordInfoNote'
+            query: 'mods:recordInfoNote[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1640,7 +1640,7 @@ process:
             property: nodeValue
         field_record_origin:
           - << : *nested_mods_node
-            query: 'mods:recordOrigin'
+            query: 'mods:recordOrigin[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1648,7 +1648,7 @@ process:
             property: nodeValue
   field_reformatting_quality:
     - << : *base_mods_node
-      query: 'mods:physicalDescription/mods:reformattingQuality'
+      query: 'mods:physicalDescription/mods:reformattingQuality[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1656,7 +1656,7 @@ process:
       property: nodeValue
   field_related_item_paragraph:
     - << : *base_mods_node
-      query: 'mods:relatedItem'
+      query: 'mods:relatedItem[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1690,7 +1690,7 @@ process:
             value_key: name
         field_title_plain:
           - << : *nested_mods_node
-            query: 'mods:titleInfo/mods:title'
+            query: 'mods:titleInfo/mods:title[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1726,7 +1726,7 @@ process:
           - plugin: null_coalesce
         field_related_item_identifier:
           - <<: *nested_mods_node
-            query: 'mods:identifier'
+            query: 'mods:identifier[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -1740,7 +1740,7 @@ process:
           - plugin: null_coalesce
         field_related_item_genre:
           - <<: *nested_mods_node
-            query: 'mods:genre'
+            query: 'mods:genre[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: skip_on_empty
@@ -1756,7 +1756,7 @@ process:
           - <<: *generic_term_extract
   _resource_type_query:
     - << : *base_mods_node
-      query: 'mods:typeOfResource'
+      query: 'mods:typeOfResource[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
   _resource_type:
@@ -1822,7 +1822,7 @@ process:
     - plugin: null_coalesce
   field_restriction_on_access:
     - << : *base_mods_node
-      query: 'mods:accessCondition[@type="restriction on access"]'
+      query: 'mods:accessCondition[@type="restriction on access"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1830,7 +1830,7 @@ process:
       property: nodeValue
   field_shelf_locator:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:shelfLocator[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1986,7 +1986,7 @@ process:
       index: [ target_id ]
   field_sub_location:
     - << : *base_mods_node
-      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation'
+      query: 'mods:location/mods:holdingSimple/mods:copyInformation/mods:subLocation[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -1994,7 +1994,7 @@ process:
       property: nodeValue
   field_table_of_contents:
     - << : *base_mods_node
-      query: 'mods:tableOfContents'
+      query: 'mods:tableOfContents[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2002,7 +2002,7 @@ process:
       property: nodeValue
   field_target_audience:
     - << : *base_mods_node
-      query: 'mods:targetAudience'
+      query: 'mods:targetAudience[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2035,7 +2035,7 @@ process:
       validate: *validate
   field_use_and_reproduction:
     - << : *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"]'
+      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2059,7 +2059,7 @@ process:
     - <<: *generic_term_extract
   field_degree_name:
     - <<: *base_mods_node
-      query: 'mods:extension/etd:degree/etd:name'
+      query: 'mods:extension/etd:degree/etd:name[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2075,7 +2075,7 @@ process:
     - <<: *generic_term_extract
   _degree_level_query:
     - <<: *base_mods_node
-      query: 'mods:extension/etd:degree/etd:level'
+      query: 'mods:extension/etd:degree/etd:level[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
   _degree_level:
@@ -2141,7 +2141,7 @@ process:
     - plugin: null_coalesce
   field_department:
     - <<: *base_mods_node
-      query: 'mods:extension/etd:degree/etd:discipline'
+      query: 'mods:extension/etd:degree/etd:discipline[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2157,7 +2157,7 @@ process:
     - <<: *generic_term_extract
   field_institution:
     - <<: *base_mods_node
-      query: 'mods:extension/etd:degree/etd:grantor'
+      query: 'mods:extension/etd:degree/etd:grantor[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2173,7 +2173,7 @@ process:
     - <<: *generic_term_extract
   field_version_identifier:
     - <<: *base_mods_node
-      query: 'mods:note[@type="version identification"]'
+      query: 'mods:note[@type="version identification"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2183,7 +2183,7 @@ process:
     - plugin: null_coalesce
   field_abstract:
     - <<: *base_mods_node
-      query: 'mods:abstract[@displayLabel="academic"]'
+      query: 'mods:abstract[@displayLabel="academic"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2193,7 +2193,7 @@ process:
     - plugin: null_coalesce
   field_open_url:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="openurl"]'
+      query: 'mods:identifier[@type="openurl"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2203,7 +2203,7 @@ process:
     - plugin: null_coalesce
   field_ismn:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="ismn"]'
+      query: 'mods:identifier[@type="ismn"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2213,7 +2213,7 @@ process:
     - plugin: null_coalesce
   field_repec:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="repec"]'
+      query: 'mods:identifier[@type="repec"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2223,7 +2223,7 @@ process:
     - plugin: null_coalesce
   field_gpo_number:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="gpo"]'
+      query: 'mods:identifier[@type="gpo"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2233,7 +2233,7 @@ process:
     - plugin: null_coalesce
   field_pubmed_central_number:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="pmcid"]'
+      query: 'mods:identifier[@type="pmcid"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2243,7 +2243,7 @@ process:
     - plugin: null_coalesce
   field_pubmed_number:
     - <<: *base_mods_node
-      query: 'mods:identifier[@type="pmid"]'
+      query: 'mods:identifier[@type="pmid"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2253,7 +2253,7 @@ process:
     - plugin: null_coalesce
   field_ddc_classification:
     - <<: *base_mods_node
-      query: 'mods:classification[@authority="ddc"]'
+      query: 'mods:classification[@authority="ddc"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2263,7 +2263,7 @@ process:
     - plugin: null_coalesce
   field_sudoc_number:
     - <<: *base_mods_node
-      query: 'mods:classification[@authority="sudoc"]'
+      query: 'mods:classification[@authority="sudoc"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2273,7 +2273,7 @@ process:
     - plugin: null_coalesce
   field_swank_classification:
     - <<: *base_mods_node
-      query: 'mods:classification[@authority="swank"]'
+      query: 'mods:classification[@authority="swank"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2283,7 +2283,7 @@ process:
     - plugin: null_coalesce
   field_conference:
     - <<: *base_mods_node
-      query: 'mods:name[@type="conference"]/mods:namePart'
+      query: 'mods:name[@type="conference"]/mods:namePart[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2299,7 +2299,7 @@ process:
     - <<: *generic_term_extract
   field_series_paragraph:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="series"]'
+      query: 'mods:relatedItem[@type="series"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2330,7 +2330,7 @@ process:
           - <<: *generic_term_extract
         field_series_number:
           - <<: *nested_mods_node
-            query: 'mods:titleInfo/mods:partNumber'
+            query: 'mods:titleInfo/mods:partNumber[normalize-space()]'
           - plugin: callback
             callable: iterator_to_array
           - plugin: multiple_values
@@ -2344,7 +2344,7 @@ process:
           - plugin: null_coalesce
   field_publication_title:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title'
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:title[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2360,7 +2360,7 @@ process:
     - <<: *generic_term_extract
   field_publication_number:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partNumber'
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partNumber[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2374,7 +2374,7 @@ process:
     - plugin: null_coalesce
   field_publication_volume_title:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partName'
+      query: 'mods:relatedItem[@type="host"]/mods:titleInfo/mods:partName[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2388,7 +2388,7 @@ process:
     - plugin: null_coalesce
   field_publication_chapter_number:
     - <<: *base_mods_node
-      query: 'mods:part[@type="chapter"]/mods:detail/mods:number'
+      query: 'mods:part[@type="chapter"]/mods:detail/mods:number[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2402,7 +2402,7 @@ process:
     - plugin: null_coalesce
   field_publication_section:
     - <<: *base_mods_node
-      query: 'mods:part[@type="section"]/mods:detail/mods:title'
+      query: 'mods:part[@type="section"]/mods:detail/mods:title[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2416,7 +2416,7 @@ process:
     - plugin: null_coalesce
   field_publication_identifier:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:identifier'
+      query: 'mods:relatedItem[@type="host"]/mods:identifier[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2430,7 +2430,7 @@ process:
     - plugin: null_coalesce
   field_publication_url:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:location/mods:url'
+      query: 'mods:relatedItem[@type="host"]/mods:location/mods:url[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2444,7 +2444,7 @@ process:
     - plugin: null_coalesce
   field_publication_genre:
     - <<: *base_mods_node
-      query: 'mods:relatedItem[@type="host"]/mods:genre'
+      query: 'mods:relatedItem[@type="host"]/mods:genre[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: skip_on_empty
@@ -2460,7 +2460,7 @@ process:
     - <<: *generic_term_extract
   field_extent_total_pages:
     - <<: *base_mods_node
-      query: 'mods:part/mods:extent/mods:total'
+      query: 'mods:part/mods:extent/mods:total[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2472,7 +2472,7 @@ process:
     - plugin: null_coalesce
   field_extent_first_page:
     - <<: *base_mods_node
-      query: 'mods:part/mods:extent/mods:start'
+      query: 'mods:part/mods:extent/mods:start[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2484,7 +2484,7 @@ process:
     - plugin: null_coalesce
   field_extent_last_page:
     - <<: *base_mods_node
-      query: 'mods:part/mods:extent/mods:end'
+      query: 'mods:part/mods:extent/mods:end[normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2496,7 +2496,7 @@ process:
     - plugin: null_coalesce
   field_admin_note:
     - <<: *base_mods_node
-      query: 'mods:note[@type="admin"]'
+      query: 'mods:note[@type="admin"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2568,7 +2568,7 @@ process:
       index: [ target_id ]
   field_sponsorship_information:
     - <<: *base_mods_node
-      query: 'mods:note[@type="funding"]'
+      query: 'mods:note[@type="funding"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
@@ -2579,7 +2579,7 @@ process:
       callable: array_filter
   _use_license_query:
     - <<: *base_mods_node
-      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"]'
+      query: 'mods:accessCondition[@type="use and reproduction" or @type="Use and Reproduction"][@displayLabel="Creative Commons" or @displayLabe="Creative Commons"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
   _use_license:
@@ -2645,7 +2645,7 @@ process:
     - plugin: flatten
   _rights_statement_query:
     - <<: *base_mods_node
-      query: 'mods:accessCondition[@type="rights statement"]'
+      query: 'mods:accessCondition[@type="rights statement"][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
   _rights_statement:
