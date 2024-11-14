@@ -1,13 +1,11 @@
-name: Auto Semver
+---
+name: Semantic Version Tagging
 on:
   pull_request_target:
     types: closed
     branches:
       - main
 jobs:
-  update:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Auto Semver
-        uses: discoverygarden/auto-semver@v1
+  tag_update:
+    name: Tag Update
+    uses: discoverygarden/auto-semver/.github/workflows/semver.yml@v1
