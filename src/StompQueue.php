@@ -67,7 +67,7 @@ class StompQueue implements QueueInterface {
     IStateful $stomp,
     LoggerInterface $logger,
     string $name,
-    string $group
+    string $group,
   ) {
     $this->stomp = $stomp;
     $this->logger = $logger;

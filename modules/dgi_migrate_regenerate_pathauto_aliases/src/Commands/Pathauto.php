@@ -70,9 +70,11 @@ class Pathauto extends DrushCommands {
    * @validate-module-enabled islandora_drush_utils
    * @islandora-drush-utils-user-wrap
    */
-  public function regenerate($options = [
-    'bundle' => 'islandora_object',
-  ]) {
+  public function regenerate(
+    $options = [
+      'bundle' => 'islandora_object',
+    ],
+  ) {
 
     $bundles = $this->entityTypeBundleInfo->getBundleInfo('node');
     if (!isset($bundles[$options['bundle']])) {

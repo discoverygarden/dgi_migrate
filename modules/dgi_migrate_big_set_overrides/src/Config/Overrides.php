@@ -33,7 +33,7 @@ class Overrides implements ConfigFactoryOverrideInterface {
    * Constructor.
    */
   public function __construct(
-    ConfigFactoryInterface $config_factory
+    ConfigFactoryInterface $config_factory,
   ) {
     $this->config = $config_factory->getEditable(static::CONFIG);
     // XXX: Appears to be NULL on module installation; however, the requests

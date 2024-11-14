@@ -73,7 +73,7 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
     LoggerInterface $logger,
     FileSystemInterface $file_system,
     StreamWrapperManagerInterface $stream_wrapper_manager,
-    EventDispatcherInterface $event_dispatcher
+    EventDispatcherInterface $event_dispatcher,
   ) {
     $this->logger = $logger;
     $this->fileSystem = $file_system;

@@ -51,7 +51,7 @@ class FoxmlFile extends ProcessPluginBase implements ContainerFactoryPluginInter
   /**
    * {@inheritDoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, ?MigrationInterface $migration = NULL) {
     $configuration['method'] ??= getenv('DGI_MIGRATE_FOXML_STANDARD_MODS_FILE_METHOD') ?: 'copy';
     assert(in_array($configuration['method'], ['copy', 'direct']));
     /** @var \Drupal\migrate\Plugin\MigratePluginManagerInterface $process_plugin_manager */

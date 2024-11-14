@@ -38,7 +38,7 @@ class DspaceCommands extends DrushCommands {
    */
   public function __construct(
     MigrationPluginManagerInterface $migration_plugin_manager,
-    EntityTypeManagerInterface $entity_type_manager
+    EntityTypeManagerInterface $entity_type_manager,
   ) {
     $this->migrationPluginManager = $migration_plugin_manager;
     $this->entityTypeManager = $entity_type_manager;
