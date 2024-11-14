@@ -22,6 +22,11 @@ Big Set Overrides is responsible for doing a few main things:
 2. Disables the `repository_item_media_content_sync_helper_export` context so that `content_sync` doesn't export any media during the migration.
 3. Disables the default Solr index, so items are not immediately indexed upon ingest.
 4. Disables the `path_alias` title generation.
+5. Unsets these `content_sync` hook implementations when present so
+   `content_sync` doesn't continuously track entities during the migration:
+   * `entity_update`
+   * `entity_insert`
+   * `entity_delete`
 
 ## Installation
 

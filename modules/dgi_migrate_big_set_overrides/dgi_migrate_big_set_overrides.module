@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * General hook implementations.
+ */
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function dgi_migrate_big_set_overrides_module_implements_alter(&$implementations, $hook) {
+  // Don't let these content_sync hook implementations run because it slows
+  // down large ingests like site migrations.
+  $content_sync_hooks_to_unset = [
+    'entity_update',
+    'entity_insert',
+    'entity_delete',
+  ];
+
+  // Unset the identified content_sync hook implementations when they exist and this
+  // module is enabled.
+  if (
+    array_key_exists('content_sync', $implementations)
+    && in_array($hook, $content_sync_hooks_to_unset)
+  ) {
+    unset($implementations['content_sync']);
+  }
+}
