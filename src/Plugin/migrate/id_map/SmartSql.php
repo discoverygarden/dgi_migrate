@@ -6,11 +6,11 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\migrate\EntityFieldDefinitionTrait;
 use Drupal\migrate\MigrateException;
-use Drupal\migrate\Plugin\migrate\destination\Entity;
-use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
+use Drupal\migrate\Plugin\migrate\destination\Entity;
+use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -108,7 +108,7 @@ class SmartSql extends Sql {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, ?MigrationInterface $migration = NULL) {
     return parent::create($container, $configuration, $plugin_id, $plugin_definition, $migration)
       ->setEntityTypeManager($container->get('entity_type.manager'));
   }

@@ -78,22 +78,25 @@ class MigrateCommands extends MigrateToolsCommands {
    * @throws \Exception
    *   If there are not enough parameters to the command.
    */
-  public function batchImport($migration_names = '', array $options = [
-    'all' => FALSE,
-    'group' => self::REQ,
-    'tag' => self::REQ,
-    'limit' => self::REQ,
-    'feedback' => self::REQ,
-    'idlist' => self::REQ,
-    'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
-    'update' => FALSE,
-    'force' => FALSE,
-    'continue-on-failure' => FALSE,
-    'execute-dependencies' => FALSE,
-    'skip-progress-bar' => FALSE,
-    'sync' => FALSE,
-    'run' => NULL,
-  ]) : void {
+  public function batchImport(
+    $migration_names = '',
+    array $options = [
+      'all' => FALSE,
+      'group' => self::REQ,
+      'tag' => self::REQ,
+      'limit' => self::REQ,
+      'feedback' => self::REQ,
+      'idlist' => self::REQ,
+      'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
+      'update' => FALSE,
+      'force' => FALSE,
+      'continue-on-failure' => FALSE,
+      'execute-dependencies' => FALSE,
+      'skip-progress-bar' => FALSE,
+      'sync' => FALSE,
+      'run' => NULL,
+    ],
+  ) : void {
     parent::import($migration_names, $options);
   }
 
@@ -233,18 +236,21 @@ class MigrateCommands extends MigrateToolsCommands {
    * @throws \Exception
    *   If there are not enough parameters to the command.
    */
-  public function rollback($migration_names = '', array $options = [
-    'all' => FALSE,
-    'group' => self::REQ,
-    'tag' => self::REQ,
-    'feedback' => self::REQ,
-    'idlist' => self::REQ,
-    'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
-    'skip-progress-bar' => FALSE,
-    'continue-on-failure' => FALSE,
-    'statuses' => self::REQ,
-    'run' => NULL,
-  ]) : void {
+  public function rollback(
+    $migration_names = '',
+    array $options = [
+      'all' => FALSE,
+      'group' => self::REQ,
+      'tag' => self::REQ,
+      'feedback' => self::REQ,
+      'idlist' => self::REQ,
+      'idlist-delimiter' => MigrateTools::DEFAULT_ID_LIST_DELIMITER,
+      'skip-progress-bar' => FALSE,
+      'continue-on-failure' => FALSE,
+      'statuses' => self::REQ,
+      'run' => NULL,
+    ],
+  ) : void {
     $group_names = $options['group'];
     $tag_names = $options['tag'];
     $all = $options['all'];
@@ -316,13 +322,15 @@ class MigrateCommands extends MigrateToolsCommands {
    * @option tag Name of the migration tag to import.
    * @option sort Sort according to weight.
    */
-  public function listMigrations(array $options = [
-    'all' => FALSE,
-    'group' => self::REQ,
-    'tag' => self::REQ,
-    'format' => 'csv',
-    'sort' => FALSE,
-  ]) : RowsOfFields {
+  public function listMigrations(
+    array $options = [
+      'all' => FALSE,
+      'group' => self::REQ,
+      'tag' => self::REQ,
+      'format' => 'csv',
+      'sort' => FALSE,
+    ],
+  ) : RowsOfFields {
 
     $generate_order = function () use ($options) {
       $migration_groups = $this->migrationsList('', $options);
@@ -421,11 +429,14 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function enqueueMigration(string $migration_id, array $options = [
-    'update' => FALSE,
-    'sync' => FALSE,
-    'run' => NULL,
-  ]) : void {
+  public function enqueueMigration(
+    string $migration_id,
+    array $options = [
+      'update' => FALSE,
+      'sync' => FALSE,
+      'run' => NULL,
+    ],
+  ) : void {
     $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.
     drush_op([$executable, 'prepareBatch']);
@@ -444,11 +455,14 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function processEnqueuedMigration(string $migration_id, array $options = [
-    'update' => FALSE,
-    'sync' => FALSE,
-    'run' => NULL,
-  ]) : void {
+  public function processEnqueuedMigration(
+    string $migration_id,
+    array $options = [
+      'update' => FALSE,
+      'sync' => FALSE,
+      'run' => NULL,
+    ],
+  ) : void {
     $executable = $this->getExecutable($migration_id, $options);
     // drush_op() provides --simulate support.
     $batch = [
@@ -482,11 +496,14 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @islandora-drush-utils-user-wrap
    */
-  public function finishEnqueuedMigration(string $migration_id, array $options = [
-    'update' => FALSE,
-    'sync' => FALSE,
-    'run' => NULL,
-  ]) {
+  public function finishEnqueuedMigration(
+    string $migration_id,
+    array $options = [
+      'update' => FALSE,
+      'sync' => FALSE,
+      'run' => NULL,
+    ],
+  ) {
     $executable = $this->getExecutable($migration_id, $options);
     drush_op([$executable, 'teardownMigration']);
   }
@@ -501,9 +518,13 @@ class MigrateCommands extends MigrateToolsCommands {
    *
    * @command dgi-migrate:enqueue-terminal
    */
-  public function enqueueTerminal(string $migration_id, string $run_id, array $options = [
-    'priority' => 4,
-  ]) {
+  public function enqueueTerminal(
+    string $migration_id,
+    string $run_id,
+    array $options = [
+      'priority' => 4,
+    ],
+  ) {
     $stomp_queue = StompQueue::create($migration_id, $run_id);
     $stomp_queue->sendTerminal([
       'priority' => $options['priority'] ?? 4,

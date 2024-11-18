@@ -28,7 +28,7 @@ class RequiredEntityLookup extends EntityLookup {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $pluginId, $pluginDefinition, MigrationInterface $migration = NULL) {
+  public static function create(ContainerInterface $container, array $configuration, $pluginId, $pluginDefinition, ?MigrationInterface $migration = NULL) {
     $instance = parent::create($container, $configuration, $pluginId, $pluginDefinition, $migration);
 
     $instance->missingBehaviorInit();
