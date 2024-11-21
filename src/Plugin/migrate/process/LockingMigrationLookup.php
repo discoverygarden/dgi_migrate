@@ -321,7 +321,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   as we perform this in a blocking manner.
    */
   protected function acquireLock(string $name, int $mode = LOCK_EX, bool &$would_block = FALSE) : bool {
-    return $this->getLockFile($name)->flock($mode, $would_block);
+    return $this->locker->acquireLock($name, $mode, $would_block);
   }
 
   /**
@@ -335,7 +335,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   not hold the lock?
    */
   protected function releaseLock(string $name) : bool {
-    return $this->getLockFile($name)->flock(LOCK_UN);
+    return $this->locker->releaseLock($name);
   }
 
   /**
