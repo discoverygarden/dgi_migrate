@@ -4,3 +4,6 @@ services:
     class: Drupal\dgi_migrate\Routing\RouteSubscriber
     tags:
       - name: event_subscriber
+  plugin.manager.dgi_migrate.locker:
+    class: \Drupal\dgi_migrate\LockerPluginManager
+    parent: default_plugin_manager
