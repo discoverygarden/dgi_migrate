@@ -144,7 +144,8 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
    *   An ID to use.
    */
   protected static function toLockId(string $name) : int {
-    return hexdec(substr(md5($name), 0, 16));
+    $hash = md5($name);
+    return ((hexdec($hash[16]) & 1) ? 1 : -1) * hexdec(substr($hash, 0, 15));
   }
 
   /**
