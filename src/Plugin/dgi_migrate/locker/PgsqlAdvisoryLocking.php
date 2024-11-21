@@ -86,7 +86,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       $this->sharedLocks[$lock_id]++;
       return TRUE;
     }
-    if ($mode === LOCK_EX | LOCK_NB) {
+    if ($mode === (LOCK_EX | LOCK_NB)) {
       $result = $this->database->query(
         'SELECT pg_try_advisory_lock(:lock_id);',
         [
@@ -94,11 +94,15 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
         ],
       )?->fetchField();
       if ($result) {
+        $would_block = FALSE;
         $this->exclusiveLocks[$lock_id]++;
+      }
+      else {
+        $would_block = TRUE;
       }
       return $result;
     }
-    if ($mode === LOCK_SH | LOCK_NB) {
+    if ($mode === (LOCK_SH | LOCK_NB)) {
       $result = $this->database->query(
         'SELECT pg_try_advisory_lock_shared(:lock_id);',
         [
@@ -106,7 +110,11 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
         ],
       )?->fetchField();
       if ($result) {
+        $would_block = FALSE;
         $this->sharedLocks[$lock_id]++;
+      }
+      else {
+        $would_block = TRUE;
       }
       return $result;
     }
