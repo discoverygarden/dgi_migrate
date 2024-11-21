@@ -118,6 +118,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       }
       return $result;
     }
+    throw new \LogicException("Unknown lock mode: {$mode}");
   }
 
   /**
