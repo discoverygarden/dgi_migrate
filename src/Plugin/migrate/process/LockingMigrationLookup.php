@@ -300,7 +300,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function getControlLock() : bool {
     if (!$this->hasControl) {
-      $this->hasControl = $this->acquireLock(static::CONTROL_LOCK);
+      $this->hasControl = $this->locker->acquireControl();
     }
     return $this->hasControl;
   }
@@ -343,7 +343,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function releaseControlLock() {
     if ($this->hasControl) {
-      $this->releaseLock(static::CONTROL_LOCK);
+      $this->locker->releaseControl();
       $this->hasControl = FALSE;
     }
   }

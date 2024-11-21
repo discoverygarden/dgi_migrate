@@ -63,6 +63,17 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
 
   /**
    * {@inheritDoc}
+   *
+   * XXX: flock() has the idea of promoting/demoting for which we do not
+   * presently account; for example:
+   * - when holding an exclusive lock and a shared lock is acquired, flock()
+   *   would then allow other process to acquire the shared lock.
+   * - when a process holding a shared lock promotes it to an exclusive lock,
+   *   the shared lock would have been replaced, so it would not be necessary to
+   *   separately release the shared lock.
+   * PostgreSQL's advisory locks do not act the same way. We _could_ have the
+   * acquisition release the "other" type of lock; however, there is not really
+   * any utility in doing so at present.
    */
   public function acquireLock(string $name, int $mode = LOCK_EX, bool &$would_block = FALSE): bool {
     $lock_id = static::toLockId($name);
@@ -199,6 +210,36 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
     }
     unset($this->sharedLocks[$lock_id]);
     return !empty($results) && !in_array(FALSE, $results, TRUE);
+  }
+
+  /**
+   * Hashed control lock ID as a (less-than) 32-bit integer.
+   */
+  protected const CONTROL_LOCK_ID = -89904742;
+
+  /**
+   * {@inheritDoc}
+   */
+  public function acquireControl(): bool {
+    $this->database->query(
+      'SELECT pg_advisory_lock(:lock_id, :lock_id);',
+      [
+        ':lock_id' => static::CONTROL_LOCK_ID,
+      ],
+    );
+    return TRUE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function releaseControl(): bool {
+    return $this->database->query(
+      'SELECT pg_advisory_unlock(:lock_id, :lock_id);',
+      [
+        ':lock_id' => static::CONTROL_LOCK_ID,
+      ],
+    )?->fetchField();
   }
 
 }

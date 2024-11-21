@@ -39,4 +39,20 @@ interface LockerInterface {
    */
   public function releaseLock(string $name) : bool;
 
+  /**
+   * Acquire control lock.
+   *
+   * @return bool
+   *   TRUE if it was successfully acquired; otherwise, FALSE.
+   */
+  public function acquireControl() : bool;
+
+  /**
+   * Release control lock.
+   *
+   * @return bool
+   *   TRUE if it was successfully released; otherwise, FALSE.
+   */
+  public function releaseControl() : bool;
+
 }

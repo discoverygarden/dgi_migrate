@@ -6,6 +6,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\dgi_migrate\Attribute\Locker;
+use Drupal\dgi_migrate\Plugin\migrate\process\LockingMigrationLookup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -83,6 +84,20 @@ class Flock extends PluginBase implements LockerInterface, ContainerFactoryPlugi
     }
 
     return $this->lockFiles[$name];
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function acquireControl(): bool {
+    return $this->acquireLock(LockingMigrationLookup::CONTROL_LOCK);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function releaseControl(): bool {
+    return $this->releaseLock(LockingMigrationLookup::CONTROL_LOCK);
   }
 
 }
