@@ -123,7 +123,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       $this->releaseExclusiveLocks($lock_id),
     ];
 
-    return !in_array(FALSE, $results, TRUE);
+    return in_array(TRUE, $results, TRUE);
   }
 
   /**
@@ -164,7 +164,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       $occurrences--;
     }
     unset($this->exclusiveLocks[$lock_id]);
-    return !in_array(FALSE, $results, TRUE);
+    return !empty($results) && !in_array(FALSE, $results, TRUE);
   }
 
   /**
@@ -190,7 +190,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       $occurrences--;
     }
     unset($this->sharedLocks[$lock_id]);
-    return !in_array(FALSE, $results, TRUE);
+    return !empty($results) && !in_array(FALSE, $results, TRUE);
   }
 
 }
