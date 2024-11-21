@@ -118,12 +118,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
   public function releaseLock(string $name): bool {
     $lock_id = static::toLockId($name);
 
-    $results = [
-      $this->releaseSharedLocks($lock_id),
-      $this->releaseExclusiveLocks($lock_id),
-    ];
-
-    return in_array(TRUE, $results, TRUE);
+    return $this->releaseSharedLocks($lock_id) || $this->releaseExclusiveLocks($lock_id);
   }
 
   /**
