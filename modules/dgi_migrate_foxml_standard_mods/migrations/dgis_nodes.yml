@@ -1656,7 +1656,7 @@ process:
       property: nodeValue
   field_related_item_paragraph:
     - << : *base_mods_node
-      query: 'mods:relatedItem[normalize-space()]'
+      query: 'mods:relatedItem[not(@type="series")][normalize-space()]'
     - plugin: callback
       callable: iterator_to_array
     - plugin: multiple_values
