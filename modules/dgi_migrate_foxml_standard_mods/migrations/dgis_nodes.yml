@@ -2714,10 +2714,13 @@ process:
         - '@_unspecified_rights_statement'
     - plugin: null_coalesce
   nid:
-    - plugin: dgi_migrate.process.locking_migration_lookup
+    - plugin: get
       source: '@field_pid'
+    - &locking_lookup
+      plugin: dgi_migrate.process.locking_migration_lookup
       migration: dgis_stub_nodes
-      lock_context_keys: &dgis_stub_nodes_lock_context_keys
+      stub_id: dgis_stub_nodes
+      lock_context_keys:
         dgis_stub_nodes:
           - { offset: [ 0 ], hash: '#/##' }
   field_member_of:
@@ -2726,11 +2729,7 @@ process:
         - '@_members'
         - '@_constituents'
     - plugin: multiple_values
-    - plugin: dgi_migrate.process.locking_migration_lookup
-      migration: dgis_stub_nodes
-      stub_id: dgis_stub_nodes
-      lock_context_keys:
-        << : *dgis_stub_nodes_lock_context_keys
+    - << : *locking_lookup
 migration_dependencies:
   required:
     - dgis_foxml_files
