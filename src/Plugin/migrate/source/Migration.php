@@ -61,11 +61,7 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
    *   The target migration.
    */
   protected function getTargetMigration() : MigrationInterface {
-    if (!isset($this->targetMigration)) {
-      $this->targetMigration = $this->migrationPluginManager->createInstance($this->configuration['migration']);
-    }
-
-    return $this->targetMigration;
+    return $this->targetMigration ??= $this->migrationPluginManager->createInstance($this->configuration['migration']);
   }
 
   /**
