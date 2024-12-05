@@ -23,14 +23,14 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
    *
    * @var \Drupal\migrate\Plugin\MigrationPluginManagerInterface
    */
-  protected $migrationPluginManager;
+  protected MigrationPluginManagerInterface $migrationPluginManager;
 
   /**
-   * The target migration.
+   * Memoized target migration.
    *
    * @var \Drupal\migrate\Plugin\MigrationInterface
    */
-  protected $targetMigration;
+  protected MigrationInterface $targetMigration;
 
   /**
    * Constructor.
@@ -39,7 +39,6 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
     parent::__construct($configuration, $plugin_id, $plugin_definition, $migration);
 
     $this->migrationPluginManager = $migration_plugin_manager;
-    $this->targetMigration = $this->migrationPluginManager->createInstance($this->configuration['migration']);
   }
 
   /**
@@ -56,17 +55,27 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
   }
 
   /**
+   * Load and identify the target migration.
+   *
+   * @return \Drupal\migrate\Plugin\MigrationInterface
+   *   The target migration.
+   */
+  protected function getTargetMigration() : MigrationInterface {
+    return $this->targetMigration ??= $this->migrationPluginManager->createInstance($this->configuration['migration']);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function initializeIterator() {
-    return new MigrationIterator($this->targetMigration->getIdMap(), 'currentDestination');
+    return new MigrationIterator($this->getTargetMigration()->getIdMap(), 'currentDestination');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getIds() {
-    return (array) $this->targetMigration->getDestinationPlugin()->getIds();
+    return (array) $this->getTargetMigration()->getDestinationPlugin()->getIds();
   }
 
   /**
@@ -81,7 +90,7 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
    */
   public function __toString() {
     return strtr('target migration: @migration', [
-      '@migration' => $this->targetMigration->id(),
+      '@migration' => $this->getTargetMigration()->id(),
     ]);
   }
 
@@ -104,15 +113,6 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
     }
 
     return $vars;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __wakeup() {
-    parent::__wakeup();
-
-    $this->targetMigration = $this->migrationPluginManager->createInstance($this->configuration['migration']);
   }
 
 }
