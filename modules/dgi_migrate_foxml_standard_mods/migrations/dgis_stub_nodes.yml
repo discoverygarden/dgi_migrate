@@ -41,7 +41,17 @@ process:
       bundle: islandora_object
       value_key: field_pid
       source: pid
-
+  # XXX: Default to a collection model to bypass potential issues that have
+  # arisen previously with other modules such as serial_object.
+  field_model:
+    - plugin: default_value
+      default_value: 'http://purl.org/dc/dcmitype/Collection'
+    - plugin: dgi_migrate.required_entity_lookup
+      bundle_key: vid
+      bundle: islandora_models
+      value_key: field_external_uri
+      entity_type: taxonomy_term
+      ignore_case: TRUE
   # XXX: Work around issue with interactions of entity hooks and migrations:
   # Context reactions firing from entity hooks could try minting a value when
   # stub entities are ingested; however, the non-stub migration:
