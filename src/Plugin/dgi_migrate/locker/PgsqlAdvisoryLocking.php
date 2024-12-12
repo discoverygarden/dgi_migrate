@@ -84,7 +84,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
           ':lock_id' => $lock_id,
         ],
       );
-      $this->exclusiveLocks[$lock_id]++;
+      $this->exclusiveLocks[$lock_id] = ($this->exclusiveLocks[$lock_id] ?? 0) + 1;
       return TRUE;
     }
     if ($mode === LOCK_SH) {
@@ -94,7 +94,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
           ':lock_id' => $lock_id,
         ],
       );
-      $this->sharedLocks[$lock_id]++;
+      $this->sharedLocks[$lock_id] = ($this->sharedLocks[$lock_id] ?? 0) + 1;
       return TRUE;
     }
     if ($mode === (LOCK_EX | LOCK_NB)) {
@@ -106,7 +106,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       )?->fetchField();
       if ($result) {
         $would_block = FALSE;
-        $this->exclusiveLocks[$lock_id]++;
+        $this->exclusiveLocks[$lock_id] = ($this->exclusiveLocks[$lock_id] ?? 0) + 1;
       }
       else {
         $would_block = TRUE;
@@ -122,7 +122,7 @@ class PgsqlAdvisoryLocking extends PluginBase implements LockerInterface, Contai
       )?->fetchField();
       if ($result) {
         $would_block = FALSE;
-        $this->sharedLocks[$lock_id]++;
+        $this->sharedLocks[$lock_id] = ($this->sharedLocks[$lock_id] ?? 0) + 1;
       }
       else {
         $would_block = TRUE;
