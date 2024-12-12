@@ -106,6 +106,15 @@ NOTE: In terms of establishing the `PROCESSES` quantity, there are environmental
 * Is Crayfish on the same machine? Are derivatives enabled? There can be additional load from Crayfish acquiring files from Drupal, or if on the same machine, from the derivatives proper being run.
 * Is the site being used by others? If so, it is probably a good idea to play nice and to try to avoid saturating the CPUs, perhaps going so far as to `nice` the migration execution. If not, we could target a slight bit of oversaturation, with the expectation that there will be some background I/O overhead on read/write operations that might leave some CPU cycles otherwise unoccupied.
 
+#### Locking plugins
+
+The means of locking is pluggable. The default implementation uses a directory of locks for various purposes in `temporary://`, using [PHP's `\SplFileInfo::flock()`](https://www.php.net/manual/en/splfileobject.flock.php), in [our `flock` plugin](../src/Plugin/dgi_migrate/locker/Flock.php); this `flock` plugin _does_ requires the ability to open many files (on the orders of tens-of-thousands). We also provide [a `pgsql_advisory_locking` plugin](../src/Plugin/dgi_migrate/locker/PgsqlAdvisoryLocking.php) that might be used to perform locking using [a PostgreSQL database's advisory locking capabilities](https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADVISORY-LOCKS); however, it is expected that using such might perform somewhat slower than `flock` due to requiring the round-trips to the DB. Ideally, we should look at implementing native semaphore/mutex functionality.
+
+The locking plugin can be:
+- configured by setting the `DGI_MIGRATE_DEFAULT_LOCKER` to the ID of the desired plugin
+  - Built-in are `flock` and `pgsql_advisory_locking`; however, other modules might provide other plugins
+- configured for on the particular migration lookup plugin definition, via the `locker` property.
+
 ### Rollback
 
 If additional parameters/options need to be passed to the `dgi-migrate:rollback`
