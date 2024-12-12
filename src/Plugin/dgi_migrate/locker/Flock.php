@@ -73,14 +73,24 @@ class Flock extends PluginBase implements LockerInterface, ContainerFactoryPlugi
    */
   protected function getLockFile(string $name) : \SplFileObject {
     if (!isset($this->lockFiles[$name])) {
-      $file_name = "temporary://{$name}";
-      $directory = $this->fileSystem->dirname($file_name);
-      $basename = $this->fileSystem->basename($file_name);
+      $file_uri = "temporary://{$name}";
+      $directory = $this->fileSystem->dirname($file_uri);
+      $basename = $this->fileSystem->basename($file_uri);
       $this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
-      $file_name = "{$directory}/{$basename}";
+      $file_uri = "{$directory}/{$basename}";
 
-      touch($file_name);
-      $this->lockFiles[$name] = $file = new \SplFileObject($file_name, 'a+');
+      // XXX: Drupal's LocalStream wrappers presently have a bug in their
+      // ::stream_lock() method which underlies flock()/\SplFileObject::flock(),
+      // where they fail to properly report the lock status when non-blockingly
+      // acquiring locks, so let's side-step the issue by referencing the real
+      // file path directly.
+      //
+      // @see https://www.drupal.org/project/drupal/issues/3493632
+      // @see https://github.com/php/doc-en/issues/4299
+      $file_path = $this->fileSystem->realpath($file_uri);
+
+      touch($file_path);
+      $this->lockFiles[$name] = new \SplFileObject($file_path, 'a+');
     }
 
     return $this->lockFiles[$name];
