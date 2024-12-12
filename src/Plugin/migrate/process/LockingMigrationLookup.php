@@ -564,7 +564,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     $locker_plugin_id = match(TRUE) {
       isset($plugin_definition['locker']) => $plugin_definition['locker'],
       getenv('DGI_MIGRATE_DEFAULT_LOCKER') => getenv('DGI_MIGRATE_DEFAULT_LOCKER'),
-      $instance->database->driver() === 'pgsql' => 'pgsql_advisory_locking',
       default => 'flock',
     };
     $instance->locker = $locker_plugin_manager->createInstance($locker_plugin_id);
