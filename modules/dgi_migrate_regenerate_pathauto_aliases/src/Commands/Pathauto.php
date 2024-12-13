@@ -9,7 +9,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\pathauto\PathautoGeneratorInterface;
 use Drupal\pathauto\PathautoState;
 use Drush\Commands\DrushCommands;
-use Psr\Log\LoggerInterface;
 
 /**
  * Re-generates missing pathauto aliases.
@@ -49,14 +48,11 @@ class Pathauto extends DrushCommands {
    *   The entity type manager service.
    * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
    *   The entity type bundle info service.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   A logger to which to log.
    */
-  public function __construct(PathautoGeneratorInterface $pathauto_generator, EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info, LoggerInterface $logger) {
+  public function __construct(PathautoGeneratorInterface $pathauto_generator, EntityTypeManagerInterface $entity_type_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info) {
     $this->pathautoGenerator = $pathauto_generator;
     $this->entityTypeManager = $entity_type_manager;
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
-    $this->logger = $logger;
   }
 
   /**
