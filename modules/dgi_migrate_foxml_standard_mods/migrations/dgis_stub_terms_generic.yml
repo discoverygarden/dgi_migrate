@@ -33,9 +33,6 @@ process:
   vid: vid
   name: name
   field_authority_link/source:
-    - plugin: skip_on_empty
-      source: auth_value_uri
-      method: process
     - plugin: default_value
       source: auth_source
       default_value: other
