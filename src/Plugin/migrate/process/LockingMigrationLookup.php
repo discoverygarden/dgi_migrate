@@ -5,8 +5,8 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Database\Connection;
-use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\dgi_migrate\Plugin\dgi_migrate\locker\LockerInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateLookupInterface;
@@ -27,8 +27,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * Accepts all the same as the core "migration_lookup" plugin, in addition to:
  * - "no_lock": Flag to explicitly skip locking, which should only be used when
- *   it is known that there's a one-to-one mapping between each set of paramters
- *   and each resultant value.
+ *   it is known that there's a one-to-one mapping between each set of
+ *   parameters and each resultant value.
  * - "lock_context_keys": A mapping of migrations IDs to arrays of maps,
  *   mapping:
  *     - "offset": An array of offsets indexing into the `$value` passed to the
@@ -37,6 +37,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     - "hash": An optional string representing a pattern. If provided every
  *       '#' found will be replaced with hexit resulting from hashing the value
  *       "offset".
+ *  - "locker": Optional ID of locker plugin to use. Should not be necessary to
+ *    provide, but just to be completionist.
  */
 class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcessInterface, ContainerFactoryPluginInterface {
 
@@ -99,12 +101,6 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected MigrationInterface $migration;
 
-  /**
-   * An array of SplFileObjects, to facilitate locking.
-   *
-   * @var \SplFileObject[]
-   */
-  protected array $lockFiles = [];
 
   /**
    * The migration stub service.
@@ -135,11 +131,11 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
   protected $lockContextKeys;
 
   /**
-   * The file system service.
+   * Locker plugin instance to use to manage locks.
    *
-   * @var \Drupal\Core\File\FileSystemInterface
+   * @var \Drupal\dgi_migrate\Plugin\dgi_migrate\locker\LockerInterface
    */
-  protected FileSystemInterface $fileSystem;
+  protected LockerInterface $locker;
 
   /**
    * Constructor.
@@ -304,35 +300,9 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function getControlLock() : bool {
     if (!$this->hasControl) {
-      $this->hasControl = $this->acquireLock(static::CONTROL_LOCK);
+      $this->hasControl = $this->locker->acquireControl();
     }
     return $this->hasControl;
-  }
-
-  /**
-   * Get an \SplFileObject instance to act as the lock.
-   *
-   * @param string $name
-   *   The name of the lock to acquire. Should result in a file being created
-   *   under the temporary:// scheme of the same name, against which `flock`
-   *   commands will be issued.
-   *
-   * @return \SplFileObject
-   *   The \SplFileObject instance against which to lock.
-   */
-  protected function getLockFile(string $name) : \SplFileObject {
-    if (!isset($this->lockFiles[$name])) {
-      $file_name = "temporary://{$name}";
-      $directory = $this->fileSystem->dirname($file_name);
-      $basename = $this->fileSystem->basename($file_name);
-      $this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
-      $file_name = "{$directory}/{$basename}";
-
-      touch($file_name);
-      $this->lockFiles[$name] = $file = new \SplFileObject($file_name, 'a+');
-    }
-
-    return $this->lockFiles[$name];
   }
 
   /**
@@ -347,11 +317,11 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   call _would_ have blocked.
    *
    * @return bool
-   *   TRUE on success. Should not be able to return FALSE, as we perform this
-   *   in a blocking manner.
+   *   TRUE on success. Should not be able to return FALSE (except with LOCK_NB)
+   *   as we perform this in a blocking manner.
    */
   protected function acquireLock(string $name, int $mode = LOCK_EX, bool &$would_block = FALSE) : bool {
-    return $this->getLockFile($name)->flock($mode, $would_block);
+    return $this->locker->acquireLock($name, $mode, $would_block);
   }
 
   /**
@@ -365,7 +335,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    *   not hold the lock?
    */
   protected function releaseLock(string $name) : bool {
-    return $this->getLockFile($name)->flock(LOCK_UN);
+    return $this->locker->releaseLock($name);
   }
 
   /**
@@ -373,7 +343,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
    */
   protected function releaseControlLock() {
     if ($this->hasControl) {
-      $this->releaseLock(static::CONTROL_LOCK);
+      $this->locker->releaseControl();
       $this->hasControl = FALSE;
     }
   }
@@ -588,7 +558,15 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
     $instance->migration = $migration;
     $instance->migrateStub = $container->get('migrate.stub');
     $instance->migrateLookup = $container->get('migrate.lookup');
-    $instance->fileSystem = $container->get('file_system');
+
+    /** @var \Drupal\dgi_migrate\LockerPluginManagerInterface $locker_plugin_manager */
+    $locker_plugin_manager = $container->get('plugin.manager.dgi_migrate.locker');
+    $locker_plugin_id = match(TRUE) {
+      isset($plugin_definition['locker']) => $plugin_definition['locker'],
+      getenv('DGI_MIGRATE_DEFAULT_LOCKER') => getenv('DGI_MIGRATE_DEFAULT_LOCKER'),
+      default => 'flock',
+    };
+    $instance->locker = $locker_plugin_manager->createInstance($locker_plugin_id);
 
     return $instance;
   }
