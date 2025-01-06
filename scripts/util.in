@@ -61,7 +61,8 @@ function init_vars () {
   declare -g DRUSH=${DRUSH:-"$DRUPAL_ROOT/vendor/bin/drush"}
   declare -g MIGRATION_GROUP=${MIGRATION_GROUP:?A MIGRATION_GROUP must be specified.}
   declare -g WEB_USER=${WEB_USER:-"www-data"}
-  declare -g URI=${URI:?Missing URI}
+  declare -g URI=${URI:-$DRUSH_OPTIONS_URI}
+  URI=${URI:?Missing URI}
   declare -g TIME=${TIME:-/usr/bin/time}
   declare -g LOG_DIR=${LOG_DIR:-$CONFIG_DIR}
   declare -g PROCESSES=${PROCESSES:-1}
