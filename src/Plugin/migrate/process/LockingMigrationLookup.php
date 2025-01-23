@@ -490,7 +490,7 @@ class LockingMigrationLookup extends ProcessPluginBase implements MigrateProcess
         throw $e;
       }
       catch (\Exception $e) {
-        throw new MigrateException(sprintf('A %s was thrown while processing this migration lookup', gettype($e)), $e->getCode(), $e);
+        throw new MigrateException(sprintf('A %s was thrown while processing this migration lookup', get_class($e)), $e->getCode(), $e);
       }
 
       if ($destination_id_array) {
