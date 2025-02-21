@@ -547,7 +547,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
   }
 
   /**
-   * Helper; allow access to some idea of the queue.
+   * Helper; allow access to some idea of the size of the queue.
    *
    * @return int
    *   The number of items in the queue, as reported by the queue.
