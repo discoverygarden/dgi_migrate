@@ -546,4 +546,14 @@ class MigrateBatchExecutable extends MigrateExecutable {
     return new StatusFilter(parent::getIdMap(), $this->idMapStatuses);
   }
 
+  /**
+   * Helper; allow access to some idea of the queue.
+   *
+   * @return int
+   *   The number of items in the queue, as reported by the queue.
+   */
+  public function getQueueSize() : int {
+    return $this->getQueue()->numberOfItems();
+  }
+
 }
