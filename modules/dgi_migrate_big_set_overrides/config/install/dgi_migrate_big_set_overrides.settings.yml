@@ -13,11 +13,6 @@ overrides:
     parents:
       - status
     value: false
-  - config: search_api.index.default_solr_index
-    parents:
-      - options
-      - index_directly
-    value: false
   - config: rest_oai_pmh.settings
     parents:
       - cache_technique
