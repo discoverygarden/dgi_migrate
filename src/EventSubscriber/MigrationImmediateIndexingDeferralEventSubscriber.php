@@ -119,28 +119,42 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
   }
 
   /**
+   * Helper; lazily gather indexes to deal with.
+   *
+   * @return \Drupal\search_api\IndexInterface[]
+   *   Active indexes configured to "index_directly".
+   */
+  protected function getIndexes() : array {
+    if (!isset($this->indexes)) {
+      $this->indexes = $this->entityTypeManager->getStorage('search_api_index')->loadByProperties([
+        'status' => TRUE,
+        'options.index_directly' => TRUE,
+      ]);
+
+      $this->debug('Found {index_count} index(es): {indexes}', [
+        'indexes' => implode(', ', array_keys($this->indexes)),
+        'index_count' => count($this->indexes),
+      ]);
+    }
+
+    return $this->indexes;
+  }
+
+  /**
    * Start suppressing immediate indexing.
    */
   public function startBatchTracking($event) : void {
     if (!$this->doSuppression) {
-      $this->debug('Suppression is disabled; not starting.');
+      $this->debug('Suppression is disabled; not starting for {event}.', [
+        'event' => get_class($event),
+      ]);
       return;
     }
-    $this->debug('Starting batch tracking on event.', [
+    $this->debug('Starting batch tracking on event: {event}', [
       'event' => get_class($event),
     ]);
 
-    $this->indexes ??= $this->entityTypeManager->getStorage('search_api_index')->loadByProperties([
-      'status' => TRUE,
-      'options.index_directly' => TRUE,
-    ]);
-
-    $this->debug('Found indexes.', [
-      'indexes' => array_keys($this->indexes),
-      'index_count' => count($this->indexes),
-    ]);
-
-    foreach ($this->indexes as $index) {
+    foreach ($this->getIndexes() as $index) {
       $this->debug('Starting batch tracking on {index_id}.', [
         'index_id' => $index->id(),
       ]);
@@ -163,10 +177,12 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    */
   public function stopBatchTracking($event) : void {
     if (!$this->doSuppression) {
-      $this->debug('Suppression is disabled; not stopping.');
+      $this->debug('Suppression is disabled; not stopping for {event}.', [
+        'event' => get_class($event),
+      ]);
       return;
     }
-    $this->debug('Stopping batch tracking on event.', [
+    $this->debug('Stopping batch tracking on event: {event}', [
       'event' => get_class($event),
     ]);
 
@@ -186,7 +202,7 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
         ]);
       }
       catch (SearchApiException) {
-        $this->logger->warning('Attempted to stop batch tracking on index not doing batch tracking; suppressing exception.', [
+        $this->logger->warning('Attempted to stop batch tracking on index not doing batch tracking ({index_id}); suppressing exception.', [
           'index_id' => $index->id(),
         ]);
       }
