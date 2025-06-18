@@ -49,6 +49,7 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
     protected ?LoggerChannelFactoryInterface $loggerChannelFactory = NULL,
     ?LoggerInterface $logger = NULL,
     ?bool $doSuppression = NULL,
+    protected bool $debug = TRUE,
   ) {
     if (!$logger && !$this->loggerChannelFactory) {
       throw new \InvalidArgumentException('$loggerChannelFactory or $logger must be passed.');
@@ -90,10 +91,28 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
   }
 
   /**
+   * Wrap debug log messages such that we might suppress them.
+   *
+   * Would be nice if LoggerInterface supported additional verbosity levels such
+   * as "trace" and whatnot, but whatever.
+   *
+   * @param string|\Stringable $message
+   *   The message to be logged.
+   * @param array $context
+   *   Context for the log message.
+   */
+  protected function debug(string|\Stringable $message, array $context = []) : void {
+    if ($this->debug) {
+      $this->logger->debug($message, $context);
+    }
+  }
+
+  /**
    * Start suppressing immediate indexing.
    */
   public function startBatchTracking() : void {
     if (!$this->doSuppression) {
+      $this->debug('Suppression is disabled; not starting.');
       return;
     }
     $this->indexes ??= $this->entityTypeManager->getStorage('index')->loadByProperties([
@@ -101,12 +120,17 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       'options.index_directly' => TRUE,
     ]);
 
+    $this->debug('Found indexes.', [
+      'indexes' => array_keys($this->indexes),
+      'index_count' => count($this->indexes),
+    ]);
+
     foreach ($this->indexes as $index) {
-      $this->logger->debug('Starting batch tracking on {index_id}.', [
+      $this->debug('Starting batch tracking on {index_id}.', [
         'index_id' => $index->id(),
       ]);
       $index->startBatchTracking();
-      $this->logger->debug('Started batch tracking on {index_id}.', [
+      $this->debug('Started batch tracking on {index_id}.', [
         'index_id' => $index->id(),
       ]);
     }
@@ -117,15 +141,16 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    */
   public function stopBatchTracking($event) : void {
     if (!$this->doSuppression) {
+      $this->debug('Suppression is disabled; not stopping.');
       return;
     }
     foreach ($this->indexes as $index) {
       try {
-        $this->logger->debug('Stopping batch tracking on {index_id}.', [
+        $this->debug('Stopping batch tracking on {index_id}.', [
           'index_id' => $index->id(),
         ]);
         $index->stopBatchTracking();
-        $this->logger->debug('Stopped batch tracking on {index_id}.', [
+        $this->debug('Stopped batch tracking on {index_id}.', [
           'index_id' => $index->id(),
         ]);
       }
