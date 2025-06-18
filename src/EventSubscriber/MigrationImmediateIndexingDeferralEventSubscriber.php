@@ -45,6 +45,9 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    */
   protected bool $doSuppression;
 
+  /**
+   * Constructor.
+   */
   public function __construct(
     #[Autowire(service: 'entity_type.manager')]
     protected EntityTypeManagerInterface $entityTypeManager,
@@ -121,11 +124,12 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
   /**
    * Helper; lazily gather indexes to deal with.
    *
-   * @return \Drupal\search_api\IndexInterface[]
-   *   Active indexes configured to "index_directly".
+   * @return \Drupal\search_api\IndexInterface[]|null
+   *   Active indexes configured to "index_directly". NULL if $populate is FALSE
+   *   and $this->indexes has not been populated by other means.
    */
-  protected function getIndexes() : array {
-    if (!isset($this->indexes)) {
+  protected function getIndexes(bool $populate = TRUE) : ?array {
+    if ($populate && !isset($this->indexes)) {
       $this->indexes = $this->entityTypeManager->getStorage('search_api_index')->loadByProperties([
         'status' => TRUE,
         'options.index_directly' => TRUE,
@@ -137,7 +141,7 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       ]);
     }
 
-    return $this->indexes;
+    return $this->indexes ?? NULL;
   }
 
   /**
@@ -154,7 +158,8 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       'event' => get_class($event),
     ]);
 
-    foreach ($this->getIndexes() as $index) {
+    $indexes = $this->getIndexes();
+    foreach ($indexes as $index) {
       $this->debug('Starting batch tracking on {index_id}.', [
         'index_id' => $index->id(),
       ]);
@@ -164,7 +169,7 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       ]);
     }
 
-    if (count($this->indexes) > 0) {
+    if (count($indexes) > 0) {
       $this->messenger->addStatus(
         $this->t('Search API indexing was deferred during the recent migration import/rollback batch operation; items may not show correctly while indexes are not up-to-date.'),
         repeat: FALSE,
@@ -186,12 +191,13 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       'event' => get_class($event),
     ]);
 
-    if (!isset($this->indexes)) {
+    $indexes = $this->getIndexes(FALSE);
+    if ($indexes === NULL) {
       $this->debug('Indexes not set; post-event received in different process from pre-event, no need to stop.');
       return;
     }
 
-    foreach ($this->indexes as $index) {
+    foreach ($indexes as $index) {
       try {
         $this->debug('Stopping batch tracking on {index_id}.', [
           'index_id' => $index->id(),
