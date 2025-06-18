@@ -23,7 +23,6 @@ function dgi_migrate_big_set_overrides_update_10001() {
   });
   if ($original_overrides !== $filtered_overrides) {
     $config->set('overrides', $filtered_overrides)->save();
+    UpdateHelper::ensureModuleEnabled('dgi_migrate');
   }
-
-  UpdateHelper::ensureModuleEnabled('dgi_migrate');
 }
