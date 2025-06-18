@@ -7,3 +7,8 @@ services:
   plugin.manager.dgi_migrate.locker:
     class: \Drupal\dgi_migrate\LockerPluginManager
     parent: default_plugin_manager
+  dgi_migrate.event_subscriber.defer_immediate_indexing_during_migrations:
+    class: Drupal\dgi_migrate\EventSubscriber\MigrationImmediateIndexingDeferralEventSubscriber
+    autowire: true
+    tags:
+      - { name: event_subscriber }

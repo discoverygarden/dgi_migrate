@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Update and (un)installation hooks.
+ */
+
+use Discoverygarden\UpdateHelper;
+
+/**
+ * Remove index_directly override, if present.
+ *
+ * Also, ensures dgi_migrate (which should now handle it) is enabled.
+ */
+function dgi_migrate_big_set_overrides_update_10001() {
+  $config = \Drupal::configFactory()->getEditable('dgi_migrate_big_set_overrides.settings');
+
+  $original_overrides = $config->get('overrides');
+  $filtered_overrides = array_filter($original_overrides, static function (array $value) {
+    return !str_starts_with($value['config'], 'search_api.index.') ||
+      $value['parents'] !== ['options', 'index_directly'] ||
+      $value['value'] !== FALSE;
+  });
+  if ($original_overrides !== $filtered_overrides) {
+    $config->set('overrides', $filtered_overrides)->save();
+  }
+
+  UpdateHelper::ensureModuleEnabled('dgi_migrate');
+}
