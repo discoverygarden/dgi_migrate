@@ -4,8 +4,11 @@ namespace Drupal\dgi_migrate\EventSubscriber;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\AutowireTrait;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\search_api\SearchApiException;
 use Psr\Log\LoggerInterface;
@@ -18,6 +21,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscriberInterface {
 
   use AutowireTrait;
+  use DependencySerializationTrait;
+  use StringTranslationTrait;
 
   /**
    * Memoized indexes.
@@ -45,11 +50,13 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
     protected EntityTypeManagerInterface $entityTypeManager,
     #[Autowire(service: 'config.factory')]
     ConfigFactoryInterface $configFactory,
+    #[Autowire(service: 'messenger')]
+    protected MessengerInterface $messenger,
     #[Autowire(service: 'logger.factory')]
     protected ?LoggerChannelFactoryInterface $loggerChannelFactory = NULL,
     ?LoggerInterface $logger = NULL,
     ?bool $doSuppression = NULL,
-    protected bool $debug = TRUE,
+    protected bool $debug = FALSE,
   ) {
     if (!$logger && !$this->loggerChannelFactory) {
       throw new \InvalidArgumentException('$loggerChannelFactory or $logger must be passed.');
@@ -61,6 +68,10 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       $this->logger = $this->loggerChannelFactory->get(static::class);
     }
 
+    if (!$this->entityTypeManager->hasDefinition('search_api_index')) {
+      $this->debug('Index entity definition does not appear to exist.');
+      $this->doSuppression = FALSE;
+    }
     $env_value = getenv('DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS');
     if (!in_array($env_value, [FALSE, ''], TRUE)) {
       $this->doSuppression = $env_value === 'true';
@@ -110,12 +121,16 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
   /**
    * Start suppressing immediate indexing.
    */
-  public function startBatchTracking() : void {
+  public function startBatchTracking($event) : void {
     if (!$this->doSuppression) {
       $this->debug('Suppression is disabled; not starting.');
       return;
     }
-    $this->indexes ??= $this->entityTypeManager->getStorage('index')->loadByProperties([
+    $this->debug('Starting batch tracking on event.', [
+      'event' => get_class($event),
+    ]);
+
+    $this->indexes ??= $this->entityTypeManager->getStorage('search_api_index')->loadByProperties([
       'status' => TRUE,
       'options.index_directly' => TRUE,
     ]);
@@ -134,6 +149,13 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
         'index_id' => $index->id(),
       ]);
     }
+
+    if (count($this->indexes) > 0) {
+      $this->messenger->addStatus(
+        $this->t('Search API indexing was deferred during the recent migration import/rollback batch operation; items may not show correctly while indexes are not up-to-date.'),
+        repeat: FALSE,
+      );
+    }
   }
 
   /**
@@ -144,6 +166,15 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       $this->debug('Suppression is disabled; not stopping.');
       return;
     }
+    $this->debug('Stopping batch tracking on event.', [
+      'event' => get_class($event),
+    ]);
+
+    if (!isset($this->indexes)) {
+      $this->debug('Indexes not set; post-event received in different process from pre-event, no need to stop.');
+      return;
+    }
+
     foreach ($this->indexes as $index) {
       try {
         $this->debug('Stopping batch tracking on {index_id}.', [
