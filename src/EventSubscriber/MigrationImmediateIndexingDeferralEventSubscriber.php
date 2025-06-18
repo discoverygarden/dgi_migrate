@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate\EventSubscriber;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\AutowireTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -32,12 +33,22 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    */
   protected LoggerInterface $logger;
 
+  /**
+   * Flag, do suppression if TRUE; otherwise, do not suppress direct indexing.
+   *
+   * @var bool
+   */
+  protected bool $doSuppression;
+
   public function __construct(
     #[Autowire(service: 'entity_type.manager')]
     protected EntityTypeManagerInterface $entityTypeManager,
+    #[Autowire(service: 'config.factory')]
+    ConfigFactoryInterface $configFactory,
     #[Autowire(service: 'logger.factory')]
     protected ?LoggerChannelFactoryInterface $loggerChannelFactory = NULL,
     ?LoggerInterface $logger = NULL,
+    ?bool $doSuppression = NULL,
   ) {
     if (!$logger && !$this->loggerChannelFactory) {
       throw new \InvalidArgumentException('$loggerChannelFactory or $logger must be passed.');
@@ -48,6 +59,18 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
     if (!isset($this->logger)) {
       $this->logger = $this->loggerChannelFactory->get(static::class);
     }
+
+    $env_value = getenv('DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS');
+    if (!in_array($env_value, [FALSE, ''], TRUE)) {
+      $this->doSuppression = $env_value === 'true';
+    }
+    if (!isset($this->doSuppression) && isset($doSuppression)) {
+      $this->doSuppression = $doSuppression;
+    }
+    if (!isset($this->doSuppression)) {
+      $this->doSuppression = $configFactory->get('dgi_migrate.settings')->get('suppress_direct_indexing_during_migrations');
+    }
+
   }
 
   /**
@@ -70,6 +93,9 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    * Start suppressing immediate indexing.
    */
   public function startBatchTracking() : void {
+    if (!$this->doSuppression) {
+      return;
+    }
     $this->indexes ??= $this->entityTypeManager->getStorage('index')->loadByProperties([
       'status' => TRUE,
       'options.index_directly' => TRUE,
@@ -90,6 +116,9 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
    * Stop suppressing immediate indexing.
    */
   public function stopBatchTracking($event) : void {
+    if (!$this->doSuppression) {
+      return;
+    }
     foreach ($this->indexes as $index) {
       try {
         $this->logger->debug('Stopping batch tracking on {index_id}.', [
