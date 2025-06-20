@@ -75,15 +75,18 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       $this->debug('Index entity definition does not appear to exist.');
       $this->doSuppression = FALSE;
     }
-    $env_value = getenv('DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS');
-    if (!in_array($env_value, [FALSE, ''], TRUE)) {
-      $this->doSuppression = $env_value === 'true';
-    }
-    if (!isset($this->doSuppression) && isset($doSuppression)) {
-      $this->doSuppression = $doSuppression;
-    }
-    if (!isset($this->doSuppression)) {
-      $this->doSuppression = $configFactory->get('dgi_migrate.settings')->get('suppress_direct_indexing_during_migrations');
+    else {
+      $env_value = getenv('DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS');
+      if (!in_array($env_value, [FALSE, ''], TRUE)) {
+        $this->doSuppression = $env_value === 'true';
+      }
+      if (!isset($this->doSuppression) && isset($doSuppression)) {
+        $this->doSuppression = $doSuppression;
+      }
+      if (!isset($this->doSuppression)) {
+        $this->doSuppression = $configFactory->get('dgi_migrate.settings')
+          ->get('suppress_direct_indexing_during_migrations');
+      }
     }
 
   }
