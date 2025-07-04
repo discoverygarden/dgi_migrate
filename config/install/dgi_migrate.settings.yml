@@ -1,2 +1,3 @@
 openssl_executable: openssl
 spool_dir: temporary://
+suppress_direct_indexing_during_migrations: true

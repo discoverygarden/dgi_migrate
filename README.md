@@ -70,6 +70,13 @@ migrate:batch-import beer_node_revision --idlist=1:2,2:3,3:5 --user=islandora
 dgi-migrate:rollback beer_user --idlist=5 --user=islandora
 ```
 
+## Configuration
+
+The suppression `search_api`'s "immediate indexing"/`index_directly` functionality (which can cause instability in long processes, when `search_api` attempts to index potentially large sets of entities at the end of the request) is enabled by default, but can be configured by multiple means.
+
+- The `DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS` environment variables takes precedence if set. The string `true` should enable (case-sensitive!); while any other non-empty value should disable.
+- In config: `dgi_migrate.settings:suppress_direct_indexing_during_migrations`, as a boolean flag.
+
 ## Troubleshooting/Issues
 
 Having problems or solved a problem? Contact

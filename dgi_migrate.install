@@ -32,3 +32,12 @@ function dgi_migrate_update_9201() {
 function dgi_migrate_update_9202() {
   UpdateHelper::ensureModuleEnabled('islandora_drush_utils');
 }
+
+/**
+ * Enable index_directly deferral, by default.
+ */
+function dgi_migrate_update_10001() {
+  \Drupal::configFactory()->getEditable('dgi_migrate.settings')
+    ->set('suppress_direct_indexing_during_migrations', TRUE)
+    ->save();
+}
