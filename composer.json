@@ -14,7 +14,7 @@
         "drupal/paragraphs": "^1",
         "drupal/pathauto": "^1.8",
         "islandora/controlled_access_terms": "^2",
-        "islandora/islandora": "^2",
+        "drupal/islandora": "^2",
         "iqb/substream": "dev-master",
         "symfony/mime": "^5 || ^6"
     },
@@ -28,7 +28,8 @@
     "extra": {
         "drush": {
             "services": {
-                "drush.10-11.services.yml": "^10 || ^11"
+                "drush.11-12.services.yml": "^11.6 || ^12",
+                "drush.10-11.services.yml": "^10 || >=11.0.0 <11.6"
             }
         }
     }
