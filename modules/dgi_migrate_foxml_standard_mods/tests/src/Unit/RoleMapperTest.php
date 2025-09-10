@@ -14,6 +14,20 @@ use Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process\TypedRelation;
 class RoleMapperTest extends UnitTestCase {
 
   /**
+   * Plugin under test.
+   *
+   * @var \Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process\TypedRelation
+   */
+  protected $plugin;
+
+  /**
+   * DOMXPath instance with which to test.
+   *
+   * @var \DOMXPath
+   */
+  protected $xpath;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() : void {
