@@ -9,13 +9,14 @@ use Drupal\dgi_migrate_foxml_standard_mods\Plugin\migrate\process\TypedRelation;
  * Test out the role mapper.
  *
  * @group dgi_migrate_foxml_standard_mods
+ * @group dgi_migrate
  */
 class RoleMapperTest extends UnitTestCase {
 
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp() : void {
     parent::setUp();
 
     $this->plugin = new TypedRelation(

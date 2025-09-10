@@ -14,6 +14,8 @@ use GuzzleHttp\Client;
  * Test NaiveCopy plugin scenarios.
  *
  * @see \Drupal\dgi_migrate\Plugin\migrate\process\NaiveFileCopy
+ *
+ * @group dgi_migrate
  */
 class NaiveCopyTest extends FileCopyTest {
 
