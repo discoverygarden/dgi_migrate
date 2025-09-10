@@ -157,16 +157,24 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         throw new FileException("Failed to create temporary/spool file name.");
       }
       try {
-        $spool_fp = fopen($spool_name, 'r+b');
+        // XXX: Suppress warning/error around non-existent files.
+        $spool_fp = @fopen($spool_name, 'r+b');
         if (!$spool_fp) {
           throw new FileException("Failed to open spool.");
         }
 
+        // XXX: `php://filter` bit was explicitly developed to extract
+        // substreams of Base64 encoded content from archival FOXML.
+        // URIs of the structure
+        // "php://filter/read=convert.base64-decode/resource={$uri}", where $uri
+        // represents a base64-encoded resource to be decoded.
+        //
+        // @see https://github.com/discoverygarden/foxml/blob/c76bf27004dab374763de33f94a9cf27b82b57bf/src/Utility/Fedora3/Element/BinaryContent.php#L19
         if (str_starts_with($source, 'php://filter')) {
           $target = '/resource=';
           $pos = strpos($source, $target);
           $actual_source = substr($source, $pos + strlen($target));
-          $source_fp = fopen($actual_source, 'rb');
+          $source_fp = @fopen($actual_source, 'rb');
           if (!$source_fp) {
             throw new FileException("Failed to open source: {$source}");
           }
@@ -184,6 +192,14 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
           ], $pipes);
           $written_to_filter = stream_copy_to_stream($source_fp, $pipes[0]);
 
+          // XXX: It appears as though the Base64 content must end in a new-line
+          // in order to be processed correctly. Archival FOXML's base64 blocks
+          // being in somewhat formatted XML should end with a new-line, but
+          // let's be absolutely sure that one gets written to the end.
+          if (fwrite($pipes[0], "\n") === FALSE) {
+            throw new FileException("Failed writing terminal new-line.");
+          }
+
           if ($source_stat && $source_stat['size'] !== $written_to_filter) {
             throw new FileException("Failed to write all bytes to filter: {$written_to_filter}/{$source_stat['size']} of {$source}");
           }
@@ -194,13 +210,13 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
             throw new FileException("Failed to close pipe for {$source}");
           }
           if (($exit_code = proc_close($proc)) !== 0) {
+            unset($proc);
             throw new FileException("Unexpected exit code for {$source}, got {$exit_code}");
           }
-          if (!fclose($source_fp)) {
-            throw new FileException("Failed to close source file pointer, for {$source}");
-          }
+          unset($proc);
         }
         else {
+          // XXX: Suppress warning/error around non-existent files.
           $source_fp = @fopen($source, 'rb');
           if (!$source_fp) {
             throw new FileException("Failed to open source.");
@@ -245,15 +261,15 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
       }
       finally {
         if (isset($proc)) {
-          $status = @proc_get_status($proc);
+          $status = proc_get_status($proc);
           if ($status['running']) {
-            @proc_terminate($proc, 9);
-            @proc_close($proc);
+            proc_terminate($proc, 9);
+            proc_close($proc);
           }
           unset($proc);
         }
 
-        @unlink($spool_name);
+        unlink($spool_name);
       }
     }
     catch (FileException $e) {
