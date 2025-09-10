@@ -152,7 +152,10 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
       // of "php://filter", that it returns as per the wrapped stream does not
       // appear to be correct... the usual $this->fileSystem->move/copy calls
       // would call file_exists() on the source, so let's avoid it.
-      $spool_name = @tempnam($this->migrateConfig->get('spool_dir') ?: $this->fileSystem->getTempDirectory(), 'b64spool');
+      $spool_name = $this->fileSystem->tempnam($this->migrateConfig->get('spool_dir') ?: $this->fileSystem->getTempDirectory(), 'b64spool');
+      if (!$spool_name) {
+        throw new FileException("Failed to create temporary/spool file name.");
+      }
       try {
         $spool_fp = fopen($spool_name, 'r+b');
         if (!$spool_fp) {
