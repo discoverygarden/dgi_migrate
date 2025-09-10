@@ -1,0 +1,27 @@
+---
+name: PHPUnit Tests
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  PHPUnit:
+    uses: discoverygarden/phpunit-action/.github/workflows/phpunit.yml@v1
+    secrets: inherit
+    with:
+      composer_patches: >-
+        {
+          "drupal/features": {
+            "PHP 8.2 dynamic prop": "https://www.drupal.org/files/issues/2023-07-19/3375425-3.patch"
+          },
+          "drupal/migrate_directory": {
+            "Custom iterator for memory optimization": "https://www.drupal.org/files/issues/2023-03-03/3344946-iterator.patch",
+            "D10 support": "https://www.drupal.org/files/issues/2022-06-16/migrate_directory.2.0.0.rector.patch"
+          }
+        }
+      lenient-packages: >-
+        [
+          "drupal/migrate_directory"
+        ]
