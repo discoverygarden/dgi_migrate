@@ -8,7 +8,7 @@ on:
 
 jobs:
   PHPUnit:
-    uses: discoverygarden/phpunit-action/.github/workflows/phpunit.yml@fix/update-matrix
+    uses: discoverygarden/phpunit-action/.github/workflows/phpunit.yml@fix/update-matrix-take-two
     secrets: inherit
     with:
       composer_patches: >-
