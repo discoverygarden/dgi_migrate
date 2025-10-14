@@ -11,6 +11,7 @@ use Symfony\Component\Yaml\Yaml;
  * Test out the role mapper.
  *
  * @group dgi_migrate_foxml_standard_mods
+ * @group dgi_migrate
  */
 class RoleMapperMigrationTest extends KernelTestBase {
 
@@ -41,7 +42,7 @@ class RoleMapperMigrationTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp() : void {
     parent::setUp();
 
     $migyaml = <<<EOYAML
