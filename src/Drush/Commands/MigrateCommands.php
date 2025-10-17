@@ -9,7 +9,7 @@ use Drupal\dgi_migrate\MigrateBatchExecutable;
 use Drupal\dgi_migrate\StompQueue;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_tools\Drush\Commands\MigrateToolsCommands;
-use Drupal\migrate_tools\Drush9LogMigrateMessage;
+use Drupal\migrate_tools\DrushLogMigrateMessage;
 use Drupal\migrate_tools\MigrateTools;
 use Psr\Log\LoggerInterface;
 
@@ -391,9 +391,9 @@ class MigrateCommands extends MigrateToolsCommands {
   /**
    * {@inheritDoc}
    */
-  protected function getMigrateMessage() : Drush9LogMigrateMessage {
+  protected function getMigrateMessage() : DrushLogMigrateMessage {
     if (!isset($this->migrateMessage)) {
-      $this->migrateMessage = new Drush9LogMigrateMessage(
+      $this->migrateMessage = new DrushLogMigrateMessage(
         // XXX: Something about the default of `$this->logger()` used in the
         // parent implementation just... doesn't work?
         static::getMigrateToolsLogger()

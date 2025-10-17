@@ -12,7 +12,7 @@
         "drupal/islandora": "^2",
         "drupal/migrate_directory": "^1 || ^2",
         "drupal/migrate_plus": "^5.1 || ^6",
-        "drupal/migrate_tools": "^6.0.4",
+        "drupal/migrate_tools": "^6.1.0",
         "drupal/paragraphs": "^1",
         "drupal/pathauto": "^1.8",
         "iqb/substream": "dev-master",
@@ -28,7 +28,8 @@
     "extra": {
         "drush": {
             "services": {
-                "drush.10-11.services.yml": "^10 || ^11"
+                "drush.11-12.services.yml": "^11.6 || ^12",
+                "drush.10-11.services.yml": "^10 || >=11.0.0 <11.6"
             }
         }
     }
