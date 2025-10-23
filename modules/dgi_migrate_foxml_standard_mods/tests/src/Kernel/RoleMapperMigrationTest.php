@@ -18,7 +18,7 @@ class RoleMapperMigrationTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'migrate',
     'dgi_migrate',
     'dgi_migrate_foxml_standard_mods',
