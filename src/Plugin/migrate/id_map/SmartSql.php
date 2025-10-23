@@ -58,7 +58,7 @@ class SmartSql extends Sql {
 
     // Default generated table names, limited to 63 characters.
     $machine_name = mb_strtolower(str_replace(PluginBase::DERIVATIVE_SEPARATOR, '__', $this->migration->id()));
-    $prefix_length = strlen($this->database->tablePrefix());
+    $prefix_length = strlen($this->database->getPrefix());
     $max_length = self::TABLE_NAME_CHARACTER_LIMIT - $prefix_length;
 
     $map_table_name = self::MAP_TABLE_PREFIX . $machine_name;

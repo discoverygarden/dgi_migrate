@@ -21,6 +21,9 @@
     "require-dev": {
         "drupal/devel": "^4"
     },
+    "conflict": {
+        "drupal/core": "<10.1"
+    },
     "suggest": {
         "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields.",
         "drupal/entity_reference_integrity": "Used to check things when a migration elects to 'manage_orphans'."
