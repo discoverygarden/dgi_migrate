@@ -16,7 +16,7 @@
         "drupal/paragraphs": "^1",
         "drupal/pathauto": "^1.8",
         "iqb/substream": "dev-master",
-        "symfony/mime": "^5 || ^6"
+        "symfony/mime": "^5 || ^6 || ^7"
     },
     "require-dev": {
         "drupal/devel": "^4"
