@@ -108,7 +108,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
   /**
    * {@inheritdoc}
    */
-  public function __sleep() {
+  public function __sleep() : array {
     $vars = $this->traitSleep();
     $to_suppress = [
       // XXX: Avoid serializing some things can't be natively serialized.
