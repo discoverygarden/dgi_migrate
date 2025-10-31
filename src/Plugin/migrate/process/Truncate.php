@@ -17,8 +17,8 @@ use Drupal\migrate\Row;
  *
  * Available configuration keys:
  * - max_length: (required) The maximum number of characters to keep.
- * - word_safe: Whether to truncate at word boundaries. Defaults to FALSE.
- * - add_ellipsis: Whether to add ellipsis to truncated strings. Defaults to FALSE.
+ * - word_safe: To truncate at word boundaries. Defaults to FALSE.
+ * - add_ellipsis: To add ellipsis to truncated strings. Defaults to FALSE.
  *
  * Examples:
  *
