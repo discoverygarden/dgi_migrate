@@ -12,14 +12,13 @@ use Drupal\migrate\Row;
  * Truncates a string to a specified length.
  *
  * @MigrateProcessPlugin(
- *   id = "dgi_migrate.truncate",
- *   handle_multiples = TRUE
+ *   id = "dgi_migrate.truncate"
  * )
  *
  * Available configuration keys:
  * - max_length: (required) The maximum number of characters to keep.
- * - word_safe: (optional) Whether to truncate at word boundaries. Defaults to FALSE.
- * - add_ellipsis: (optional) Whether to add ellipsis (...) to truncated strings. Defaults to FALSE.
+ * - word_safe: Whether to truncate at word boundaries. Defaults to FALSE.
+ * - add_ellipsis: Whether to add ellipsis to truncated strings. Defaults to FALSE.
  *
  * Examples:
  *
