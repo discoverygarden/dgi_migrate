@@ -58,7 +58,9 @@ class Truncate extends ProcessPluginBase {
 
   /**
    * Constructor.
-   * @throws MigrateException
+   *
+   * @throws \Drupal\migrate\MigrateException
+   *   Thrown when max_length is missing or invalid.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
