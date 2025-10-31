@@ -65,11 +65,12 @@ class Truncate extends ProcessPluginBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->maxLength = $this->configuration['max_length'];
-
-    if (!isset($this->maxLength)) {
+    if (!isset($this->configuration['max_length'])) {
       throw new MigrateException('dgi_migrate.truncate is missing "max_length" configuration.');
     }
+
+    $this->maxLength = $this->configuration['max_length'];
+
     if ($this->maxLength <= 0) {
       throw new MigrateException('dgi_migrate.truncate "max_length" configuration must be a positive integer.');
     }
