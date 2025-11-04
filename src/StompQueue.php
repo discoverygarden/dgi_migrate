@@ -242,7 +242,7 @@ class StompQueue implements QueueInterface {
   /**
    * {@inheritDoc}
    */
-  public function __sleep() {
+  public function __sleep() : array {
     $vars = $this->dstSleep();
 
     $to_suppress = [
