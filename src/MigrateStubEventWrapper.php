@@ -3,7 +3,7 @@
 namespace Drupal\dgi_migrate;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
-use Drupal\migrate\Event\MigrateEvents;
+use Drupal\dgi_migrate\EventSubscriber\StubMigrateEvents;
 use Drupal\migrate\Event\MigrateImportEvent;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\migrate\MigrateStubInterface;
@@ -33,11 +33,11 @@ class MigrateStubEventWrapper implements MigrateStubInterface {
     $migration = $this->getMigration($migration_id);
 
     try {
-      $this->eventDispatcher->dispatch(new MigrateImportEvent($migration, $this->migrateMessage), MigrateEvents::PRE_IMPORT);
+      $this->eventDispatcher->dispatch(new MigrateImportEvent($migration, $this->migrateMessage), StubMigrateEvents::PRE_IMPORT);
       return $this->inner->createStub($migration_id, $source_ids, $default_values);
     }
     finally {
-      $this->eventDispatcher->dispatch(new MigrateImportEvent($migration, $this->migrateMessage), MigrateEvents::POST_IMPORT);
+      $this->eventDispatcher->dispatch(new MigrateImportEvent($migration, $this->migrateMessage), StubMigrateEvents::POST_IMPORT);
     }
   }
 
