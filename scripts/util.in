@@ -180,11 +180,13 @@ function do_migration_multi_process() {
       while [ "${#PROCESS_JOBS[@]}" -gt "0" ] ; do
         wait -n -p EXITING_WORKER ${PROCESS_JOBS[@]}
         WORKER_EXIT_CODE=$?
-        PROCESS_JOBS=( "${PROCESS_JOBS[@]/$EXITING_WORKER/}" )
+        PROCESS_JOBS=( ${PROCESS_JOBS[@]/$EXITING_WORKER} )
         if [ "$WORKER_EXIT_CODE" -ne "0" ] ; then
-          echo "Worker exited with non-zero exit code; interrupting process."
+          echo "Worker $EXITING_WORKER exited with non-zero exit code ($WORKER_EXIT_CODE); interrupting process."
           kill -INT ${PROCESS_JOBS[@]}
           return 2
+        else
+          echo "Worker $EXITING_WORKER exited with 0."
         fi
       done
       echo "Workers exited."
