@@ -20,6 +20,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, ContainerFactoryPluginInterface {
 
+  /**
+   * The name of the destination property in which to build our tracking info.
+   */
   const PROPERTY_NAME = __CLASS__ . '_tracker';
 
   /**
@@ -27,23 +30,34 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
    *
    * @var \Drupal\migrate\Plugin\MigrateProcessInterface
    */
-  protected MigrateProcessInterface $originalPlugin;
+  protected MigrateProcessInterface $wrappedPlugin;
 
   /**
    * {@inheritDoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, ?MigrationInterface $migration = NULL) : self {
-    $instance = new static(
+    /** @var \Drupal\migrate\Plugin\MigratePluginManagerInterface $process_plugin_manager */
+    $process_plugin_manager = $container->get('plugin.manager.migrate.process');
+    return (new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
-    );
+    ))
+      ->setWrappedPlugin($process_plugin_manager->createInstance('dgi_migrate_original_get', $configuration, $migration));
+  }
 
-    /** @var \Drupal\migrate\Plugin\MigratePluginManagerInterface $process_plugin_manager */
-    $process_plugin_manager = $container->get('plugin.manager.migrate.process');
-    $instance->originalPlugin = $process_plugin_manager->createInstance('dgi_migrate_original_get', $configuration, $migration);
-
-    return $instance;
+  /**
+   * Set the "get" plugin instance we are to wrap.
+   *
+   * @param \Drupal\migrate\Plugin\MigrateProcessInterface $to_wrap
+   *   The original "get" plugin instance to wrap.
+   *
+   * @return $this
+   *   Fluent API.
+   */
+  public function setWrappedPlugin(MigrateProcessInterface $to_wrap) : self {
+    $this->wrappedPlugin = $to_wrap;
+    return $this;
   }
 
   /**
@@ -57,12 +71,12 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
     $source = $this->configuration['source'];
     $properties = is_string($source) ? [$source] : $source;
 
-    $tracker[$destination_property] = array_any($properties, function (string $property) use ($row, $tracker) {
+    $tracker[$destination_property] = static::any($properties, static function (string $property) use ($row, $tracker) {
       // Adapted from the Row class.
       // @see https://git.drupalcode.org/project/drupal/-/blob/4f22ed87387ed92e5b1c8be1814de354706f6623/core/modules/migrate/src/Row.php#L345-355
       $is_source = TRUE;
       if (str_starts_with($property, '@')) {
-        $property = preg_replace_callback('/^(@?)((?:@@)*)([^@]|$)/', function ($matches) use (&$is_source) {
+        $property = preg_replace_callback('/^(@?)((?:@@)*)([^@]|$)/', static function ($matches) use (&$is_source) {
           // If there are an odd number of @ in the beginning, it's a
           // destination.
           $is_source = empty($matches[1]);
@@ -77,7 +91,35 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
     });
     $row->setDestinationProperty(static::PROPERTY_NAME, $tracker);
 
-    return $this->originalPlugin->transform($value, $migrate_executable, $row, $destination_property);
+    return $this->wrappedPlugin->transform($value, $migrate_executable, $row, $destination_property);
+  }
+
+  /**
+   * Avoid dependency on PHP 8.4 polyfill for `\array_any()`.
+   *
+   * @param array $values
+   *   Values to test.
+   * @param callable $callback
+   *   The callback with which to test.
+   *
+   * @return bool
+   *   TRUE if an item returned TRUE; otherwise, FALSE.
+   *
+   * @see \array_any()
+   */
+  private static function any(array $values, callable $callback) : bool {
+    if (function_exists('array_any')) {
+      return array_any($values, $callback);
+    }
+
+    // Adapted from polyfill.
+    // @see https://github.com/symfony/polyfill-php84/blob/d8ced4d875142b6a7426000426b8abc631d6b191/Php84.php#L90-L99
+    foreach ($values as $key => $value) {
+      if ($callback($value, $key)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**
