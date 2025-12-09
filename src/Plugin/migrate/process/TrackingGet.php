@@ -104,6 +104,10 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
         $copy->setEmptyDestinationProperty($property);
       }
     }
+
+    // Remove our tracking info from the row, as it has served its purpose.
+    $copy->removeDestinationProperty(static::PROPERTY_NAME);
+
     return $copy;
   }
 
