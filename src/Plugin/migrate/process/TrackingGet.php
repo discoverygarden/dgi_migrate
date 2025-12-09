@@ -4,7 +4,6 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\migrate\MigrateExecutableInterface;
-use Drupal\migrate\Plugin\MigratePluginManagerInterface;
 use Drupal\migrate\Plugin\MigrateProcessInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
@@ -23,6 +22,11 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
 
   const PROPERTY_NAME = __CLASS__ . '_tracker';
 
+  /**
+   * Instance of the plugin we are overriding.
+   *
+   * @var \Drupal\migrate\Plugin\MigrateProcessInterface
+   */
   protected MigrateProcessInterface $originalPlugin;
 
   /**
