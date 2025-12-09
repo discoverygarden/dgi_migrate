@@ -87,7 +87,7 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
       }
       return $is_source ?
         $row->hasSourceProperty($property) :
-        $tracker[$property];
+        ($tracker[$property] ?? $row->hasDestinationProperty($property));
     });
     $row->setDestinationProperty(static::PROPERTY_NAME, $tracker);
 
