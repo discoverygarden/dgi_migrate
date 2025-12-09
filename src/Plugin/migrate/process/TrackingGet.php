@@ -23,7 +23,7 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
   /**
    * The name of the destination property in which to build our tracking info.
    */
-  const PROPERTY_NAME = __CLASS__ . '_tracker';
+  const PROPERTY_NAME = '_dgi_migrate_tracking_get_tracker';
 
   /**
    * Instance of the plugin we are overriding.
