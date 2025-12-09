@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\destination;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\dgi_migrate\Plugin\migrate\process\TrackingGet;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
 use Drupal\migrate\Plugin\MigrationInterface;
@@ -55,6 +56,9 @@ class DgiRevisionedEntity extends EntityContentBase {
    */
   public function import(Row $row, array $old_destination_id_values = []) {
     $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_DELETE;
+
+    $row = TrackingGet::filterRow($row);
+
     $entity = $this->getEntity($row, $old_destination_id_values);
 
     if (!$entity) {
