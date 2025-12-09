@@ -18,7 +18,7 @@ class TrackingGetTest extends UnitTestCase {
   /**
    * Mock migration executable.
    *
-   * @var \Drupal\migrate\MigrateExecutableInterface|(\Drupal\migrate\MigrateExecutableInterface&\object&\PHPUnit\Framework\MockObject\Stub)|(\Drupal\migrate\MigrateExecutableInterface&\PHPUnit\Framework\MockObject\Stub)|(\object&\PHPUnit\Framework\MockObject\Stub)|\PHPUnit\Framework\MockObject\Stub
+   * @var \Drupal\migrate\MigrateExecutableInterface
    */
   protected MigrateExecutableInterface $mockExecutable;
 
