@@ -57,9 +57,17 @@ class DgiRevisionedEntity extends EntityContentBase {
   public function import(Row $row, array $old_destination_id_values = []) {
     $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_DELETE;
 
-    $row = TrackingGet::filterRow($row);
+    $filtered_row = TrackingGet::filterRow($row);
 
-    $entity = $this->getEntity($row, $old_destination_id_values);
+    $entity = $this->getEntity($filtered_row, $old_destination_id_values);
+
+    foreach ($row->getRawDestination() as $property => $values) {
+      $row->removeDestinationProperty($property);
+    }
+    foreach ($filtered_row->getRawDestination() as $property => $values) {
+      $row->setDestinationProperty($property, $values);
+    }
+    $row->setIdMap($filtered_row->getIdMap());
 
     if (!$entity) {
       throw new MigrateException('Unable to get entity');

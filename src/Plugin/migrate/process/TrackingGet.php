@@ -140,6 +140,7 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
     $tracker = $row->getDestinationProperty(static::PROPERTY_NAME);
 
     $copy = $row->cloneWithoutDestination();
+    $copy->setIdMap($row->getIdMap());
     foreach ($row->getRawDestination() as $property => $value) {
       $copy->setDestinationProperty($property, $value);
     }
