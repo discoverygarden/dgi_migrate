@@ -42,7 +42,6 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
     /** @var \Drupal\migrate\Plugin\MigratePluginManagerInterface $process_plugin_manager */
     $process_plugin_manager = $container->get('plugin.manager.migrate.process');
     $instance->originalPlugin = $process_plugin_manager->createInstance('dgi_migrate_original_get', $configuration, $migration);
-    $instance->migration = $migration;
 
     return $instance;
   }
