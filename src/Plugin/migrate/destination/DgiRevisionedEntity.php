@@ -48,7 +48,7 @@ class DgiRevisionedEntity extends EntityContentBase {
     $entity_type = $configuration['entity_type'] ?? 'node';
     $instance = parent::create($container, $configuration, 'entity:' . $entity_type, $plugin_definition, $migration);
     $instance->entityType = $entity_type;
-    $instance->migrationId = $migration->id();
+    $instance->migrationId = $migration?->id() ?? '(unknown; not provided)';
     return $instance;
   }
 
