@@ -72,10 +72,22 @@ dgi-migrate:rollback beer_user --idlist=5 --user=islandora
 
 ## Configuration
 
+### Search API, direct/immediate indexing
+
 The suppression `search_api`'s "immediate indexing"/`index_directly` functionality (which can cause instability in long processes, when `search_api` attempts to index potentially large sets of entities at the end of the request) is enabled by default, but can be configured by multiple means.
 
 - The `DGI_MIGRATE_SUPPRESS_DIRECT_INDEXING_DURING_MIGRATIONS` environment variables takes precedence if set. The string `true` should enable (case-sensitive!); while any other non-empty value should disable.
 - In config: `dgi_migrate.settings:suppress_direct_indexing_during_migrations`, as a boolean flag.
+
+### Entity update process
+
+Migrations can update existing entities (even without the `--update` flag), should the process identify an existing entity; however, during this process, if all the source properties are not provided for the destination rows that are mapped, it might end up erasing the related fields/properties from the entities in the database.
+
+To permit partial sources to be provided, we have implemented a process to try to track which destination properties did not have a corresponding source property, by implementing some handling around the `get` plugin. Where there is no source properties for an existing entity, existing values should be left intact. If a source property is provided with an empty value, the existing value should be erased.
+
+This functionality is enabled by default; however, it might be disabled by specifying an environment variable `DGI_MIGRATE_TRACKING_GET_DISABLED=true`.
+
+NOTE: There may be other plugins that access properties from the row by means other than using the `get` plugin, to which the current implementation is blind, for example, `dgi_migrate.process.entity_query`, via its `conditions` key.
 
 ## Troubleshooting/Issues
 

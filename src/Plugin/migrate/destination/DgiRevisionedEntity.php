@@ -3,6 +3,7 @@
 namespace Drupal\dgi_migrate\Plugin\migrate\destination;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\dgi_migrate\Plugin\migrate\process\TrackingGet;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
@@ -52,10 +53,22 @@ class DgiRevisionedEntity extends EntityContentBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Helper; handle process disabling.
+   *
+   * @param \Drupal\migrate\Row $row
+   *   Get entity for given row.
+   * @param array $old_destination_id_values
+   *   Old destination ID values.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface|null
+   *   The entity; otherwise, NULL.
+   *
+   * @see \Drupal\dgi_migrate\Plugin\migrate\destination\DgiRevisionedEntity::getEntity()
    */
-  public function import(Row $row, array $old_destination_id_values = []) {
-    $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_DELETE;
+  private function doGetEntity(Row $row, array $old_destination_id_values = []) : ?EntityInterface {
+    if (getenv('DGI_MIGRATE_TRACKING_GET_DISABLED') === 'true') {
+      return $this->getEntity($row, $old_destination_id_values);
+    }
 
     $filtered_row = TrackingGet::filterRow($row);
 
@@ -68,6 +81,17 @@ class DgiRevisionedEntity extends EntityContentBase {
       $row->setDestinationProperty($property, $values);
     }
     $row->setIdMap($filtered_row->getIdMap());
+
+    return $entity;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function import(Row $row, array $old_destination_id_values = []) {
+    $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_DELETE;
+
+    $entity = $this->doGetEntity($row, $old_destination_id_values);
 
     if (!$entity) {
       throw new MigrateException('Unable to get entity');

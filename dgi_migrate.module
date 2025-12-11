@@ -34,12 +34,14 @@ function dgi_migrate_migrate_process_info_alter(&$definitions) {
   $lookup['class'] = LockingMigrationLookup::class;
   $lookup['provider'] = 'dgi_migrate';
 
-  $definitions['dgi_migrate_original_get'] = [
-    'provider' => 'dgi_migrate',
-    'id' => 'dgi_migrate_original_get',
-  ] + $definitions['get'];
+  if (getenv('DGI_MIGRATE_TRACKING_GET_DISABLED') !== 'true') {
+    $definitions['dgi_migrate_original_get'] = [
+      'provider' => 'dgi_migrate',
+      'id' => 'dgi_migrate_original_get',
+    ] + $definitions['get'];
 
-  $get =& $definitions['get'];
-  $get['class'] = TrackingGet::class;
-  $get['provider'] = 'dgi_migrate';
+    $get =& $definitions['get'];
+    $get['class'] = TrackingGet::class;
+    $get['provider'] = 'dgi_migrate';
+  }
 }
