@@ -85,7 +85,10 @@ Migrations can update existing entities (even without the `--update` flag), shou
 
 To permit partial sources to be provided, we have implemented a process to try to track which destination properties did not have a corresponding source property, by implementing some handling around the `get` plugin. Where there is no source properties for an existing entity, existing values should be left intact. If a source property is provided with an empty value, the existing value should be erased.
 
-This functionality is enabled by default; however, it might be disabled by specifying an environment variable `DGI_MIGRATE_TRACKING_GET_DISABLED=true`.
+This functionality is enabled by default; however:
+
+* it only affects migrations making use of our `dgi_revisioned_entity` destination plugin
+* it might be disabled by specifying an environment variable `DGI_MIGRATE_TRACKING_GET_DISABLED=true`.
 
 NOTE: There may be other plugins that access properties from the row by means other than using the `get` plugin, to which the current implementation is blind, for example, `dgi_migrate.process.entity_query`, via its `conditions` key.
 
