@@ -161,9 +161,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
     }
 
     if ($this->enqueueException) {
-      throw new \Exception('Migration failed. Wrapped exception: ' . $this->enqueueException->getMessage(), previous: $this->enqueueException);
+      throw new \Exception("Migration ({$this->migration->id()}) failed. Wrapped exception: {$this->enqueueException->getMessage()}", previous: $this->enqueueException);
     }
-    throw new \Exception('Migration failed.');
+    throw new \Exception("Migration ({$this->migration->id()}) failed.");
   }
 
   /**
