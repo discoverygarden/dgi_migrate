@@ -336,9 +336,9 @@ class MigrateCommands extends MigrateToolsCommands {
       foreach ($migration_groups as $migrations) {
         foreach ($migrations as $migration) {
           $graph[$migration->id()]['edges'] = [];
-          foreach ($migration->getMigrationDependencies() as $dependencies) {
+          foreach ($migration->getMigrationDependencies(TRUE) as $dependencies) {
             foreach ($dependencies as $dependency) {
-              $graph[$dependency]['edges'][$migration->id()] = 1;
+              $graph[$migration->id()]['edges'][$dependency] = 1;
             }
           }
         }
@@ -358,8 +358,9 @@ class MigrateCommands extends MigrateToolsCommands {
     $generated = iterator_to_array($generate_order());
 
     if ($options['sort']) {
-      usort($generated, function ($a, $b) {
-        return $a['weight'] - $b['weight'];
+      usort($generated, static function ($a, $b) {
+        # XXX: Reversed ordering is intentional.
+        return $b['weight'] <=> $a['weight'];
       });
     }
 
