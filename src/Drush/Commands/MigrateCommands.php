@@ -359,7 +359,7 @@ class MigrateCommands extends MigrateToolsCommands {
 
     if ($options['sort']) {
       usort($generated, static function ($a, $b) {
-        # XXX: Reversed ordering is intentional.
+        // XXX: Reversed ordering is intentional.
         return $b['weight'] <=> $a['weight'];
       });
     }
