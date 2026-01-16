@@ -506,6 +506,35 @@ class MigrateCommands extends MigrateToolsCommands {
   }
 
   /**
+   * {@inheritDoc}
+   *
+   * The upstream `migrate_tools` command that we extend changed from directly
+   * calling `MigrationPluginManager::createInstances()` to individually calling
+   * `[...]::createInstance()` between 6.1.2 and 6.1.3, and so effectively
+   * avoids making use of the dependency sorting from the end of
+   * `[...]::createInstances()`; so: let's make sure that things get sorted.
+   *
+   * @see https://git.drupalcode.org/project/migrate_tools/-/compare/6.1.2...6.1.3?from_project_id=47830
+   * @see https://git.drupalcode.org/project/drupal/-/blob/10.5.x/core/modules/migrate/src/Plugin/MigrationPluginManager.php?ref_type=heads#L127-128
+   */
+  protected function migrationsList($migration_ids = '', array $options = []) : array {
+    $initial_list = parent::migrationsList($migration_ids, $options);
+    $to_return = [];
+
+    foreach ($initial_list as $group_id => $migrations) {
+      if (count($migrations) <= 1) {
+        // One migration (or less?), so no need to sort.
+        $to_return[$group_id] = $migrations;
+        continue;
+      }
+
+      $to_return[$group_id] = $this->migrationPluginManager->buildDependencyMigration($migrations, []);
+    }
+
+    return $to_return;
+  }
+
+  /**
    * Enqueue STOMP "terminal" messages.
    *
    * @option priority The priority of the message. Higher should lead to earlier
