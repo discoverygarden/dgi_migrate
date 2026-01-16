@@ -109,11 +109,8 @@ class MigrateCommands extends MigrateToolsCommands {
     static $executed_migrations = [];
 
     if ($options['execute-dependencies']) {
-      $definition = $migration->getPluginDefinition();
-      $required_migrations = $definition['requirements'] ?? [];
-      $required_migrations = array_filter($required_migrations, function ($value) use ($executed_migrations) {
-        return !isset($executed_migrations[$value]);
-      });
+      $required_migrations = $migration->getRequirements();
+      $required_migrations = array_filter($required_migrations, static fn($value): bool => !isset($executed_migrations[$value]));
 
       if (!empty($required_migrations)) {
         $manager = $this->migrationPluginManager;
