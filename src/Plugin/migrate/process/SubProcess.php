@@ -161,7 +161,7 @@ class SubProcess extends ProcessPluginBase {
         $migrate_executable->saveMessage(strtr("Non-propagated skip from processing \":property\": \n:upstream", [
           ':property' => $destination_property,
           ':upstream' => $e,
-        ]));
+        ]), MigrationInterface::MESSAGE_WARNING);
         return NULL;
       }
       catch (\Exception $e) {
