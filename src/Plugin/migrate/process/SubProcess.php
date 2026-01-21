@@ -4,6 +4,7 @@ namespace Drupal\dgi_migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\MigrateSkipRowException;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 
@@ -154,9 +155,14 @@ class SubProcess extends ProcessPluginBase {
             ':upstream' => $e,
           ]));
         }
-        else {
-          return NULL;
-        }
+
+        // XXX: This code _should_ be inaccessible, based on how ::doProcess()
+        // should handle suppressing the exception.
+        $migrate_executable->saveMessage(strtr("Non-propagated skip from processing \":property\": \n:upstream", [
+          ':property' => $destination_property,
+          ':upstream' => $e,
+        ]));
+        return NULL;
       }
       catch (\Exception $e) {
         // Wrap exception with a bit of context.
@@ -237,9 +243,24 @@ class SubProcess extends ProcessPluginBase {
         $this->parentIndex => $index,
       ]);
 
-      $executable->processRow($new_row, $this->values);
+      try {
+        $executable->processRow($new_row, $this->values);
 
-      yield $new_row->get($this->outputKey) => $new_row->getDestination();
+        yield $new_row->get($this->outputKey) => $new_row->getDestination();
+      }
+      catch (MigrateSkipRowException $e) {
+        if ($this->propagateSkip) {
+          // Just rethrow it.
+          // XXX: Ideally, could throw another and include caught exception as
+          // the "previous"; however, it is not presently possible.
+          throw $e;
+        }
+        $executable->saveMessage(strtr('Suppressing :class from processing offset :index. Message: :message', [
+          ':class' => MigrateSkipRowException::class,
+          ':index' => $index,
+          ':message' => $e->getMessage(),
+        ]), MigrationInterface::MESSAGE_NOTICE);
+      }
     }
   }
 
