@@ -8,7 +8,7 @@
         "discoverygarden/islandora_drush_utils": "^1 || ^2",
         "discoverygarden/update-helper": "^1",
         "drupal/controlled_access_terms": "^2",
-        "drupal/imagemagick": "^3.2",
+        "drupal/imagemagick": "^3.2 || ^4",
         "drupal/islandora": "^2",
         "drupal/migrate_directory": "^1 || ^2",
         "drupal/migrate_plus": "^5.1 || ^6",
@@ -16,10 +16,13 @@
         "drupal/paragraphs": "^1",
         "drupal/pathauto": "^1.8",
         "iqb/substream": "dev-master",
-        "symfony/mime": "^5 || ^6"
+        "symfony/mime": "^5 || ^6 || ^7"
     },
     "require-dev": {
         "drupal/devel": "^4"
+    },
+    "conflict": {
+        "drupal/core": "<10.1"
     },
     "suggest": {
         "discoverygarden/entity_reference_integrity_extra": "Deal with addtional 'entity_reference' fields.",
@@ -28,7 +31,7 @@
     "extra": {
         "drush": {
             "services": {
-                "drush.11-12.services.yml": "^11.6 || ^12",
+                "drush.11-12.services.yml": ">=11.6",
                 "drush.10-11.services.yml": "^10 || >=11.0.0 <11.6"
             }
         }

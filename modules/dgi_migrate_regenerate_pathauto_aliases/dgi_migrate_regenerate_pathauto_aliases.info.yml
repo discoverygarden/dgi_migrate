@@ -2,7 +2,7 @@ name: 'DGI Migrate, regenerate Pathauto aliases'
 description: "Provides a way to regenerate Pathauto aliases that were initially disabled."
 type: module
 package: DGI
-core_version_requirement: ^9 || ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - pathauto:pathauto
   - islandora_drush_utils:islandora_drush_utils
