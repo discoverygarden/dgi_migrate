@@ -159,9 +159,11 @@ class MigrateBatchExecutable extends MigrateExecutable {
         'finished' => [$this, 'finishBatch'],
       ];
     }
-    else {
-      throw new \Exception('Migration failed.');
+
+    if ($this->enqueueException) {
+      throw new \Exception("Migration ({$this->migration->id()}) failed. Wrapped exception: {$this->enqueueException->getMessage()}", previous: $this->enqueueException);
     }
+    throw new \Exception("Migration ({$this->migration->id()}) failed.");
   }
 
   /**
@@ -179,6 +181,13 @@ class MigrateBatchExecutable extends MigrateExecutable {
     $this->getEventDispatcher()->dispatch(new MigrateImportEvent($this->migration, $this->message), MigrateEvents::POST_IMPORT);
     $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
   }
+
+  /**
+   * Stash any exception encountered during enqueueing, so it can be reported.
+   *
+   * @var \Exception|null
+   */
+  protected ?\Exception $enqueueException = NULL;
 
   /**
    * Populate the target queue with the rows of the given migration.
@@ -218,6 +227,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
         ),
         'error'
       );
+      $this->enqueueException = $e;
 
       return MigrationInterface::RESULT_FAILED;
     }
@@ -232,6 +242,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $this->message->display(
         $this->t('Migration failed with source plugin exception: @e', ['@e' => $e]), 'error');
       $this->migration->setStatus(MigrationInterface::STATUS_IDLE);
+      $this->enqueueException = $e;
       return MigrationInterface::RESULT_FAILED;
     }
 
