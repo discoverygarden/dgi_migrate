@@ -165,14 +165,30 @@ function do_migration_multi_process() {
         PROCESS_JOBS+=($!)
       done
 
-      wait $ENQUEUEING_JOB
+      if ! wait $ENQUEUEING_JOB ; then
+        echo "Work enqueuing exited abnormally; interrupting process."
+        kill -INT ${PROCESS_JOBS[@]}
+        return 1
+      fi
+
       echo "Work enqueueing finished; enqueueing terminal messages."
       for i in $(seq 1 $PROCESSES); do
         wwwdrush dgi-migrate:enqueue-terminal "$MIGRATION_ID" "$NUM"
       done
 
       echo "Terminal messages enqueued; waiting for workers to finish..."
-      wait ${PROCESS_JOBS[@]}
+      while [ "${#PROCESS_JOBS[@]}" -gt "0" ] ; do
+        wait -n -p EXITING_WORKER ${PROCESS_JOBS[@]}
+        WORKER_EXIT_CODE=$?
+        PROCESS_JOBS=( ${PROCESS_JOBS[@]/$EXITING_WORKER} )
+        if [ "$WORKER_EXIT_CODE" -ne "0" ] ; then
+          echo "Worker $EXITING_WORKER exited with non-zero exit code ($WORKER_EXIT_CODE); interrupting process."
+          kill -INT ${PROCESS_JOBS[@]}
+          return 2
+        else
+          echo "Worker $EXITING_WORKER exited with 0."
+        fi
+      done
       echo "Workers exited."
 
       if [ ! -f $PAUSE_LOCK_FILE ] ; then
