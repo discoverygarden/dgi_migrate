@@ -104,6 +104,10 @@ class MigrationImmediateIndexingDeferralEventSubscriber implements EventSubscrib
       MigrateEvents::POST_ROLLBACK => 'stopBatchTracking',
       MigrateEvents::PRE_ROW_DELETE => 'startBatchTracking',
       MigrateEvents::POST_ROW_DELETE => 'stopBatchTracking',
+      StubMigrateEvents::PRE_IMPORT => 'startBatchTracking',
+      StubMigrateEvents::POST_IMPORT => 'stopBatchTracking',
+      StubMigrateEvents::PRE_SAVE => 'startBatchTracking',
+      StubMigrateEvents::POST_SAVE => 'stopBatchTracking',
     ];
   }
 
