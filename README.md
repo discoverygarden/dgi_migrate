@@ -94,6 +94,8 @@ potentially lead to issues, especially with larger datastreams, exacerbated by
 the `php://filter` usage to Base64-decode the contents
     * hesitant to remove the assertions without having any other mechanism to
     * could instead roll some unit tests?
+* For archival FOXML, [a patch for `iqb/substream`](https://github.com/iqb/Morgue/pull/2) may be necessary to address [a
+  bug in the stream wrapper implementation](https://github.com/iqb/Morgue/issues/1); otherwise, there may be [`MigrateException`s thrown](https://github.com/discoverygarden/dgi_migrate/blob/923e3098d5cf4aca52673806c7a4d6dc4f654ed5/src/Plugin/migrate/process/NaiveFileCopy.php#L275) which point back at [a failure to write to the filtering process](https://github.com/discoverygarden/dgi_migrate/blob/923e3098d5cf4aca52673806c7a4d6dc4f654ed5/src/Plugin/migrate/process/NaiveFileCopy.php#L203), while the actual issue pops out from [the `stream_copy_to_stream()` proper](https://github.com/discoverygarden/dgi_migrate/blob/923e3098d5cf4aca52673806c7a4d6dc4f654ed5/src/Plugin/migrate/process/NaiveFileCopy.php#L192).
 
 ## Resources
 DGI migrate enhances Drupal's core migration framework and provides plugins
