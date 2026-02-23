@@ -237,9 +237,21 @@ class SubProcess extends ProcessPluginBase {
         $this->parentIndex => $index,
       ]);
 
-      $executable->processRow($new_row, $this->values);
+      try {
+        $executable->processRow($new_row, $this->values);
 
-      yield $new_row->get($this->outputKey) => $new_row->getDestination();
+        yield $new_row->get($this->outputKey) => $new_row->getDestination();
+      }
+      catch (MigrateSkipRowException $e) {
+        if ($this->propagateSkip) {
+          // Propagating, so propagate.
+          throw $e;
+        }
+
+        // Not propagating the skip, so let's try to make sure that the caller
+        // gets something along the lines of what they expect.
+        yield $new_row->get($this->outputKey) => NULL;
+      }
     }
   }
 

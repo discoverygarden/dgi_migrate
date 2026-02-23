@@ -109,11 +109,8 @@ class MigrateCommands extends MigrateToolsCommands {
     static $executed_migrations = [];
 
     if ($options['execute-dependencies']) {
-      $definition = $migration->getPluginDefinition();
-      $required_migrations = $definition['requirements'] ?? [];
-      $required_migrations = array_filter($required_migrations, function ($value) use ($executed_migrations) {
-        return !isset($executed_migrations[$value]);
-      });
+      $required_migrations = $migration->getRequirements();
+      $required_migrations = array_filter($required_migrations, static fn($value): bool => !isset($executed_migrations[$value]));
 
       if (!empty($required_migrations)) {
         $manager = $this->migrationPluginManager;
@@ -339,9 +336,9 @@ class MigrateCommands extends MigrateToolsCommands {
       foreach ($migration_groups as $migrations) {
         foreach ($migrations as $migration) {
           $graph[$migration->id()]['edges'] = [];
-          foreach ($migration->getMigrationDependencies() as $dependencies) {
+          foreach ($migration->getMigrationDependencies(TRUE) as $dependencies) {
             foreach ($dependencies as $dependency) {
-              $graph[$dependency]['edges'][$migration->id()] = 1;
+              $graph[$migration->id()]['edges'][$dependency] = 1;
             }
           }
         }
@@ -361,8 +358,9 @@ class MigrateCommands extends MigrateToolsCommands {
     $generated = iterator_to_array($generate_order());
 
     if ($options['sort']) {
-      usort($generated, function ($a, $b) {
-        return $a['weight'] - $b['weight'];
+      usort($generated, static function ($a, $b) {
+        // XXX: Reversed ordering is intentional.
+        return $b['weight'] <=> $a['weight'];
       });
     }
 
@@ -506,6 +504,35 @@ class MigrateCommands extends MigrateToolsCommands {
   ) {
     $executable = $this->getExecutable($migration_id, $options);
     drush_op([$executable, 'teardownMigration']);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * The upstream `migrate_tools` command that we extend changed from directly
+   * calling `MigrationPluginManager::createInstances()` to individually calling
+   * `[...]::createInstance()` between 6.1.2 and 6.1.3, and so effectively
+   * avoids making use of the dependency sorting from the end of
+   * `[...]::createInstances()`; so: let's make sure that things get sorted.
+   *
+   * @see https://git.drupalcode.org/project/migrate_tools/-/compare/6.1.2...6.1.3?from_project_id=47830
+   * @see https://git.drupalcode.org/project/drupal/-/blob/10.5.x/core/modules/migrate/src/Plugin/MigrationPluginManager.php?ref_type=heads#L127-128
+   */
+  protected function migrationsList($migration_ids = '', array $options = []) : array {
+    $initial_list = parent::migrationsList($migration_ids, $options);
+    $to_return = [];
+
+    foreach ($initial_list as $group_id => $migrations) {
+      if (count($migrations) <= 1) {
+        // One migration (or less?), so no need to sort.
+        $to_return[$group_id] = $migrations;
+        continue;
+      }
+
+      $to_return[$group_id] = $this->migrationPluginManager->buildDependencyMigration($migrations, []);
+    }
+
+    return $to_return;
   }
 
   /**

@@ -12,3 +12,13 @@ services:
     autowire: true
     tags:
       - { name: event_subscriber }
+  dgi_migrate.migrate_stub.event_wrapper:
+    class: Drupal\dgi_migrate\MigrateStubEventWrapper
+    decorates: migrate.stub
+    arguments:
+      - '@.inner'
+      - '@plugin.manager.migration'
+      - '@event_dispatcher'
+      - '@dgi_migrate.migrate_message'
+  dgi_migrate.migrate_message:
+    class: Drupal\migrate\MigrateMessage
