@@ -108,7 +108,7 @@ class MigrateBatchExecutable extends MigrateExecutable {
   /**
    * {@inheritdoc}
    */
-  public function __sleep() {
+  public function __sleep() : array {
     $vars = $this->traitSleep();
     $to_suppress = [
       // XXX: Avoid serializing some things can't be natively serialized.
@@ -478,7 +478,10 @@ class MigrateBatchExecutable extends MigrateExecutable {
    * {@inheritdoc}
    */
   protected function checkStatus() {
-    $status = parent::checkStatus();
+    $status = version_compare(\Drupal::VERSION, '11.3.0', '>=') ?
+      MigrationInterface::RESULT_COMPLETED :
+      parent::checkStatus();
+
 
     if ($status === MigrationInterface::RESULT_COMPLETED) {
       if (!static::isCli() && !static::hasTime()) {
