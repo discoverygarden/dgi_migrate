@@ -71,11 +71,11 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
     $source = $this->configuration['source'];
     $properties = is_string($source) ? [$source] : $source;
 
-    $tracker[$destination_property] = static::any($properties, static function (string $property) use ($row, $tracker) {
+    $tracker[$destination_property] = static::any($properties, static function ($property) use ($row, $tracker) {
       // Adapted from the Row class.
       // @see https://git.drupalcode.org/project/drupal/-/blob/4f22ed87387ed92e5b1c8be1814de354706f6623/core/modules/migrate/src/Row.php#L345-355
       $is_source = TRUE;
-      if (str_starts_with($property, '@')) {
+      if (is_string($property) && str_starts_with($property, '@')) {
         $property = preg_replace_callback('/^(@?)((?:@@)*)([^@]|$)/', static function ($matches) use (&$is_source) {
           // If there are an odd number of @ in the beginning, it's a
           // destination.
