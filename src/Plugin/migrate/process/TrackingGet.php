@@ -160,8 +160,23 @@ class TrackingGet extends ProcessPluginBase implements MigrateProcessInterface, 
   /**
    * {@inheritDoc}
    */
-  public function multiple() {
+  public function multiple() : bool {
     return $this->wrappedPlugin->multiple();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function isPipelineStopped() : bool {
+    return parent::isPipelineStopped() || $this->wrappedPlugin->isPipelineStopped();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function reset() : void {
+    parent::reset();
+    $this->wrappedPlugin->reset();
   }
 
 }
