@@ -25,8 +25,8 @@ class AdaptedTrackingGetTest extends MigrateProcessTestCase {
       ->method('get')
       ->with('test')
       ->willReturn('source_value');
-    $this->plugin = (new TrackingGet([], '', []))
-      ->setWrappedPlugin(new Get(['source' => 'test'], '', []));
+    $this->plugin = (new TrackingGet($conf = ['source' => 'test'], '', []))
+      ->setWrappedPlugin(new Get($conf, '', []));
     $value = $this->plugin->transform(NULL, $this->migrateExecutable, $this->row, 'destination_property');
     $this->assertSame('source_value', $value);
   }
@@ -39,8 +39,8 @@ class AdaptedTrackingGetTest extends MigrateProcessTestCase {
       'test1' => 'source_value1',
       'test2' => 'source_value2',
     ];
-    $this->plugin = (new TrackingGet([], '', []))
-      ->setWrappedPlugin(new Get(['source' => ['test1', 'test2']], '', []));
+    $this->plugin = (new TrackingGet($conf = ['source' => ['test1', 'test2']], '', []))
+      ->setWrappedPlugin(new Get($conf, '', []));
     $this->row->expects($this->exactly(2))
       ->method('get')
       ->willReturnCallback(function ($argument) use ($map) {
@@ -58,8 +58,8 @@ class AdaptedTrackingGetTest extends MigrateProcessTestCase {
       ->method('get')
       ->with('@@test')
       ->willReturn('source_value');
-    $this->plugin = (new TrackingGet([], '', []))
-      ->setWrappedPlugin(new Get(['source' => '@@test'], '', []));
+    $this->plugin = (new TrackingGet($conf = ['source' => '@@test'], '', []))
+      ->setWrappedPlugin(new Get($conf, '', []));
     $value = $this->plugin->transform(NULL, $this->migrateExecutable, $this->row, 'destination_property');
     $this->assertSame('source_value', $value);
   }
@@ -74,8 +74,8 @@ class AdaptedTrackingGetTest extends MigrateProcessTestCase {
       '@@test3' => 'source_value3',
       'test4' => 'source_value4',
     ];
-    $this->plugin = (new TrackingGet([], '', []))
-      ->setWrappedPlugin(new Get(['source' => ['test1', '@@test2', '@@test3', 'test4']], '', []));
+    $this->plugin = (new TrackingGet($conf = ['source' => ['test1', '@@test2', '@@test3', 'test4']], '', []))
+      ->setWrappedPlugin(new Get($conf, '', []));
     $this->row->expects($this->exactly(4))
       ->method('get')
       ->willReturnCallback(function ($argument) use ($map) {
@@ -95,8 +95,8 @@ class AdaptedTrackingGetTest extends MigrateProcessTestCase {
       ->method('get')
       ->willReturnOnConsecutiveCalls('val1', 'val2');
 
-    $this->plugin = (new TrackingGet([], '', []))
-      ->setWrappedPlugin(new Get(['source' => $source], '', []));
+    $this->plugin = (new TrackingGet($conf = ['source' => $source], '', []))
+      ->setWrappedPlugin(new Get($conf, '', []));
     $return = $this->plugin->transform(NULL, $this->migrateExecutable, $this->row, 'destination_property');
     $this->assertSame($expected_value, $return);
   }
