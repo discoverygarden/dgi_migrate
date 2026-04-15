@@ -88,6 +88,13 @@ class AssembleDate extends ProcessPluginBase {
   protected $getValues;
 
   /**
+   * Boolean flagging the return of multiple values.
+   *
+   * @var bool
+   */
+  protected bool $multiple = FALSE;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
@@ -125,7 +132,9 @@ class AssembleDate extends ProcessPluginBase {
       $return_dates[] = $single_dates;
     }
 
-    if (count($return_dates) === 1) {
+    $count = count($return_dates);
+    $this->multiple = $count > 1;
+    if ($count === 1) {
       return reset($return_dates);
     }
 
@@ -166,6 +175,13 @@ class AssembleDate extends ProcessPluginBase {
     }
 
     return "{$range_start}/{$range_end}";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function multiple() : bool {
+    return $this->multiple;
   }
 
 }
