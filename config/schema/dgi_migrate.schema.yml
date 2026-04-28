@@ -13,5 +13,13 @@ dgi_migrate.settings:
         DRUPAL_ROOT-relative or absolute path a directory in which to spool
         the large base64 decoded streams.
     suppress_direct_indexing_during_migrations:
-      type: bool
+      type: boolean
       label: Suppress search_api's index_directly option during migrations.
+
+migrate_plus.id_map.smart_sql:
+  type: migrate_plus.id_map.sql
+  label: Smart SQL
+  mapping:
+    manage_orphans:
+      type: boolean
+      label: Flag if children should be managed.

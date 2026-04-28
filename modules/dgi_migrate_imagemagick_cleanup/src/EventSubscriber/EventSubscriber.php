@@ -6,6 +6,7 @@ use Drupal\Core\DestructableInterface;
 use Drupal\Core\File\Exception\FileException;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\dgi_migrate\EventSubscriber\StubMigrateEvents;
 use Drupal\dgi_migrate_imagemagick_cleanup\Event\TempImageEvent;
 use Drupal\imagemagick\Event\ImagemagickExecutionEvent;
 use Drupal\imagemagick\ImagemagickExecArguments;
@@ -106,6 +107,8 @@ class EventSubscriber implements EventSubscriberInterface, DestructableInterface
         100,
       ],
       MigrateEvents::POST_ROW_SAVE => 'pop',
+      StubMigrateEvents::PRE_SAVE => 'push',
+      StubMigrateEvents::POST_SAVE => 'pop',
     ];
   }
 
