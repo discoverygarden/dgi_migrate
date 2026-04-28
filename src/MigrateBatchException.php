@@ -18,7 +18,7 @@ class MigrateBatchException extends \Exception {
    * Constructor.
    */
   public function __construct($message = '', $finished = NULL, $previous = NULL) {
-    parent::__construct($message, NULL, $previous);
+    parent::__construct($message, previous: $previous);
 
     $this->finished = $finished;
   }
