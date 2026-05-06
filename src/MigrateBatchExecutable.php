@@ -482,7 +482,6 @@ class MigrateBatchExecutable extends MigrateExecutable {
       MigrationInterface::RESULT_COMPLETED :
       parent::checkStatus();
 
-
     if ($status === MigrationInterface::RESULT_COMPLETED) {
       if (!static::isCli() && !static::hasTime()) {
         return MigrationInterface::RESULT_INCOMPLETE;
