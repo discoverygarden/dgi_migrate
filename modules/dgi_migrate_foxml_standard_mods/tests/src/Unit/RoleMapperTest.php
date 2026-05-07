@@ -99,7 +99,7 @@ EOXML
     $roles = $this->plugin->mapRoles($element, $this->xpath);
 
     $this->assertSame($expected_roles, array_intersect($expected_roles, $roles), 'Received found the expected role(s).');
-    $this->assertSame(count($expected_roles), count($roles), 'Had same number of roles.');
+    $this->assertCount(count($expected_roles), $roles, 'Had same number of roles.');
   }
 
   /**
