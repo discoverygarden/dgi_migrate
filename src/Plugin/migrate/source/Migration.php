@@ -97,7 +97,7 @@ class Migration extends SourcePluginBase implements ContainerFactoryPluginInterf
   /**
    * {@inheritdoc}
    */
-  public function __sleep() {
+  public function __sleep() : array {
     $vars = parent::__sleep();
 
     $to_suppress = [
