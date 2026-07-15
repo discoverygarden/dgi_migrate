@@ -24,6 +24,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Extends "file_copy", additionally accepting:
  * - force_stub: Boolean to force the copying when the row being processed
  *   appears to be a stub.
+ * - max_attempts: Integer indicating number of times to attempt retrying
+ *   transfers. Defaults to 5.
  *
  * @MigrateProcessPlugin(
  *   id = "dgi_migrate.naive_file_copy"
@@ -44,6 +46,13 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
    * @var bool
    */
   protected bool $forceStub;
+
+  /**
+   * Integer for the max attempts we should make to transfer.
+   *
+   * @var int
+   */
+  protected int $maxAttempts;
 
   /**
    * Constructor.
@@ -80,6 +89,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     if ($this->configuration['move']) {
       throw new \LogicException("Moving files is not supported with {$this->getPluginId()}.");
     }
+    $this->maxAttempts = $this->configuration['max_attempts'] ?? 5;
   }
 
   /**
@@ -119,7 +129,33 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
       }
     }
 
-    return $this->writeFile($source, $destination, $this->configuration['file_exists']);
+    $attempt = 0;
+    while (true) {
+      try {
+        return $this->writeFile($source, $destination, $this->configuration['file_exists']);
+      }
+      catch (\Exception $e) {
+        if (!(str_starts_with($source, 'https://') || str_starts_with($source, 'http://'))) {
+          // If it does not look like a source that might sporadically fail,
+          // let's not bother retrying.
+          throw $e;
+        }
+
+        $backoff = 2**$attempt;
+        $attempt++;
+        if ($attempt > $this->maxAttempts) {
+          throw new MigrateException(sprintf('Failed to transfer %s to %s after %d attempts; failing the row.', $source, $destination, $this->maxAttempts), previous: $e);
+        }
+        $this->logger->notice('Failed to transfer {source} to {dest}, attempt {attempt}/{max_attempts}; sleeping {backoff} seconds before retrying.', [
+          'source' => $source,
+          'dest' => $destination,
+          'attempt' => $attempt,
+          'max_attempts' => $this->maxAttempts,
+          'backoff' => $backoff,
+        ]);
+        sleep($backoff);
+      }
+    }
   }
 
   /**
