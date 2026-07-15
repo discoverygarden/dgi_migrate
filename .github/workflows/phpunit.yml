@@ -11,7 +11,7 @@ jobs:
     uses: discoverygarden/phpunit-action/.github/workflows/phpunit.yml@v1
     secrets: inherit
     with:
-      composer_package_prerequisites: >-
+      composer_prereqs: >-
         "drupal/migrate_directory:2.x-dev"
       composer_patches: >-
         {
