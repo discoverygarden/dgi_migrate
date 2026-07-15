@@ -18,7 +18,7 @@ jobs:
           },
           "drupal/migrate_directory": {
             "Custom iterator for memory optimization": "https://www.drupal.org/files/issues/2023-03-03/3344946-iterator.patch",
-            "D10 support": "https://www.drupal.org/files/issues/2022-06-16/migrate_directory.2.0.0.rector.patch"
+            "D11 support": "https://git.drupalcode.org/project/migrate_directory/-/commit/d44ecb000f6073caf7cfa91d0abc4c611a16f4da.diff"
           }
         }
       lenient-packages: >-
