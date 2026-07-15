@@ -130,7 +130,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
     }
 
     $attempt = 0;
-    while (true) {
+    while (TRUE) {
       try {
         return $this->writeFile($source, $destination, $this->configuration['file_exists']);
       }
@@ -141,7 +141,7 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
           throw $e;
         }
 
-        $backoff = 2**$attempt;
+        $backoff = 2 ** $attempt;
         $attempt++;
         if ($attempt > $this->maxAttempts) {
           throw new MigrateException(sprintf('Failed to transfer %s to %s after %d attempts; failing the row.', $source, $destination, $this->maxAttempts), previous: $e);
