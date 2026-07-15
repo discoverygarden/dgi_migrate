@@ -146,12 +146,14 @@ class NaiveFileCopy extends FileCopy implements ContainerFactoryPluginInterface 
         if ($attempt > $this->maxAttempts) {
           throw new MigrateException(sprintf('Failed to transfer %s to %s after %d attempts; failing the row.', $source, $destination, $this->maxAttempts), previous: $e);
         }
-        $this->logger->notice('Failed to transfer {source} to {dest}, attempt {attempt}/{max_attempts}; sleeping {backoff} seconds before retrying.', [
+        $this->logger->notice('Failed to transfer {source} to {dest}, attempt {attempt}/{max_attempts}; sleeping {backoff} seconds before retrying. Exception message and trace: {message} {trace}', [
           'source' => $source,
           'dest' => $destination,
           'attempt' => $attempt,
           'max_attempts' => $this->maxAttempts,
           'backoff' => $backoff,
+          'message' => $e->getMessage(),
+          'trace' => $e->getTraceAsString(),
         ]);
         sleep($backoff);
       }
