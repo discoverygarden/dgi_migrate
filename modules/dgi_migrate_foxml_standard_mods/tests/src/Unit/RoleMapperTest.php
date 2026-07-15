@@ -105,7 +105,7 @@ EOXML
   /**
    * Data provider for the test.
    */
-  public function pathProvider() {
+  public static function pathProvider() {
     $base = '/mods:modsCollection/mods:mods/mods:name';
     return [
       ["{$base}[1]", ['relators:cre']],
