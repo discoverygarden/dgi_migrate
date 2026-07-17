@@ -62,9 +62,8 @@ class MigrateBatchExecutable extends MigrateExecutable {
    *
    * Absorbed responsibility from <D11.3.
    *
-   * @see https://www.drupal.org/project/drupal/issues/3006750
-   *
    * @var float
+   * @see https://www.drupal.org/project/drupal/issues/3006750
    */
   protected $memoryThreshold;
 
@@ -73,9 +72,8 @@ class MigrateBatchExecutable extends MigrateExecutable {
    *
    * Absorbed responsibility from <D11.3.
    *
-   * @see https://www.drupal.org/project/drupal/issues/3006750
-   *
    * @var float|int
+   * @see https://www.drupal.org/project/drupal/issues/3006750
    */
   protected $memoryLimit;
 
@@ -108,7 +106,8 @@ class MigrateBatchExecutable extends MigrateExecutable {
       $this->memoryThreshold = 0.65;
     }
     if (!isset($this->memoryLimit)) {
-      $this->checkMemory = filter_var(getenv('DGI_MIGRATE_CHECK_MEMORY_THRESHOLD') ?: 'true', FILTER_VALIDATE_BOOLEAN);
+      $env_value = getenv('DGI_MIGRATE_CHECK_MEMORY_THRESHOLD');
+      $this->checkMemory = filter_var($env_value !== FALSE ? $env_value : 'true', FILTER_VALIDATE_BOOLEAN);
 
       if ($this->checkMemory) {
         // Record the memory limit in bytes.
