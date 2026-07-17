@@ -2,6 +2,7 @@
 
 namespace Drupal\dgi_migrate;
 
+use Drupal\Component\Utility\Bytes;
 use Drupal\Component\Utility\Timer;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Queue\QueueInterface;
@@ -57,6 +58,35 @@ class MigrateBatchExecutable extends MigrateExecutable {
   protected array $options;
 
   /**
+   * Memory threshold of which to cycle the batch.
+   *
+   * Absorbed responsibility from <D11.3.
+   *
+   * @see https://www.drupal.org/project/drupal/issues/3006750
+   *
+   * @var float
+   */
+  protected $memoryThreshold;
+
+  /**
+   * Detected memory limit.
+   *
+   * Absorbed responsibility from <D11.3.
+   *
+   * @see https://www.drupal.org/project/drupal/issues/3006750
+   *
+   * @var float|int
+   */
+  protected $memoryLimit;
+
+  /**
+   * Allow our memory check to be bypassed.
+   *
+   * @var bool
+   */
+  protected bool $checkMemory = FALSE;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(MigrationInterface $migration, MigrateMessageInterface $message, array $options = []) {
@@ -76,6 +106,20 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://github.com/drush-ops/drush/blob/dbdb6733655231687d8ab68cdea6bf9fedbd0562/includes/batch.inc#L291-L298
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
+    }
+    if (!isset($this->memoryLimit)) {
+      $this->checkMemory = filter_var(getenv('DGI_MIGRATE_CHECK_MEMORY_THRESHOLD') ?: 'true', FILTER_VALIDATE_BOOLEAN);
+
+      if ($this->checkMemory) {
+        // Record the memory limit in bytes.
+        $limit = trim(ini_get('memory_limit'));
+        if ($limit == '-1') {
+          $this->memoryLimit = PHP_INT_MAX;
+        }
+        else {
+          $this->memoryLimit = Bytes::toNumber($limit);
+        }
+      }
     }
   }
 
@@ -478,9 +522,15 @@ class MigrateBatchExecutable extends MigrateExecutable {
    * {@inheritdoc}
    */
   protected function checkStatus() {
-    $status = version_compare(\Drupal::VERSION, '11.3.0', '>=') ?
-      MigrationInterface::RESULT_COMPLETED :
-      parent::checkStatus();
+    if (version_compare(\Drupal::VERSION, '11.3.0', '<')) {
+      $status = parent::checkStatus();
+    }
+    elseif ($this->checkMemory) {
+      $status = $this->checkMemory() ? MigrationInterface::RESULT_COMPLETED : MigrationInterface::RESULT_INCOMPLETE;
+    }
+    else {
+      $status = MigrationInterface::RESULT_COMPLETED;
+    }
 
     if ($status === MigrationInterface::RESULT_COMPLETED) {
       if (!static::isCli() && !static::hasTime()) {
@@ -488,6 +538,27 @@ class MigrateBatchExecutable extends MigrateExecutable {
       }
     }
     return $status;
+  }
+
+  /**
+   * Check that the process is under the memory threshold.
+   *
+   * @return bool
+   *   TRUE if under the threshold; otherwise, FALSE.
+   */
+  protected function checkMemory() : bool {
+    $usage = memory_get_usage();
+    $pct_usage = $usage / $this->memoryLimit;
+    $to_return = $pct_usage < $this->memoryThreshold;
+    if (!$to_return) {
+      $this->message->display($this->t('Memory usage hit @usage/@limit (@pct of @threshold); cycling process.', [
+        '@usage' => $usage,
+        '@limit' => $this->memoryLimit,
+        '@pct' => $pct_usage,
+        '@threshold' => $this->memoryThreshold,
+      ]));
+    }
+    return $to_return;
   }
 
   /**
