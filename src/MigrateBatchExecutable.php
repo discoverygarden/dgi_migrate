@@ -105,6 +105,9 @@ class MigrateBatchExecutable extends MigrateExecutable {
       // @see https://git.drupalcode.org/project/drupal/-/blob/8.9.x/core/modules/migrate/src/MigrateExecutable.php#L47
       $this->memoryThreshold = 0.65;
     }
+    elseif (!isset($this->memoryThreshold)) {
+      $this->memoryThreshold = 0.85;
+    }
     if (!isset($this->memoryLimit)) {
       $env_value = getenv('DGI_MIGRATE_CHECK_MEMORY_THRESHOLD');
       $this->checkMemory = filter_var($env_value !== FALSE ? $env_value : 'true', FILTER_VALIDATE_BOOLEAN);
