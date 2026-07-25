@@ -6,6 +6,7 @@
  */
 
 use Discoverygarden\UpdateHelper;
+use Drupal\Core\Utility\UpdateException;
 
 /**
  * Delete example migration entities migrated to live as plugins.
@@ -40,4 +41,43 @@ function dgi_migrate_update_10001() {
   \Drupal::configFactory()->getEditable('dgi_migrate.settings')
     ->set('suppress_direct_indexing_during_migrations', TRUE)
     ->save();
+}
+
+/**
+ * Add trigram indexes for paragraphs parent lookups on PostgreSQL.
+ *
+ * Drupal's pgsql driver compiles entity-query string conditions to
+ * "column::text ILIKE ...", which btree indexes cannot serve. Deleting nodes
+ * with paragraph fields (e.g. dgi_migrate rollbacks) therefore triggers a
+ * sequential scan of the paragraphs field-data tables for every deleted
+ * node, per paragraph field. GIN trigram indexes on parent_id make those
+ * lookups indexable; observed to reduce large migration rollbacks from
+ * hours to minutes.
+ */
+function dgi_migrate_update_10002() {
+  $database = \Drupal::database();
+  if ($database->databaseType() !== 'pgsql') {
+    return t('Not PostgreSQL; nothing to do.');
+  }
+
+  $has_trgm = $database->query("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm'")->fetchField();
+  if (!$has_trgm) {
+    throw new UpdateException('The pg_trgm extension is not installed; run "CREATE EXTENSION pg_trgm;" as a superuser and re-run updates.');
+  }
+
+  $schema = $database->schema();
+  $tables = [
+    'paragraphs_item_field_data' => 'pifd_parent_id_trgm_idx',
+    'paragraphs_item_revision_field_data' => 'pirfd_parent_id_trgm_idx',
+  ];
+  $created = [];
+  foreach ($tables as $table => $index) {
+    if (!$schema->tableExists($table)) {
+      continue;
+    }
+    $database->query("CREATE INDEX IF NOT EXISTS {$index} ON {{$table}} USING gin (parent_id gin_trgm_ops)");
+    $created[] = $index;
+  }
+
+  return t('Created (or verified) indexes: @indexes', ['@indexes' => implode(', ', $created) ?: 'none (paragraphs tables absent)']);
 }
